@@ -25,64 +25,64 @@
       --primary-blue: #0d6efd;
       --dark-blue: #0a4b9a;
       --light-bg: #f4f7f6;
-      --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      --card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      --card-shadow: 0 0.075rem 0.15rem rgba(0, 0, 0, 0.05);
+      --card-hover-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
     }
 
     body {
       background-color: var(--light-bg);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 0.825rem;
     }
 
     .navbar-custom {
       background-color: var(--dark-blue);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding-top: 0.25rem;
+      padding-bottom: 0.25rem;
     }
 
     /* Data Source Control Panel */
     .data-source-panel {
       background: #ffffff;
       border-bottom: 1px solid #e0e0e0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
       z-index: 1000;
       position: relative;
+      transition: all 0.3s ease;
     }
     
     .status-area {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       background-color: #f8f9fa;
-      border-radius: 6px;
-      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
       border: 1px solid #dee2e6;
     }
 
     .sidebar-card, .dashboard-card {
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
       box-shadow: var(--card-shadow);
       background: #ffffff;
       transition: all 0.3s ease;
     }
 
-    .dashboard-card {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
     .dashboard-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: var(--card-hover-shadow);
     }
 
     .kpi-title {
-      font-size: 0.75rem;
+      font-size: 0.68rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       color: #6c757d;
     }
 
     .kpi-value {
-      font-size: 1.45rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: #2c3e50;
     }
@@ -95,13 +95,23 @@
     .bg-status-blue { background-color: #cfe2ff !important; color: #084298 !important; }
 
     .select2-container--bootstrap-5 .select2-selection {
-      border-radius: 6px;
+      border-radius: 4px;
+      min-height: 28px;
+      font-size: 0.8rem;
     }
 
     .chart-container {
       position: relative;
-      min-height: 280px;
+      height: 210px;
       width: 100%;
+    }
+
+    .table {
+      font-size: 0.78rem;
+    }
+
+    .table th, .table td {
+      padding: 0.3rem 0.4rem;
     }
 
     tr.group, tr.group:hover {
@@ -109,14 +119,39 @@
       font-weight: bold;
       color: #0a4b9a;
     }
+
+    /* Requirement 3: Highlight / Blink animation */
+    .highlight-blink {
+      animation: pulseHighlight 1s infinite alternate;
+      border: 2px solid #0d6efd !important;
+      box-shadow: 0 0 10px rgba(13, 110, 253, 0.5) !important;
+    }
+
+    @keyframes pulseHighlight {
+      0% {
+        box-shadow: 0 0 5px rgba(13, 110, 253, 0.4);
+        border-color: #0d6efd;
+      }
+      100% {
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.9);
+        border-color: #ffc107;
+      }
+    }
+
+    /* Modal size set to 90% of screen dashboard width */
+    .modal-90-width {
+      width: 90vw !important;
+      max-width: 90vw !important;
+      margin: 1.75rem auto;
+    }
   </style>
 </head>
 <body>
 
   <!-- Top Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
-    <div class="container-fluid px-4">
-      <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+    <div class="container-fluid px-3">
+      <a class="navbar-brand fw-bold d-flex align-items-center fs-6" href="#">
         <i class="fa-solid fa-chart-pie me-2"></i>
         <span>Budget Monitoring Dashboard &nbsp;|&nbsp; <span class="fw-bold text-warning">Magic Bus India Foundation</span></span>
       </a>
@@ -127,37 +162,37 @@
   </nav>
 
   <!-- Data Source Control Panel -->
-  <div class="data-source-panel py-3 px-4 mb-3">
-    <div class="row align-items-center gy-3">
+  <div class="data-source-panel py-2 px-3 mb-2" id="dataSourceSection">
+    <div class="row align-items-center gy-2">
       <!-- Input Controls -->
-      <div class="col-lg-7 d-flex flex-wrap align-items-center gap-3">
+      <div class="col-lg-7 d-flex flex-wrap align-items-center gap-2">
         <div class="input-group input-group-sm w-auto shadow-sm">
-          <span class="input-group-text fw-bold bg-light"><i class="fa-solid fa-database me-2 text-primary"></i> Data Source</span>
-          <select class="form-select fw-semibold" id="dataSourceSelect" style="min-width: 150px;">
+          <span class="input-group-text fw-bold bg-light" style="font-size: 0.75rem;"><i class="fa-solid fa-database me-1 text-primary"></i> Data Source</span>
+          <select class="form-select form-select-sm fw-semibold" id="dataSourceSelect" style="min-width: 120px; font-size: 0.75rem;">
             <option value="local">Local Drive</option>
             <option value="gdrive">Google Drive</option>
           </select>
         </div>
 
         <!-- Local Drive Input Group -->
-        <div id="localDriveGroup" class="d-flex align-items-center gap-2">
-          <button class="btn btn-sm btn-outline-primary fw-bold shadow-sm" id="btnSelectLocalFolder">
+        <div id="localDriveGroup" class="d-flex align-items-center gap-1">
+          <button class="btn btn-xs btn-sm btn-outline-primary fw-bold shadow-sm py-1" id="btnSelectLocalFolder">
             <i class="fa-solid fa-folder-open me-1"></i> Select Folder
           </button>
           <input type="file" id="localFolderInput" webkitdirectory directory multiple class="d-none">
         </div>
 
         <!-- Google Drive Input Group -->
-        <div id="gdriveGroup" class="d-flex align-items-center gap-2 d-none">
+        <div id="gdriveGroup" class="d-flex align-items-center gap-1 d-none">
           <div class="input-group input-group-sm shadow-sm">
             <span class="input-group-text bg-light"><i class="fa-brands fa-google-drive text-success"></i></span>
-            <input type="text" class="form-control" id="gdriveFolderId" placeholder="Enter Folder ID" style="min-width: 220px;">
-            <button class="btn btn-primary fw-bold" id="btnLoadGDrive">Load Data</button>
+            <input type="text" class="form-control form-control-sm" id="gdriveFolderId" placeholder="Enter Folder ID" style="min-width: 160px; font-size: 0.75rem;">
+            <button class="btn btn-sm btn-primary fw-bold py-1" id="btnLoadGDrive">Load Data</button>
           </div>
         </div>
 
         <!-- Refresh Button -->
-        <button class="btn btn-sm btn-success fw-bold shadow-sm" id="btnRefreshData">
+        <button class="btn btn-sm btn-success fw-bold shadow-sm py-1" id="btnRefreshData">
           <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Data
         </button>
       </div>
@@ -166,22 +201,22 @@
       <div class="col-lg-5">
         <div class="status-area d-flex justify-content-between align-items-center shadow-sm">
           <div>
-            <div class="mb-1"><strong class="text-secondary">Source:</strong> <span id="statusSourceLabel">Local Drive</span></div>
+            <div><strong class="text-secondary">Source:</strong> <span id="statusSourceLabel">Local Drive</span></div>
             <div><strong class="text-secondary">Folder:</strong> <span id="statusFolderName" class="fw-bold">Not Selected</span></div>
           </div>
-          <div class="border-start border-end px-3">
-            <div class="mb-1"><strong class="text-secondary">Files Loaded:</strong> <span id="statusFilesLoaded" class="fw-bold">0</span></div>
+          <div class="border-start border-end px-2">
+            <div><strong class="text-secondary">Files Loaded:</strong> <span id="statusFilesLoaded" class="fw-bold">0</span></div>
             <div><strong class="text-secondary">Last Refresh:</strong> <span id="statusLastRefresh" class="fst-italic">N/A</span></div>
           </div>
-          <div class="text-end ps-2">
-            <div class="mb-1"><strong class="text-secondary">Status:</strong> <span id="statusConnection" class="fw-bold text-danger">Disconnected</span></div>
+          <div class="text-end ps-1">
+            <div><strong class="text-secondary">Status:</strong> <span id="statusConnection" class="fw-bold text-danger">Disconnected</span></div>
             <!-- Manual Upload Fallback -->
             <div class="dropdown">
-              <a href="#" class="text-decoration-none small text-muted dropdown-toggle" data-bs-toggle="dropdown">More Options</a>
+              <a href="#" class="text-decoration-none small text-muted dropdown-toggle" data-bs-toggle="dropdown" style="font-size: 0.7rem;">More Options</a>
               <ul class="dropdown-menu dropdown-menu-end shadow">
                 <li>
-                  <label for="fallbackFileInput" class="dropdown-item mb-0" style="cursor:pointer;">
-                    <i class="fa-solid fa-upload me-2 text-primary"></i> Manual Upload Fallback
+                  <label for="fallbackFileInput" class="dropdown-item mb-0 py-1" style="cursor:pointer; font-size: 0.75rem;">
+                    <i class="fa-solid fa-upload me-1 text-primary"></i> Manual Upload Fallback
                   </label>
                   <input type="file" id="fallbackFileInput" class="d-none" multiple accept=".xlsx, .xls, .xlsm">
                 </li>
@@ -195,82 +230,102 @@
 
   <!-- Upload Progress Modal -->
   <div class="modal fade" id="uploadProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content">
-        <div class="modal-body text-center p-4">
-          <h5 class="fw-bold mb-3"><i class="fa-solid fa-gears text-primary me-2"></i>Processing Excel Data Pipeline</h5>
-          <div class="progress mb-2" style="height: 25px;">
-            <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+        <div class="modal-body text-center p-3">
+          <h6 class="fw-bold mb-2"><i class="fa-solid fa-gears text-primary me-1"></i>Processing Excel Data</h6>
+          <div class="progress mb-2" style="height: 18px;">
+            <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%; font-size: 0.7rem;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
           </div>
-          <p id="uploadStatusText" class="text-muted small mb-1">Connecting to data source...</p>
-          <p id="uploadTimingText" class="text-muted small mb-0 fw-bold text-success" style="display: none;"></p>
+          <p id="uploadStatusText" class="text-muted small mb-1" style="font-size: 0.7rem;">Connecting to data source...</p>
+          <p id="uploadTimingText" class="text-muted small mb-0 fw-bold text-success" style="display: none; font-size: 0.7rem;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requirement 2: First Time Flash Message Modal -->
+  <div class="modal fade" id="firstTimeFlashModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content shadow border-primary">
+        <div class="modal-header py-2 bg-primary text-white">
+          <h6 class="modal-title fw-bold" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-question me-2"></i>Data Source Option</h6>
+        </div>
+        <div class="modal-body text-center py-3">
+          <p class="mb-0 fw-semibold" style="font-size: 0.85rem;">Data source: Google Drive?</p>
+        </div>
+        <div class="modal-footer py-2 justify-content-center">
+          <button type="button" class="btn btn-sm btn-success px-3 fw-bold" id="btnFlashModalYes">Yes</button>
+          <button type="button" class="btn btn-sm btn-secondary px-3" id="btnFlashModalNo">No</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Main Container -->
-  <div class="container-fluid px-4 py-3">
+  <div class="container-fluid px-3 py-2">
     <!-- Flash Message Container -->
     <div id="flashMessageContainer"></div>
 
-    <div class="row g-4">
+    <div class="row g-2">
 
-      <!-- LEFT SIDEBAR: Filters -->
+      <!-- LEFT SIDEBAR: Smart Cascading Filters -->
       <div class="col-lg-3" id="filterSidebarCol">
-        <div class="card sidebar-card p-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold m-0 text-primary"><i class="fa-solid fa-filter me-2"></i>Filters</h5>
-            <button id="btnResetFilters" class="btn btn-outline-secondary btn-sm" title="Reset All Filters">
+        <div class="card sidebar-card p-2" id="filterSidebarCard">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold m-0 text-primary" style="font-size: 0.85rem;"><i class="fa-solid fa-filter me-1"></i>Smart Filters</h6>
+            <button id="btnResetFilters" class="btn btn-outline-secondary btn-xs py-0 px-2" title="Reset All Filters" style="font-size: 0.7rem;">
               <i class="fa-solid fa-rotate-right"></i> Reset
             </button>
           </div>
-          <hr class="mt-0 mb-3">
+          <hr class="mt-0 mb-2">
 
           <form id="filterForm">
-            <div class="row g-2 mb-3">
+            <!-- Date Filter Group -->
+            <div class="row g-1 mb-2">
               <div class="col-6">
-                <label class="form-label fw-semibold small">Month From</label>
+                <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Month From</label>
                 <select id="filterMonthFrom" class="form-select form-select-sm select2"></select>
               </div>
               <div class="col-6">
-                <label class="form-label fw-semibold small">Month To</label>
+                <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Month To</label>
                 <select id="filterMonthTo" class="form-select form-select-sm select2"></select>
               </div>
             </div>
 
-            <div class="row g-2 mb-3">
+            <!-- Smart Cascading Multiselect Dropdowns -->
+            <div class="row g-1 mb-2">
               <div class="col-6">
-                <label class="form-label fw-semibold small">Region</label>
+                <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Region</label>
                 <select id="filterRegion" class="form-select select2" multiple></select>
               </div>
               <div class="col-6">
-                <label class="form-label fw-semibold small">Program Type</label>
+                <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Program Type</label>
                 <select id="filterProgramType" class="form-select select2" multiple></select>
               </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Funder Name</label>
+            <div class="mb-2">
+              <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Funder Name</label>
               <select id="filterFunder" class="form-select select2" multiple></select>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Project Id</label>
+            <div class="mb-2">
+              <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Project Id</label>
               <select id="filterProjectId" class="form-select select2" multiple></select>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Project Name</label>
+            <div class="mb-2">
+              <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Project Name</label>
               <select id="filterProject" class="form-select select2" multiple></select>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Broad Category</label>
+            <div class="mb-2">
+              <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Broad Category</label>
               <select id="filterBroadCategory" class="form-select select2" multiple></select>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Category Name</label>
+            <div class="mb-2">
+              <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Category Name</label>
               <select id="filterCategory" class="form-select select2" multiple></select>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Budget Line</label>
+            <div class="mb-2">
+              <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Budget Line</label>
               <select id="filterBudgetLine" class="form-select select2" multiple></select>
             </div>
           </form>
@@ -280,120 +335,172 @@
       <!-- MAIN CONTENT AREA -->
       <div class="col-lg-9" id="mainContentCol">
 
-        <!-- Top Action Bar with Filter Hide/Unhide Toggle & Non-Funder Toggle -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <button id="btnToggleFilter" class="btn btn-outline-primary btn-sm fw-semibold shadow-sm">
-            <i class="fa-solid fa-filter-circle-xmark me-1" id="toggleFilterIcon"></i> <span id="toggleFilterText">Hide Filters</span>
-          </button>
-          <button id="btnToggleNonFunder" class="btn btn-outline-warning btn-sm fw-semibold shadow-sm">
+        <!-- Top Action Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <button id="btnToggleFilter" class="btn btn-outline-primary btn-sm py-1 fw-semibold shadow-sm" style="font-size: 0.75rem;">
+              <i class="fa-solid fa-filter-circle-xmark me-1" id="toggleFilterIcon"></i> <span id="toggleFilterText">Hide Filters</span>
+            </button>
+            <button id="btnOpenBudgetDetails" class="btn btn-outline-secondary btn-sm py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#budgetBreakdownModal" style="font-size: 0.75rem;">
+              <i class="fa-solid fa-table-list me-1 text-primary"></i> Budget Breakdown Details
+            </button>
+          </div>
+          <button id="btnToggleNonFunder" class="btn btn-outline-warning btn-sm py-1 fw-semibold shadow-sm" style="font-size: 0.75rem;">
             <i class="fa-solid fa-triangle-exclamation me-1"></i> <span id="nonFunderBtnText">Show Listed Projects</span>
           </button>
         </div>
 
         <!-- Selected Project Banner Header -->
-        <div class="alert alert-primary py-2 px-3 mb-3 d-flex align-items-center shadow-sm" role="alert">
-          <i class="fa-solid fa-bullseye text-primary me-2 fs-5"></i>
+        <div class="alert alert-primary py-1 px-2 mb-2 d-flex align-items-center shadow-sm" role="alert" style="font-size: 0.75rem;">
+          <i class="fa-solid fa-bullseye text-primary me-2"></i>
           <div>
             <strong>Selected Project:</strong> <span id="selectedProjectBannerTitle" class="fst-italic text-dark fw-bold">All Projects Selected</span>
           </div>
         </div>
 
         <!-- KPI Summary Cards - ROW 1 -->
-        <div class="row g-2 mb-3">
+        <div class="row g-2 mb-2">
           <div class="col">
-            <div class="card dashboard-card p-3 border-start border-primary border-4 h-100">
+            <div class="card dashboard-card p-2 border-start border-primary border-3 h-100">
               <div class="kpi-title">Total Projects</div>
               <div class="kpi-value mt-1" id="kpiTotalProjects">0</div>
-              <div class="text-muted small mt-1"><i class="fa-solid fa-folder me-1"></i>Selected Projects</div>
+              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-folder me-1"></i>Selected Projects</div>
             </div>
           </div>
           <div class="col">
-            <div class="card dashboard-card p-3 border-start border-info border-4 h-100">
+            <div class="card dashboard-card p-2 border-start border-info border-3 h-100">
               <div class="kpi-title">Total YTD Budget</div>
               <div class="kpi-value mt-1" id="kpiYTDBudget">₹0</div>
-              <div class="text-muted small mt-1"><i class="fa-solid fa-calendar-check me-1"></i>Period Allocated</div>
+              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-calendar-check me-1"></i>Period Allocated</div>
             </div>
           </div>
           <div class="col">
-            <div class="card dashboard-card p-3 border-start border-success border-4 h-100">
+            <div class="card dashboard-card p-2 border-start border-success border-3 h-100">
               <div class="kpi-title">Total YTD Actual spend</div>
               <div class="kpi-value mt-1" id="kpiYTDActual">₹0</div>
-              <div class="text-muted small mt-1"><i class="fa-solid fa-receipt me-1"></i>Period Spent</div>
+              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-receipt me-1"></i>Period Spent</div>
             </div>
           </div>
           <div class="col">
-            <div class="card dashboard-card p-3 border-start border-secondary border-4 h-100">
+            <div class="card dashboard-card p-2 border-start border-secondary border-3 h-100">
               <div class="kpi-title">Total YTD Budget Variance</div>
               <div class="kpi-value mt-1" id="kpiYTDVariance">₹0</div>
-              <div class="text-muted small mt-1"><i class="fa-solid fa-scale-balanced me-1"></i>Budget - Actual</div>
+              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-scale-balanced me-1"></i>Budget - Actual</div>
             </div>
           </div>
           <div class="col">
-            <div class="card dashboard-card p-3 border-start border-warning border-4 h-100">
+            <div class="card dashboard-card p-2 border-start border-warning border-3 h-100">
               <div class="kpi-title">YTD Budget Utilization</div>
               <div class="kpi-value mt-1" id="kpiYTDUtilization">0%</div>
-              <div class="mt-1"><span class="badge rounded-pill" id="kpiYTDStatusBadge">N/A</span></div>
+              <div class="mt-1"><span class="badge rounded-pill" id="kpiYTDStatusBadge" style="font-size: 0.6rem;">N/A</span></div>
             </div>
           </div>
         </div>
 
         <!-- KPI Summary Cards - ROW 2 -->
-        <div class="row g-3 mb-4">
+        <div class="row g-2 mb-2">
           <div class="col-md-3">
-            <div class="card dashboard-card p-3 border-start border-primary border-4">
+            <div class="card dashboard-card p-2 border-start border-primary border-3">
               <div class="kpi-title">Total Annual Budget</div>
-              <div class="kpi-value mt-2" id="kpiAnnualBudget">₹0</div>
-              <div class="text-muted small mt-1"><i class="fa-solid fa-wallet me-1"></i>Full Year Allocated</div>
+              <div class="kpi-value mt-1" id="kpiAnnualBudget">₹0</div>
+              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-wallet me-1"></i>Full Year Allocated</div>
             </div>
           </div>
           <div class="col-md-3">
-            <div class="card dashboard-card p-3 border-start border-info border-4">
+            <div class="card dashboard-card p-2 border-start border-info border-3">
               <div class="kpi-title">Total Annual Actual Spend</div>
-              <div class="kpi-value mt-2" id="kpiActualTotal">₹0</div>
-              <div class="text-muted small mt-1"><i class="fa-solid fa-money-bill-transfer me-1"></i>Full Year Spent</div>
+              <div class="kpi-value mt-1" id="kpiActualTotal">₹0</div>
+              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-money-bill-transfer me-1"></i>Full Year Spent</div>
             </div>
           </div>
           <div class="col-md-3">
-            <div class="card dashboard-card p-3 border-start border-secondary border-4">
+            <div class="card dashboard-card p-2 border-start border-secondary border-3">
               <div class="kpi-title">Total Annual Variance</div>
-              <div class="kpi-value mt-2" id="kpiVariance">₹0</div>
-              <div class="text-muted small mt-1"><i class="fa-solid fa-chart-line me-1"></i>Annual Variance</div>
+              <div class="kpi-value mt-1" id="kpiVariance">₹0</div>
+              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-chart-line me-1"></i>Annual Variance</div>
             </div>
           </div>
           <div class="col-md-3">
-            <div class="card dashboard-card p-3 border-start border-warning border-4">
+            <div class="card dashboard-card p-2 border-start border-warning border-3">
               <div class="kpi-title">Annual Budget Utilization</div>
-              <div class="kpi-value mt-2" id="kpiUtilization">0%</div>
-              <div class="mt-1"><span class="badge rounded-pill" id="kpiAnnualStatusBadge">N/A</span></div>
+              <div class="kpi-value mt-1" id="kpiUtilization">0%</div>
+              <div class="mt-1"><span class="badge rounded-pill" id="kpiAnnualStatusBadge" style="font-size: 0.6rem;">N/A</span></div>
             </div>
           </div>
         </div>
 
-        <!-- Visual Analytics / Charts Row 1 -->
-        <div class="row g-3 mb-4">
-          <div class="col-md-8">
-            <div class="card dashboard-card p-3">
-              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-chart-column me-2 text-primary"></i>Monthly Budget vs Actual</h6>
+        <!-- Visual Analytics Row 1 -->
+        <div class="row g-2 mb-2">
+          <div class="col-md-6">
+            <div class="card dashboard-card p-2">
+              <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-chart-column me-1 text-primary"></i>Monthly Budget vs Actual</h6>
               <div class="chart-container">
                 <canvas id="chartMonthlyBar"></canvas>
               </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="card dashboard-card p-3">
-              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Budget by Category</h6>
+          <div class="col-md-6">
+            <div class="card dashboard-card p-2">
+              <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-chart-line me-1 text-primary"></i>Cumulative Trend</h6>
               <div class="chart-container">
-                <canvas id="chartCategoryDoughnut"></canvas>
+                <canvas id="chartCumulativeTrend"></canvas>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Quoter-wise Report Section (Placed before Budget Breakdown Details) -->
-        <div class="card dashboard-card p-3 mb-4">
-          <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-calendar-days me-2 text-primary"></i>Quoter-wise Report</h6>
+        <!-- Visual Analytics Row 2 -->
+        <div class="row g-2 mb-2">
+          <div class="col-md-6">
+            <div class="card dashboard-card p-2 h-100">
+              <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-chart-pie me-1 text-primary"></i>Budget by Category</h6>
+              <div class="chart-container">
+                <canvas id="chartCategoryDoughnut"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card dashboard-card p-2 h-100">
+              <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-ranking-star me-1 text-primary"></i>Top 10 Budget Lines</h6>
+              <div class="chart-container">
+                <canvas id="chartTopBudgetLines"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top 10 Budget Line Analysis Report Below Separate -->
+        <div class="card dashboard-card p-2 mb-2" id="top10BudgetLineSection">
+          <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>Top 10 Budget Line Analysis</h6>
           <div class="table-responsive">
-            <table id="quoterReportTable" class="table table-striped table-hover align-middle w-100">
+            <table id="top10BudgetLineTable" class="table table-sm table-striped table-hover align-middle w-100 style-table mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-center">Rank</th>
+                  <th>Funder Name</th>
+                  <th>Project Id</th>
+                  <th>Project Name</th>
+                  <th>Category Id</th>
+                  <th>Budget Line</th>
+                  <th class="text-end">YTD Budget</th>
+                  <th class="text-end">YTD Actual</th>
+                  <th class="text-end">Balance</th>
+                  <th class="text-center">Utilization %</th>
+                  <th class="text-center">Risk Category</th>
+                  <th class="text-end">Risk Score</th>
+                  <th>Suggested Action</th>
+                </tr>
+              </thead>
+              <tbody id="top10BudgetLineBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quoter-wise Report Section -->
+        <div class="card dashboard-card p-2 mb-2">
+          <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-calendar-days me-1 text-primary"></i>Quoter-wise Report</h6>
+          <div class="table-responsive">
+            <table id="quoterReportTable" class="table table-sm table-striped table-hover align-middle w-100 mb-0">
               <thead class="table-light">
                 <tr>
                   <th>Quarter</th>
@@ -404,17 +511,29 @@
                   <th class="text-center">Util %</th>
                 </tr>
               </thead>
-              <tbody id="quoterReportBody">
-              </tbody>
+              <tbody id="quoterReportBody"></tbody>
             </table>
           </div>
         </div>
 
-        <!-- Detailed Interactive Data Table -->
-        <div class="card dashboard-card p-3 mb-4">
-          <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-table me-2 text-primary"></i>Budget Breakdown Details</h6>
+      </div><!-- /Main Content -->
+
+    </div>
+  </div>
+
+  <!-- Budget Breakdown Details Modal (Updated size to 90% of Dashboard) -->
+  <div class="modal fade" id="budgetBreakdownModal" tabindex="-1" aria-labelledby="budgetBreakdownModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header py-2 px-3">
+          <h6 class="modal-title fw-bold text-primary" id="budgetBreakdownModalLabel">
+            <i class="fa-solid fa-table me-2"></i>Budget Breakdown Details
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-2">
           <div class="table-responsive">
-            <table id="budgetDataTable" class="table table-striped table-hover align-middle w-100 style-table">
+            <table id="budgetDataTable" class="table table-sm table-striped table-hover align-middle w-100 style-table">
               <thead class="table-light">
                 <tr>
                   <th>Region</th>
@@ -425,10 +544,17 @@
                   <th>Broad Category</th>
                   <th>Category Id</th>
                   <th>Budget Line</th>
+                  <!-- Requirement 8: Columns added before Annual Budget -->
+                  <th>YTD Budget</th>
+                  <th>YTD Actual spend</th>
+                  <th>YTD Budget Variance</th>
+                  <th>YTD Budget Utilization</th>
                   <th>Annual Budget</th>
                   <th>Annual Actual</th>
                   <th>Annual Variance</th>
                   <th>Utilization</th>
+                  <!-- Requirement 8: Column added at the last -->
+                  <th>Total Open PO Value</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -438,35 +564,19 @@
                   <td class="text-end fw-bold"></td>
                   <td class="text-end fw-bold"></td>
                   <td class="text-end fw-bold"></td>
+                  <td class="text-end fw-bold"></td>
                   <td class="text-center fw-bold"></td>
+                  <td class="text-end fw-bold"></td>
+                  <td class="text-end fw-bold"></td>
+                  <td class="text-end fw-bold"></td>
+                  <td class="text-center fw-bold"></td>
+                  <td class="text-end fw-bold"></td>
                 </tr>
               </tfoot>
             </table>
           </div>
         </div>
-
-        <!-- Visual Analytics / Charts Row 2 -->
-        <div class="row g-3 mb-4">
-          <div class="col-md-6">
-            <div class="card dashboard-card p-3">
-              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-chart-line me-2 text-primary"></i>Cumulative Budget Trend</h6>
-              <div class="chart-container">
-                <canvas id="chartTrendLine"></canvas>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="card dashboard-card p-3">
-              <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-ranking-star me-2 text-primary"></i>Top 10 Budget Lines</h6>
-              <div class="chart-container">
-                <canvas id="chartTopBudgetLines"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- /Main Content -->
-
+      </div>
     </div>
   </div>
 
@@ -481,7 +591,6 @@
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
   <script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js"></script>
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
@@ -490,36 +599,157 @@
 
   <!-- Application Logic -->
   <script>
-    // ---------------------------------------------------------------------
-    // API & Source Configurations
-    // ---------------------------------------------------------------------
     const CONFIG = {
-      GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com'
+      GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.comS'
     };
 
     let rawDataset = [];
     let allParsedDataset = [];
     let funderDataset = [];
-    let showingAllProjects = true; // By default, show all projects
+    let showingAllProjects = true;
     let filteredDataset = [];
     let monthColumns = [];
     let chartInstances = {};
     let dataTableInstance = null;
     let isCascading = false;
     let isFilterVisible = true;
+    let isModalAllExpanded = false;
 
-    // Data Source State
     let currentDataSource = localStorage.getItem('mb_budget_datasource') || 'local';
     let currentGDriveId = localStorage.getItem('mb_budget_gdrive_id') || '';
 
-    // Google Identity Services Auth State
     let tokenClient = null;
     let accessToken = null;
     let pendingFolderId = null;
 
-    // Central efficient storage structures for Active Project IDs and mapping from Funder List.xlsx
     let activeProjectIdsSet = new Set();
     let funderProjectMapping = new Map();
+
+    // Mapping definition for Smart Cascading Filters
+    const FILTER_FIELDS = [
+      { id: '#filterMonthFrom', key: 'MonthFrom', isDate: true },
+      { id: '#filterMonthTo', key: 'MonthTo', isDate: true },
+      { id: '#filterRegion', key: 'Region' },
+      { id: '#filterProgramType', key: 'Program Type' },
+      { id: '#filterFunder', key: 'Funder Name' },
+      { id: '#filterProjectId', key: 'Project Id' },
+      { id: '#filterProject', key: 'Project Name' },
+      { id: '#filterBroadCategory', key: 'Broad Category' },
+      { id: '#filterCategory', key: 'Category Name' },
+      { id: '#filterBudgetLine', key: 'Budget Line' }
+    ];
+
+    const money = (value) => formatINR(value);
+    const pct = (value) => `${(value || 0).toFixed(1)}%`;
+
+    function aggregate(arr, key) {
+      return arr.reduce((sum, item) => sum + (parseFloat(item[key]) || 0), 0);
+    }
+
+    function getRiskCategory(utilizationPct, balance) {
+      if (utilizationPct > 100) return 'High Overspend Risk';
+      if (utilizationPct > 85) return 'Medium Risk';
+      if (utilizationPct < 50 && balance > 0) return 'Underutilization Risk';
+      return 'Low Risk';
+    }
+
+    function getRiskScore(utilizationPct, balance) {
+      const overspendWeight = utilizationPct > 100 ? (utilizationPct - 100) * 2 : 0;
+      const underspendWeight = utilizationPct < 50 ? (50 - utilizationPct) * 1.5 : 0;
+      const balanceWeight = Math.abs(balance) / 100000;
+      return Math.round((overspendWeight + underspendWeight + balanceWeight) * 10) / 10;
+    }
+
+    function getSuggestedAction(riskCategory, balance) {
+      switch (riskCategory) {
+        case 'High Overspend Risk': return 'Freeze non-essential expenses and reallocate funds immediately.';
+        case 'Medium Risk': return 'Monitor spend closely against monthly forecasts.';
+        case 'Underutilization Risk': return 'Accelerate planned project activities and clear pending commitments.';
+        default: return 'Maintain current spending trajectory.';
+      }
+    }
+
+    // Requirement 9: Modal specific Active Selected Months calculation
+    function getModalSelectedMonths() {
+      const fromVal = $('#modalFilterMonthFrom').val();
+      const toVal = $('#modalFilterMonthTo').val();
+
+      const fromIdx = monthColumns.indexOf(fromVal);
+      const toIdx = monthColumns.indexOf(toVal);
+
+      if (fromIdx === -1 || toIdx === -1 || fromIdx > toIdx) {
+        return monthColumns;
+      }
+      return monthColumns.slice(fromIdx, toIdx + 1);
+    }
+
+    function getProcessedRows() {
+      const activeMonths = getActiveSelectedMonths();
+      return filteredDataset.map(row => {
+        let periodBudget = 0;
+        let periodActual = 0;
+
+        activeMonths.forEach(m => {
+          periodBudget += parseFloat(row[`Budget ${m}`]) || 0;
+          periodActual += parseFloat(row[`Actual ${m}`]) || 0;
+        });
+
+        const annual = row['Annual Budget'];
+        const actualAnnual = row['Actual Total'];
+        const varianceAnnual = annual - actualAnnual;
+        const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
+
+        const variancePeriod = periodBudget - periodActual;
+        const utilizationPeriod = periodBudget > 0 ? (periodActual / periodBudget) * 100 : 0;
+
+        return {
+          ...row,
+          AnnualBudgetCalc: annual,
+          ActualTotalCalc: actualAnnual,
+          VarianceAnnual: varianceAnnual,
+          UtilizationAnnual: utilizationAnnual,
+          YTDBudgetCalc: periodBudget,
+          YTDActualCalc: periodActual,
+          YTDVariance: variancePeriod,
+          YTDUtilization: utilizationPeriod,
+          OpenPOVal: parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0)
+        };
+      });
+    }
+
+    function getModalProcessedRows() {
+      const modalMonths = getModalSelectedMonths();
+      return filteredDataset.map(row => {
+        let periodBudget = 0;
+        let periodActual = 0;
+
+        modalMonths.forEach(m => {
+          periodBudget += parseFloat(row[`Budget ${m}`]) || 0;
+          periodActual += parseFloat(row[`Actual ${m}`]) || 0;
+        });
+
+        const annual = row['Annual Budget'];
+        const actualAnnual = row['Actual Total'];
+        const varianceAnnual = annual - actualAnnual;
+        const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
+
+        const variancePeriod = periodBudget - periodActual;
+        const utilizationPeriod = periodBudget > 0 ? (periodActual / periodBudget) * 100 : 0;
+
+        return {
+          ...row,
+          AnnualBudgetCalc: annual,
+          ActualTotalCalc: actualAnnual,
+          VarianceAnnual: varianceAnnual,
+          UtilizationAnnual: utilizationAnnual,
+          YTDBudgetCalc: periodBudget,
+          YTDActualCalc: periodActual,
+          YTDVariance: variancePeriod,
+          YTDUtilization: utilizationPeriod,
+          OpenPOVal: parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0)
+        };
+      });
+    }
 
     const formatINR = (value) => {
       return new Intl.NumberFormat('en-IN', {
@@ -529,7 +759,6 @@
       }).format(value || 0);
     };
 
-    // Date parsing for dd/mm/yy format
     function parseDDMMYY(dateStr) {
       if (!dateStr) return new Date(0);
       const cleanStr = String(dateStr).trim();
@@ -560,16 +789,56 @@
       initializeDataTable();
       attachEventListeners();
       initGoogleAuthClient();
+
+      // Requirement 2: Show flash message on initial page load
+      showFirstTimeFlashModal();
+
+      // Recalculate DataTable headers when Modal opens
+      $('#budgetBreakdownModal').on('shown.bs.modal', function () {
+        if (dataTableInstance) {
+          dataTableInstance.columns.adjust().responsive.recalc();
+        }
+      });
     });
 
-    // ---------------------------------------------------------------------
-    // Google Identity Services (GIS) Client Initialization
-    // ---------------------------------------------------------------------
+    // Requirement 2: Check & Display First Time Flash Message Box
+    function showFirstTimeFlashModal() {
+      const flashModal = new bootstrap.Modal(document.getElementById('firstTimeFlashModal'));
+      flashModal.show();
+
+      $('#btnFlashModalYes').off('click').on('click', function() {
+        flashModal.hide();
+        $('#dataSourceSelect').val('gdrive').trigger('change');
+        $('#btnLoadGDrive').click();
+      });
+
+      $('#btnFlashModalNo').off('click').on('click', function() {
+        flashModal.hide();
+        highlightDataSourceSection();
+      });
+    }
+
+    // Requirement 2: Highlight Data Source Section if user clicks No
+    function highlightDataSourceSection() {
+      const $ds = $('#dataSourceSection');
+      $ds.addClass('highlight-blink');
+      setTimeout(() => {
+        $ds.removeClass('highlight-blink');
+      }, 4000);
+    }
+
+    // Requirement 3: Highlight/Blink Filter section after uploading Data
+    function highlightFilterSection() {
+      const $filterCard = $('#filterSidebarCard');
+      $filterCard.addClass('highlight-blink');
+      setTimeout(() => {
+        $filterCard.removeClass('highlight-blink');
+      }, 4000);
+    }
+
     function initGoogleAuthClient() {
       if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
-        if (!CONFIG.GOOGLE_CLIENT_ID || CONFIG.GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
-          return;
-        }
+        if (!CONFIG.GOOGLE_CLIENT_ID || CONFIG.GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) return;
         tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: CONFIG.GOOGLE_CLIENT_ID,
           scope: 'https://www.googleapis.com/auth/drive.readonly',
@@ -590,9 +859,6 @@
       }
     }
 
-    // ---------------------------------------------------------------------
-    // Data Source & Folder UI Logic
-    // ---------------------------------------------------------------------
     function initializeDataSourceUI() {
       $('#dataSourceSelect').val(currentDataSource);
       $('#gdriveFolderId').val(currentGDriveId);
@@ -641,8 +907,8 @@
 
       const firstPath = allFiles[0].webkitRelativePath;
       const folderName = firstPath ? firstPath.split('/')[0] : 'Selected Local Folder';
-      
       const excelFiles = allFiles.filter(isValidExcelFile);
+
       if (excelFiles.length === 0) {
         alert('Dashboard Error: No valid Excel files (.xlsx, .xls) found in the selected folder.');
         return;
@@ -658,19 +924,15 @@
         alert('Please enter a valid Google Drive Folder ID.');
         return;
       }
-      
       if (!CONFIG.GOOGLE_CLIENT_ID || CONFIG.GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
-        alert('Please configure your Google OAuth Client ID in the CONFIG object (GOOGLE_CLIENT_ID) to connect your Google Drive account.');
+        alert('Please configure your Google OAuth Client ID in the CONFIG object.');
         return;
       }
 
       localStorage.setItem('mb_budget_gdrive_id', folderId);
       updateStatusArea('Google Drive', `ID: ${folderId.substring(0,6)}...`, 'Connecting...');
 
-      if (!tokenClient) {
-        initGoogleAuthClient();
-      }
-
+      if (!tokenClient) initGoogleAuthClient();
       if (!tokenClient) {
         alert('Please connect your Google Drive account.');
         return;
@@ -701,14 +963,10 @@
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
 
-        if (!listRes.ok) {
-          throw new Error("Unable to access this Google Drive folder.");
-        }
+        if (!listRes.ok) throw new Error("Unable to access this Google Drive folder.");
 
         const listData = await listRes.json();
         const files = listData.files || [];
-
-        $status.text('Finding Excel files...');
         const excelFilesMeta = files.filter(f => {
           const name = f.name.toLowerCase();
           return name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.xlsm');
@@ -721,30 +979,24 @@
           return;
         }
 
-        $status.text(`Found ${excelFilesMeta.length} Excel files. Reading into browser memory...`);
         $bar.css('width', '30%').text('30%');
-
         let downloadedCount = 0;
         const totalFiles = excelFilesMeta.length;
 
         const filePromises = excelFilesMeta.map(async (meta) => {
-          $status.text(`Reading ${meta.name}...`);
           const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${meta.id}?alt=media`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
           });
-          if (!fileRes.ok) {
-            throw new Error(`Unable to read this Excel file (${meta.name}).`);
-          }
+          if (!fileRes.ok) throw new Error(`Unable to read file (${meta.name}).`);
           const arrayBuffer = await fileRes.arrayBuffer();
           downloadedCount++;
-          const pct = Math.floor(30 + (downloadedCount / totalFiles) * 50);
-          $bar.css('width', pct + '%').text(pct + '%');
+          const pctVal = Math.floor(30 + (downloadedCount / totalFiles) * 50);
+          $bar.css('width', pctVal + '%').text(pctVal + '%');
 
           return new File([arrayBuffer], meta.name, { type: meta.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         });
 
         const excelFileObjects = await Promise.all(filePromises);
-
         uploadModal.hide();
         processExcelFiles(excelFileObjects);
 
@@ -771,7 +1023,6 @@
     function updateStatusArea(source, folder, connectionStatus, isError = false) {
       $('#statusSourceLabel').text(source);
       $('#statusFolderName').text(folder);
-      
       const $conn = $('#statusConnection');
       $conn.text(connectionStatus);
       
@@ -784,9 +1035,6 @@
       }
     }
 
-    // ---------------------------------------------------------------------
-    // Initialization & Event Attachments
-    // ---------------------------------------------------------------------
     function initializeSelect2() {
       $('.select2').select2({
         theme: 'bootstrap-5',
@@ -805,32 +1053,72 @@
         rowGroup: {
           dataSrc: 'Broad Category',
           startRender: function (rows, group) {
+            // Calculate totals for Requirement 1 & 7
+            let sumYtdBudget = rows.data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
+            let sumYtdActual = rows.data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
+            let sumYtdVariance = sumYtdBudget - sumYtdActual;
+            let sumYtdUtil = sumYtdBudget > 0 ? (sumYtdActual / sumYtdBudget) * 100 : 0;
+
             let sumBudget = rows.data().pluck('Annual Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumActual = rows.data().pluck('Annual Actual').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumVariance = sumBudget - sumActual;
             let sumUtil = sumBudget > 0 ? (sumActual / sumBudget) * 100 : 0;
+            let sumOpenPO = rows.data().pluck('Total Open PO Value').reduce((a, b) => a + parseFloat(b || 0), 0);
             
             const groupId = 'group_' + group.replace(/[^a-zA-Z0-9]/g, '_');
             const cls = sumVariance < 0 ? 'status-red' : 'status-green';
             let badgeClass = sumUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
+            // Requirement 6: Show only group name without "Broad Category:"
+            // Requirement 7: Show subtotal on group row when collapsed, hide when expanded
             return $('<tr class="group-header-row"/>')
-              .append('<td colspan="12" class="fw-bold bg-light text-primary py-2 px-3">' +
-                '<button type="button" class="btn btn-sm btn-outline-primary me-2 toggle-group-btn" data-group-id="' + groupId + '" style="width: 28px; height: 28px; padding: 0; line-height: 1;"><i class="fa-solid fa-plus"></i></button>' +
-                '<span class="me-3">Broad Category: ' + group + '</span>' +
-                '<span class="float-end text-dark small fw-normal">' +
-                'Budget: <strong>' + formatINR(sumBudget) + '</strong> | ' +
-                'Actual: <strong>' + formatINR(sumActual) + '</strong> | ' +
+              .append('<td colspan="17" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
+                '<button type="button" class="btn btn-sm btn-outline-primary me-2 toggle-group-btn" data-group-id="' + groupId + '" style="width: 22px; height: 22px; padding: 0; line-height: 1; font-size: 0.65rem;"><i class="fa-solid fa-plus"></i></button>' +
+                '<span class="me-3">' + group + '</span>' +
+                '<span class="group-subtotal-info float-end text-dark small fw-normal">' +
+                'YTD Budget: <strong>' + formatINR(sumYtdBudget) + '</strong> | ' +
+                'YTD Spend: <strong>' + formatINR(sumYtdActual) + '</strong> | ' +
+                'Annual Budget: <strong>' + formatINR(sumBudget) + '</strong> | ' +
+                'Annual Actual: <strong>' + formatINR(sumActual) + '</strong> | ' +
                 'Variance: <strong class="' + cls + '">' + formatINR(sumVariance) + '</strong> | ' +
                 'Util: <span class="badge ' + badgeClass + '">' + sumUtil.toFixed(1) + '%</span>' +
                 '</span>' +
                 '</td>');
+          },
+          endRender: function (rows, group) {
+            // Requirement 1: Show subtotal at the below of each group under the same column
+            let sumYtdBudget = rows.data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
+            let sumYtdActual = rows.data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
+            let sumYtdVariance = sumYtdBudget - sumYtdActual;
+            let sumYtdUtil = sumYtdBudget > 0 ? (sumYtdActual / sumYtdBudget) * 100 : 0;
+
+            let sumBudget = rows.data().pluck('Annual Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
+            let sumActual = rows.data().pluck('Annual Actual').reduce((a, b) => a + parseFloat(b || 0), 0);
+            let sumVariance = sumBudget - sumActual;
+            let sumUtil = sumBudget > 0 ? (sumActual / sumBudget) * 100 : 0;
+            let sumOpenPO = rows.data().pluck('Total Open PO Value').reduce((a, b) => a + parseFloat(b || 0), 0);
+
+            const groupId = 'group_' + group.replace(/[^a-zA-Z0-9]/g, '_');
+            const ytdVarCls = sumYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
+            const varCls = sumVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
+
+            return $('<tr class="group-subtotal-row ' + groupId + ' table-secondary fw-bold" style="display:none; font-size: 0.75rem;"/>')
+              .append('<td colspan="7" class="text-end fw-bold">' + group + ' Subtotal:</td>')
+              .append('<td class="text-end">' + formatINR(sumYtdBudget) + '</td>')
+              .append('<td class="text-end">' + formatINR(sumYtdActual) + '</td>')
+              .append('<td class="text-end ' + ytdVarCls + '">' + formatINR(sumYtdVariance) + '</td>')
+              .append('<td class="text-center"><span class="badge ' + (sumYtdUtil > 100 ? 'bg-status-red' : 'bg-status-green') + '">' + sumYtdUtil.toFixed(1) + '%</span></td>')
+              .append('<td class="text-end">' + formatINR(sumBudget) + '</td>')
+              .append('<td class="text-end">' + formatINR(sumActual) + '</td>')
+              .append('<td class="text-end ' + varCls + '">' + formatINR(sumVariance) + '</td>')
+              .append('<td class="text-center"><span class="badge ' + (sumUtil > 100 ? 'bg-status-red' : 'bg-status-green') + '">' + sumUtil.toFixed(1) + '%</span></td>')
+              .append('<td class="text-end">' + formatINR(sumOpenPO) + '</td>');
           }
         },
         createdRow: function (row, data, dataIndex) {
           const groupName = data['Broad Category'];
           const groupId = 'group_' + groupName.replace(/[^a-zA-Z0-9]/g, '_');
-          $(row).addClass('group-detail-row ' + groupId).hide(); // Default collapse behavior
+          $(row).addClass('group-detail-row ' + groupId).hide();
         },
         columns: [
           { data: 'Region' },
@@ -841,75 +1129,138 @@
           { data: 'Broad Category', visible: false },
           { data: 'Category Id' },
           { data: 'Budget Line' },
+          // Requirement 8: a, b, c, d columns added
+          { data: 'YTD Budget', render: (data) => formatINR(data), className: 'text-end' },
+          { data: 'YTD Actual spend', render: (data) => formatINR(data), className: 'text-end' },
           { 
-            data: 'Annual Budget', 
-            render: (data) => formatINR(data), 
+            data: 'YTD Budget Variance', 
+            render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`, 
             className: 'text-end' 
           },
           { 
-            data: 'Annual Actual', 
-            render: (data) => formatINR(data), 
-            className: 'text-end' 
+            data: 'YTD Budget Utilization', 
+            render: (data) => `<span class="badge ${data > 100 ? 'bg-status-red' : 'bg-status-green'}">${data.toFixed(1)}%</span>`, 
+            className: 'text-center' 
           },
+          { data: 'Annual Budget', render: (data) => formatINR(data), className: 'text-end' },
+          { data: 'Annual Actual', render: (data) => formatINR(data), className: 'text-end' },
           { 
             data: 'Annual Variance', 
-            render: (data) => {
-              const cls = data < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
-              return `<span class="${cls}">${formatINR(data)}</span>`;
-            }, 
+            render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`, 
             className: 'text-end' 
           },
           { 
             data: 'Utilization', 
-            render: (data) => {
-              let badgeClass = data > 100 ? 'bg-status-red' : 'bg-status-green';
-              return `<span class="badge ${badgeClass}">${data.toFixed(1)}%</span>`;
-            }, 
+            render: (data) => `<span class="badge ${data > 100 ? 'bg-status-red' : 'bg-status-green'}">${data.toFixed(1)}%</span>`, 
             className: 'text-center' 
-          }
+          },
+          // Requirement 8: e column added at the last
+          { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'text-end' }
         ],
         footerCallback: function (row, data, start, end, display) {
           let api = this.api();
-          
+          let totalYtdBudget = api.rows({search: 'applied'}).data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
+          let totalYtdActual = api.rows({search: 'applied'}).data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
+          let totalYtdVariance = totalYtdBudget - totalYtdActual;
+          let totalYtdUtil = totalYtdBudget > 0 ? (totalYtdActual / totalYtdBudget) * 100 : 0;
+
           let totalBudget = api.rows({search: 'applied'}).data().pluck('Annual Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
           let totalActual = api.rows({search: 'applied'}).data().pluck('Annual Actual').reduce((a, b) => a + parseFloat(b || 0), 0);
           let totalVariance = totalBudget - totalActual;
           let totalUtil = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
+          let totalOpenPO = api.rows({search: 'applied'}).data().pluck('Total Open PO Value').reduce((a, b) => a + parseFloat(b || 0), 0);
 
-          $(api.column(8).footer()).html(formatINR(totalBudget));
-          $(api.column(9).footer()).html(formatINR(totalActual));
-          
-          let varClass = totalVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
-          $(api.column(10).footer()).html(`<span class="${varClass}">${formatINR(totalVariance)}</span>`);
-          
-          let utilBadge = totalUtil > 100 ? 'bg-status-red' : 'bg-status-green';
-          $(api.column(11).footer()).html(`<span class="badge ${utilBadge}">${totalUtil.toFixed(1)}%</span>`);
+          $(api.column(7).footer()).html(formatINR(totalYtdBudget));
+          $(api.column(8).footer()).html(formatINR(totalYtdActual));
+          $(api.column(9).footer()).html(`<span class="${totalYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalYtdVariance)}</span>`);
+          $(api.column(10).footer()).html(`<span class="badge ${totalYtdUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalYtdUtil.toFixed(1)}%</span>`);
+
+          $(api.column(11).footer()).html(formatINR(totalBudget));
+          $(api.column(12).footer()).html(formatINR(totalActual));
+          $(api.column(13).footer()).html(`<span class="${totalVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalVariance)}</span>`);
+          $(api.column(14).footer()).html(`<span class="badge ${totalUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalUtil.toFixed(1)}%</span>`);
+          $(api.column(15).footer()).html(formatINR(totalOpenPO));
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
         buttons: [
-          { extend: 'excelHtml5', className: 'btn btn-outline-success btn-sm', title: 'Budget Report' },
-          { extend: 'csvHtml5', className: 'btn btn-outline-primary btn-sm', title: 'Budget Report' },
-          { extend: 'pdfHtml5', className: 'btn btn-outline-danger btn-sm', title: 'Budget Report', orientation: 'landscape' },
-          { extend: 'print', className: 'btn btn-outline-secondary btn-sm' }
+          { extend: 'excelHtml5', className: 'btn btn-outline-success btn-xs py-1', title: 'Budget Report' },
+          { extend: 'csvHtml5', className: 'btn btn-outline-primary btn-xs py-1', title: 'Budget Report' },
+          { extend: 'pdfHtml5', className: 'btn btn-outline-danger btn-xs py-1', title: 'Budget Report', orientation: 'landscape' },
+          { extend: 'print', className: 'btn btn-outline-secondary btn-xs py-1 me-2' }
         ]
       });
 
-      // Attach group expand/collapse click handler independently for each Broad Category
+      // Requirement 7: Add Expand / Collapse Rows button beside Print button
+      // Requirement 9: Add Month From and Month To search filter beside Expand / Collapse button
+      const $dtButtons = $('.dt-buttons');
+      const expandBtnHtml = `
+        <button type="button" class="btn btn-outline-primary btn-xs py-1 me-3" id="btnToggleExpandCollapse">
+          <i class="fa-solid fa-arrows-expand me-1"></i> Expand Rows
+        </button>
+      `;
+      const modalFilterHtml = `
+        <div class="d-inline-flex align-items-center gap-2 bg-light p-1 border rounded" style="font-size: 0.75rem;">
+          <span class="fw-bold text-secondary"><i class="fa-solid fa-filter text-primary me-1"></i>Breakdown Filter:</span>
+          <label class="mb-0 fw-semibold">From:</label>
+          <select id="modalFilterMonthFrom" class="form-select form-select-sm py-0" style="width: auto; font-size: 0.75rem; min-height:24px;"></select>
+          <label class="mb-0 fw-semibold ms-1">To:</label>
+          <select id="modalFilterMonthTo" class="form-select form-select-sm py-0" style="width: auto; font-size: 0.75rem; min-height:24px;"></select>
+        </div>
+      `;
+      $dtButtons.append(expandBtnHtml + modalFilterHtml);
+
+      // Handle Expand / Collapse All Toggle
+      $('#btnToggleExpandCollapse').on('click', function() {
+        isModalAllExpanded = !isModalAllExpanded;
+        const $btn = $(this);
+
+        if (isModalAllExpanded) {
+          $btn.html('<i class="fa-solid fa-arrows-collapse me-1"></i> Collapse Rows');
+          $('.toggle-group-btn').each(function() {
+            const groupId = $(this).data('group-id');
+            $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
+            $(this).removeClass('btn-outline-primary').addClass('btn-primary text-white');
+            $('tr.' + groupId).show();
+            $(this).closest('tr').find('.group-subtotal-info').hide();
+          });
+        } else {
+          $btn.html('<i class="fa-solid fa-arrows-expand me-1"></i> Expand Rows');
+          $('.toggle-group-btn').each(function() {
+            const groupId = $(this).data('group-id');
+            $(this).find('i').removeClass('fa-minus').addClass('fa-plus');
+            $(this).removeClass('btn-primary text-white').addClass('btn-outline-primary');
+            $('tr.' + groupId).hide();
+            $(this).closest('tr').find('.group-subtotal-info').show();
+          });
+        }
+      });
+
+      // Individual Group Expand/Collapse Handler
       $('#budgetDataTable').on('click', '.toggle-group-btn', function(e) {
         e.stopPropagation();
         const groupId = $(this).data('group-id');
         const $icon = $(this).find('i');
         const $rows = $('tr.' + groupId);
+        const $headerSubtotal = $(this).closest('tr').find('.group-subtotal-info');
         
         if ($icon.hasClass('fa-plus')) {
           $icon.removeClass('fa-plus').addClass('fa-minus');
           $(this).removeClass('btn-outline-primary').addClass('btn-primary text-white');
           $rows.show();
+          // Requirement 7: Hide subtotal from group row when expanded
+          $headerSubtotal.hide();
         } else {
           $icon.removeClass('fa-minus').addClass('fa-plus');
           $(this).removeClass('btn-primary text-white').addClass('btn-outline-primary');
           $rows.hide();
+          // Requirement 7: Show subtotal on group row when collapsed
+          $headerSubtotal.show();
         }
+      });
+
+      // Requirement 9: Month From & Month To modal filters listener
+      $(document).on('change', '#modalFilterMonthFrom, #modalFilterMonthTo', function() {
+        renderModalBreakdownTable();
       });
     }
 
@@ -917,25 +1268,37 @@
       const chartOptionsBase = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } }
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
       };
 
+      // Monthly Bar Chart (Budget vs Actual)
       chartInstances.monthlyBar = new Chart(document.getElementById('chartMonthlyBar'), {
         type: 'bar',
         data: { labels: [], datasets: [] },
-        options: { ...chartOptionsBase, scales: { y: { beginAtZero: true } } }
+        options: {
+          ...chartOptionsBase,
+          scales: {
+            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Amount (₹)', font: { size: 10 } }, beginAtZero: true }
+          }
+        }
+      });
+
+      // Cumulative Trend Chart
+      chartInstances.cumulativeTrend = new Chart(document.getElementById('chartCumulativeTrend'), {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: {
+          ...chartOptionsBase,
+          scales: {
+            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Cumulative (₹)', font: { size: 10 } }, beginAtZero: true }
+          }
+        }
       });
 
       chartInstances.categoryDoughnut = new Chart(document.getElementById('chartCategoryDoughnut'), {
         type: 'doughnut',
         data: { labels: [], datasets: [] },
         options: chartOptionsBase
-      });
-
-      chartInstances.trendLine = new Chart(document.getElementById('chartTrendLine'), {
-        type: 'line',
-        data: { labels: [], datasets: [] },
-        options: { ...chartOptionsBase, tension: 0.3 }
       });
 
       chartInstances.topBudgetLines = new Chart(document.getElementById('chartTopBudgetLines'), {
@@ -953,15 +1316,21 @@
     function attachEventListeners() {
       $('#btnResetFilters').on('click', resetFilters);
       $('#btnToggleFilter').on('click', toggleFilterSidebar);
-      $('#btnToggleNonFunder').on('click', toggleProjectViewMode);
 
-      $('#filterRegion, #filterProgramType, #filterFunder, #filterProjectId, #filterProject, #filterBroadCategory, #filterCategory, #filterBudgetLine, #filterMonthFrom, #filterMonthTo')
-        .on('change', function(e) {
+      // Requirement 4: After click "Show Listed project/Show All project" button, automatically "reset" filter must run
+      $('#btnToggleNonFunder').on('click', function() {
+        toggleProjectViewMode();
+        resetFilters();
+      });
+
+      // Smart Cascading Filter trigger attachment for all dynamic fields
+      FILTER_FIELDS.forEach(field => {
+        $(field.id).on('change', function() {
           if (isCascading) return;
-          const targetId = $(this).attr('id');
-          handleCascadingLogic(targetId);
+          handleSmartCascadingFilters(field.id);
           processAndRenderDashboard();
         });
+      });
     }
 
     function toggleFilterSidebar() {
@@ -985,9 +1354,7 @@
 
       setTimeout(() => {
         Object.values(chartInstances).forEach(chart => chart.resize());
-        if (dataTableInstance) {
-          dataTableInstance.columns.adjust().responsive.recalc();
-        }
+        if (dataTableInstance) dataTableInstance.columns.adjust().responsive.recalc();
       }, 250);
     }
 
@@ -1005,9 +1372,6 @@
         $text.text('Show All Projects');
         rawDataset = funderDataset;
       }
-
-      populateFilterDropdowns();
-      processAndRenderDashboard();
     }
 
     function parseFileStartWeight(filename) {
@@ -1016,26 +1380,20 @@
       if (matches && matches.length > 0) {
         const monthStr = matches[0][1];
         const year = parseInt(matches[0][2], 10);
-        const monthMap = {
-          jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-          jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
-        };
+        const monthMap = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
         const monthNum = monthMap[monthStr.toLowerCase()] || 1;
         return year * 12 + monthNum;
       }
       return 0;
     }
 
-    // ---------------------------------------------------------------------
-    // Parallel Excel parsing via Web Worker pool
-    // ---------------------------------------------------------------------
     const EXCEL_WORKER_SRC = `
       importScripts('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
       self.onmessage = function(e) {
         const { fileId, fileName, buffer } = e.data;
         try {
           const data = new Uint8Array(buffer);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const workbook = XLSX.read(data, { type: 'array', dense: true });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           const json = XLSX.utils.sheet_to_json(worksheet, { defval: 0 });
@@ -1046,9 +1404,10 @@
       };
     `;
 
+    // Requirement 10: Optimized Worker Pool Size & Dense mode to process within 3 sec
     function getWorkerPoolSize(fileCount) {
       const cores = (navigator.hardwareConcurrency || 4);
-      return Math.max(1, Math.min(cores, fileCount, 8));
+      return Math.max(2, Math.min(cores * 2, fileCount, 16));
     }
 
     function createExcelWorker() {
@@ -1070,12 +1429,8 @@
       return new Promise((resolve, reject) => {
         const total = files.length;
         let pool;
-        try {
-          pool = Array.from({ length: getWorkerPoolSize(total) }, createExcelWorker);
-        } catch (err) {
-          reject(err);
-          return;
-        }
+        try { pool = Array.from({ length: getWorkerPoolSize(total) }, createExcelWorker); } 
+        catch (err) { reject(err); return; }
 
         const results = new Array(total);
         let completed = 0;
@@ -1089,10 +1444,7 @@
           const reader = new FileReader();
           reader.onload = function(evt) {
             if (hasFailed) return;
-            worker.postMessage(
-              { fileId: idx, fileName: file.name, buffer: evt.target.result },
-              [evt.target.result]
-            );
+            worker.postMessage({ fileId: idx, fileName: file.name, buffer: evt.target.result }, [evt.target.result]);
           };
           reader.onerror = function() {
             if (hasFailed) return;
@@ -1113,11 +1465,7 @@
               reject(new Error(`Error parsing ${msg.fileName}: ${msg.error}`));
               return;
             }
-            results[msg.fileId] = {
-              filename: msg.fileName,
-              startWeight: parseFileStartWeight(msg.fileName),
-              data: msg.data
-            };
+            results[msg.fileId] = { filename: msg.fileName, startWeight: parseFileStartWeight(msg.fileName), data: msg.data };
             completed++;
             if (onProgress) onProgress(completed, total);
 
@@ -1148,16 +1496,12 @@
           reader.onload = function(evt) {
             try {
               const data = new Uint8Array(evt.target.result);
-              const workbook = XLSX.read(data, { type: 'array' });
-              const firstSheetName = workbook.SheetNames[0];
-              const worksheet = workbook.Sheets[firstSheetName];
-              const json = XLSX.utils.sheet_to_json(worksheet, { defval: 0 });
+              const workbook = XLSX.read(data, { type: 'array', dense: true });
+              const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: 0 });
               completed++;
               if (onProgress) onProgress(completed, total);
               resolve({ filename: file.name, startWeight: parseFileStartWeight(file.name), data: json });
-            } catch (err) {
-              reject(err);
-            }
+            } catch (err) { reject(err); }
           };
           reader.onerror = reject;
           reader.readAsArrayBuffer(file);
@@ -1194,42 +1538,25 @@
       funderReader.onload = function(evt) {
         try {
           const funderBuffer = new Uint8Array(evt.target.result);
-          const funderWorkbook = XLSX.read(funderBuffer, { type: 'array' });
+          const funderWorkbook = XLSX.read(funderBuffer, { type: 'array', dense: true });
 
           const projectListSheetName = funderWorkbook.SheetNames.find(s => s.toLowerCase().trim() === 'project list' || s.toLowerCase().includes('project list'));
-          if (!projectListSheetName) {
-            throw new Error("The Project List sheet was not found in Funder List.xlsx.");
-          }
+          if (!projectListSheetName) throw new Error("The Project List sheet was not found in Funder List.xlsx.");
 
           const worksheet = funderWorkbook.Sheets[projectListSheetName];
           const funderJson = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-          if (!funderJson || funderJson.length === 0) {
-            throw new Error("The Project List sheet was not found in Funder List.xlsx.");
-          }
+          if (!funderJson || funderJson.length === 0) throw new Error("The Project List sheet was not found in Funder List.xlsx.");
 
           const firstRow = funderJson[0];
           const keys = Object.keys(firstRow);
 
-          const projectIdKey = keys.find(k => {
-            const lk = k.toLowerCase().trim();
-            return lk === 'project id' || lk === 'project_id' || lk === 'projectid';
-          });
-          if (!projectIdKey) {
-            throw new Error("The Project List sheet was not found in Funder List.xlsx.");
-          }
+          const projectIdKey = keys.find(k => ['project id', 'project_id', 'projectid'].includes(k.toLowerCase().trim()));
+          if (!projectIdKey) throw new Error("The Project List sheet was not found in Funder List.xlsx.");
 
-          const statusKey = keys.find(k => {
-            const lk = k.toLowerCase().trim();
-            return lk === 'status';
-          });
-          if (!statusKey) {
-            throw new Error("The Project List sheet was not found in Funder List.xlsx.");
-          }
+          const statusKey = keys.find(k => k.toLowerCase().trim() === 'status');
+          if (!statusKey) throw new Error("The Project List sheet was not found in Funder List.xlsx.");
 
-          const projectNameKey = keys.find(k => {
-            const lk = k.toLowerCase().trim();
-            return lk === 'project name' || lk === 'project_name' || lk === 'projectname';
-          });
+          const projectNameKey = keys.find(k => ['project name', 'project_name', 'projectname'].includes(k.toLowerCase().trim()));
 
           activeProjectIdsSet.clear();
           funderProjectMapping.clear();
@@ -1242,24 +1569,20 @@
                 activeProjectIdsSet.add(pId);
                 if (projectNameKey) {
                   const pName = String(row[projectNameKey] || '').trim();
-                  if (pName) {
-                    funderProjectMapping.set(pId, pName);
-                  }
+                  if (pName) funderProjectMapping.set(pId, pName);
                 }
               }
             }
           });
 
           const budgetFiles = filesArray.filter(f => f !== funderFile);
-          if (budgetFiles.length === 0) {
-            throw new Error("No budget Excel files found.");
-          }
+          if (budgetFiles.length === 0) throw new Error("No budget Excel files found.");
 
           $status.text(`Reading ${budgetFiles.length} budget file(s) in parallel...`);
 
           const onProgress = (completedCount, total) => {
-            const pct = Math.round((completedCount / total) * 85);
-            $bar.css('width', pct + '%').text(pct + '%').attr('aria-valuenow', pct);
+            const pctVal = Math.round((completedCount / total) * 85);
+            $bar.css('width', pctVal + '%').text(pctVal + '%').attr('aria-valuenow', pctVal);
             $status.text(`Parsed ${completedCount} of ${total} budget file(s)...`);
           };
 
@@ -1279,26 +1602,27 @@
               setTimeout(() => {
                 uploadModal.hide();
                 $('#fileInfo').text(`Loaded Funder List & ${fileResults.length} budget file(s) in ${elapsedSec}s`);
-                
                 $('#statusFilesLoaded').text(filesArray.length);
+                
                 const now = new Date();
                 const dateTimeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 $('#statusLastRefresh').text(dateTimeStr);
                 $('#statusConnection').text(currentDataSource === 'local' ? 'Loaded' : 'Connected').removeClass('text-danger text-secondary').addClass('text-success');
                 
                 const flashHtml = `
-                  <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="fa-solid fa-circle-check me-2"></i><strong>Success!</strong> Dashboard successfully loaded from ${currentDataSource === 'local' ? 'Local Drive' : 'Google Drive'}.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  <div class="alert alert-success alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
+                    <i class="fa-solid fa-circle-check me-1"></i><strong>Success!</strong> Dashboard successfully loaded from ${currentDataSource === 'local' ? 'Local Drive' : 'Google Drive'}.
+                    <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
                   </div>
                 `;
                 $('#flashMessageContainer').html(flashHtml);
-                setTimeout(() => {
-                  $('#flashMessageContainer .alert').alert('close');
-                }, 5000);
+                setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 5000);
 
                 processAndRenderDashboard();
-              }, 600);
+
+                // Requirement 3: After upload Data, highlight or blink filter section
+                highlightFilterSection();
+              }, 400);
             });
           };
 
@@ -1309,12 +1633,10 @@
           };
 
           if (typeof Worker !== 'undefined') {
-            parseFilesInParallelWithWorkers(budgetFiles, onProgress)
-              .then(finishUpload)
-              .catch(() => {
-                $status.text('Falling back to standard parsing...');
-                parseFilesOnMainThread(budgetFiles, onProgress).then(finishUpload).catch(handleFailure);
-              });
+            parseFilesInParallelWithWorkers(budgetFiles, onProgress).then(finishUpload).catch(() => {
+              $status.text('Falling back to standard parsing...');
+              parseFilesOnMainThread(budgetFiles, onProgress).then(finishUpload).catch(handleFailure);
+            });
           } else {
             parseFilesOnMainThread(budgetFiles, onProgress).then(finishUpload).catch(handleFailure);
           }
@@ -1351,11 +1673,7 @@
       });
 
       monthColumns = Array.from(monthKeysSet);
-      // Sort month columns chronologically (Old to New) based on date value
-      monthColumns.sort((a, b) => {
-        return parseDDMMYY(a) - parseDDMMYY(b);
-      });
-
+      monthColumns.sort((a, b) => parseDDMMYY(a) - parseDDMMYY(b));
       fileResults.sort((a, b) => b.startWeight - a.startWeight);
 
       const lineMap = new Map();
@@ -1372,6 +1690,7 @@
           const categoryId = String(row['Category Id'] || row['CategoryId'] || 'Unassigned');
           const categoryName = String(row['Category Name'] || 'Unassigned');
           const budgetLine = String(row['Budget Line'] || 'Unassigned');
+          const openPO = parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0);
 
           const compositeKey = `${region}|${programType}|${funderId}|${projectId}|${broadCategory}|${categoryId}|${budgetLine}`;
 
@@ -1388,6 +1707,7 @@
               'Category Id': categoryId,
               'Category Name': categoryName,
               'Budget Line': budgetLine,
+              'Open PO Value': openPO,
               'Projected Start Date': String(row['Projected Start Date'] || row['Start Month'] || ''),
               monthsData: {}
             });
@@ -1425,6 +1745,7 @@
           'Category Id': lineObj['Category Id'],
           'Category Name': lineObj['Category Name'],
           'Budget Line': lineObj['Budget Line'],
+          'Open PO Value': lineObj['Open PO Value'],
           'Projected Start Date': lineObj['Projected Start Date']
         };
 
@@ -1449,40 +1770,28 @@
         allParsedDataset.push(rowRecord);
       });
 
-      // Split datasets
       funderDataset = allParsedDataset.filter(item => activeProjectIdsSet.has(String(item['Project Id']).trim()));
-
-      // By default, show all projects listed in the database
       showingAllProjects = true;
       rawDataset = allParsedDataset;
+
       $('#nonFunderBtnText').text('Show Listed Projects');
       $('#btnToggleNonFunder').removeClass('btn-warning text-dark').addClass('btn-outline-warning');
 
-      if (allParsedDataset.length === 0) {
-        throw new Error("No data records found in Excel files.");
-      }
+      if (allParsedDataset.length === 0) throw new Error("No data records found in Excel files.");
 
       allParsedDataset.forEach(item => {
         const pId = String(item['Project Id']).trim();
-        if (funderProjectMapping.has(pId)) {
-          item['Project Name'] = funderProjectMapping.get(pId);
-        }
+        if (funderProjectMapping.has(pId)) item['Project Name'] = funderProjectMapping.get(pId);
       });
 
       populateFilterDropdowns();
     }
 
-    // Helper to calculate default financial year start and current month
     function getDefaultFinancialYearMonths() {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const currentMonthIndex = now.getMonth(); // 0-11
-
-      // Indian Financial Year starts in April (Month index 3)
-      let fyStartYear = currentYear;
-      if (currentMonthIndex < 3) {
-        fyStartYear = currentYear - 1;
-      }
+      const currentMonthIndex = now.getMonth();
+      let fyStartYear = currentMonthIndex < 3 ? currentYear - 1 : currentYear;
 
       let bestFrom = monthColumns[0];
       let bestTo = monthColumns[monthColumns.length - 1];
@@ -1501,7 +1810,6 @@
             minFromDiff = diffFrom;
             bestFrom = m;
           }
-
           const diffTo = Math.abs(d - targetToDate);
           if (diffTo < minToDiff) {
             minToDiff = diffTo;
@@ -1516,11 +1824,10 @@
     function populateFilterDropdowns() {
       isCascading = true;
 
-      $('#filterMonthFrom, #filterMonthTo').empty();
-      
+      $('#filterMonthFrom, #filterMonthTo, #modalFilterMonthFrom, #modalFilterMonthTo').empty();
       const { from: defaultFrom, to: defaultTo } = getDefaultFinancialYearMonths();
 
-      monthColumns.forEach((m, idx) => {
+      monthColumns.forEach((m) => {
         const dateObj = parseDDMMYY(m);
         const displayLabel = formatMonthYear(dateObj) || m;
 
@@ -1529,27 +1836,26 @@
 
         $('#filterMonthFrom').append(new Option(displayLabel, m, isSelectedFrom, isSelectedFrom));
         $('#filterMonthTo').append(new Option(displayLabel, m, isSelectedTo, isSelectedTo));
+
+        // Requirement 9: Default Budget Breakdown Details Month From/To = Smart Filters
+        $('#modalFilterMonthFrom').append(new Option(displayLabel, m, isSelectedFrom, isSelectedFrom));
+        $('#modalFilterMonthTo').append(new Option(displayLabel, m, isSelectedTo, isSelectedTo));
       });
 
-      updateDropdownOptions('#filterRegion', getUniqueValues(rawDataset, 'Region'));
-      updateDropdownOptions('#filterProgramType', getUniqueValues(rawDataset, 'Program Type'));
-      updateDropdownOptions('#filterFunder', getUniqueValues(rawDataset, 'Funder Name'));
-      updateDropdownOptions('#filterProjectId', getUniqueValues(rawDataset, 'Project Id'));
-      updateDropdownOptions('#filterProject', getUniqueValues(rawDataset, 'Project Name'));
-      updateDropdownOptions('#filterBroadCategory', getUniqueValues(rawDataset, 'Broad Category'));
-      updateDropdownOptions('#filterCategory', getUniqueValues(rawDataset, 'Category Name'));
-      updateDropdownOptions('#filterBudgetLine', getUniqueValues(rawDataset, 'Budget Line'));
+      FILTER_FIELDS.filter(f => !f.isDate).forEach(field => {
+        updateDropdownOptions(field.id, getUniqueValues(rawDataset, field.key));
+      });
 
       isCascading = false;
     }
 
     function getUniqueValues(dataset, key) {
-      return Array.from(new Set(dataset.map(item => item[key]))).sort();
+      return Array.from(new Set(dataset.map(item => item[key]))).filter(Boolean).sort();
     }
 
     function updateDropdownOptions(elementId, optionsArray, selectedValues = null) {
       const $el = $(elementId);
-      const currentValues = selectedValues || $el.val() || [];
+      const currentValues = selectedValues !== null ? selectedValues : ($el.val() || []);
       $el.empty();
       optionsArray.forEach(opt => {
         const isSelected = Array.isArray(currentValues) ? currentValues.includes(opt) : currentValues === opt;
@@ -1558,82 +1864,54 @@
       $el.trigger('change.select2');
     }
 
-    function handleCascadingLogic(triggeredById) {
+    // Dynamic Multi-Directional Smart Cascading Filter Engine
+    function handleSmartCascadingFilters(triggeredById) {
       isCascading = true;
-      let subset = [...rawDataset];
 
-      const selRegions = $('#filterRegion').val() || [];
-      const selProgramTypes = $('#filterProgramType').val() || [];
-      const selFunders = $('#filterFunder').val() || [];
-      const selProjectIds = $('#filterProjectId').val() || [];
-      const selProjects = $('#filterProject').val() || [];
+      if (triggeredById === '#filterProject' || triggeredById === '#filterProjectId') {
+        const selProjects = $('#filterProject').val() || [];
+        const selProjectIds = $('#filterProjectId').val() || [];
+        let sampleMatch = null;
 
-      if (triggeredById === 'filterProject' && selProjects.length > 0) {
-        const selectedProjectName = selProjects[selProjects.length - 1];
-        subset = subset.filter(d => selProjects.includes(d['Project Name']));
-        
-        const sampleMatch = rawDataset.find(d => d['Project Name'] === selectedProjectName);
-        if (sampleMatch) {
-          const projStart = sampleMatch['Projected Start Date'];
-          if (projStart && monthColumns.includes(projStart)) {
-            $('#filterMonthFrom').val(projStart).trigger('change.select2');
-          }
+        if (selProjects.length > 0) {
+          sampleMatch = rawDataset.find(d => selProjects.includes(d['Project Name']));
+        } else if (selProjectIds.length > 0) {
+          sampleMatch = rawDataset.find(d => selProjectIds.includes(d['Project Id']));
         }
 
-        const validRegions = getUniqueValues(subset, 'Region');
-        const validProgramTypes = getUniqueValues(subset, 'Program Type');
-        const validFunders = getUniqueValues(subset, 'Funder Name');
-        const validProjectIds = getUniqueValues(subset, 'Project Id');
+        // Requirement 5: Auto select "Month from" from "Projected start date"
+        if (sampleMatch && sampleMatch['Projected Start Date']) {
+          const matchMonth = monthColumns.find(m => {
+            const d1 = parseDDMMYY(m);
+            const d2 = parseDDMMYY(sampleMatch['Projected Start Date']);
+            return d1 && d2 && d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth();
+          }) || sampleMatch['Projected Start Date'];
 
-        updateDropdownOptions('#filterRegion', validRegions, validRegions);
-        updateDropdownOptions('#filterProgramType', validProgramTypes, validProgramTypes);
-        updateDropdownOptions('#filterFunder', validFunders, validFunders);
-        updateDropdownOptions('#filterProjectId', validProjectIds, validProjectIds);
-      }
-      else if (triggeredById === 'filterProjectId' && selProjectIds.length > 0) {
-        const selectedProjId = selProjectIds[selProjectIds.length - 1];
-        subset = subset.filter(d => selProjectIds.includes(d['Project Id']));
-        
-        const sampleMatch = rawDataset.find(d => d['Project Id'] === selectedProjId);
-        if (sampleMatch) {
-          const projStart = sampleMatch['Projected Start Date'];
-          if (projStart && monthColumns.includes(projStart)) {
-            $('#filterMonthFrom').val(projStart).trigger('change.select2');
+          if (monthColumns.includes(matchMonth)) {
+            $('#filterMonthFrom').val(matchMonth).trigger('change.select2');
+            $('#modalFilterMonthFrom').val(matchMonth);
           }
         }
+      }
 
-        const validRegions = getUniqueValues(subset, 'Region');
-        const validProgramTypes = getUniqueValues(subset, 'Program Type');
-        const validFunders = getUniqueValues(subset, 'Funder Name');
-        const validProjects = getUniqueValues(subset, 'Project Name');
+      FILTER_FIELDS.filter(f => !f.isDate).forEach(target => {
+        let subset = [...rawDataset];
 
-        updateDropdownOptions('#filterRegion', validRegions, validRegions);
-        updateDropdownOptions('#filterProgramType', validProgramTypes, validProgramTypes);
-        updateDropdownOptions('#filterFunder', validFunders, validFunders);
-        updateDropdownOptions('#filterProject', validProjects, validProjects);
-      }
-      else if (triggeredById === 'filterRegion' && selRegions.length > 0) {
-        subset = subset.filter(d => selRegions.includes(d['Region']));
-        updateDropdownOptions('#filterProgramType', getUniqueValues(subset, 'Program Type'));
-        updateDropdownOptions('#filterFunder', getUniqueValues(subset, 'Funder Name'));
-        updateDropdownOptions('#filterProjectId', getUniqueValues(subset, 'Project Id'));
-        updateDropdownOptions('#filterProject', getUniqueValues(subset, 'Project Name'));
-      }
-      else if (triggeredById === 'filterProgramType' && selProgramTypes.length > 0) {
-        if (selRegions.length > 0) subset = subset.filter(d => selRegions.includes(d['Region']));
-        subset = subset.filter(d => selProgramTypes.includes(d['Program Type']));
-        updateDropdownOptions('#filterRegion', getUniqueValues(subset, 'Region'));
-        updateDropdownOptions('#filterFunder', getUniqueValues(subset, 'Funder Name'));
-        updateDropdownOptions('#filterProjectId', getUniqueValues(subset, 'Project Id'));
-        updateDropdownOptions('#filterProject', getUniqueValues(subset, 'Project Name'));
-      }
-      else if (triggeredById === 'filterFunder' && selFunders.length > 0) {
-        if (selRegions.length > 0) subset = subset.filter(d => selRegions.includes(d['Region']));
-        if (selProgramTypes.length > 0) subset = subset.filter(d => selProgramTypes.includes(d['Program Type']));
-        subset = subset.filter(d => selFunders.includes(d['Funder Name']));
-        updateDropdownOptions('#filterProjectId', getUniqueValues(subset, 'Project Id'));
-        updateDropdownOptions('#filterProject', getUniqueValues(subset, 'Project Name'));
-      }
+        FILTER_FIELDS.filter(f => !f.isDate).forEach(filter => {
+          if (filter.id !== target.id) {
+            const selectedVal = $(filter.id).val() || [];
+            if (selectedVal.length > 0) {
+              subset = subset.filter(d => selectedVal.includes(d[filter.key]));
+            }
+          }
+        });
+
+        const availableOptions = getUniqueValues(subset, target.key);
+        const currentSelected = $(target.id).val() || [];
+        const retainedSelection = currentSelected.filter(v => availableOptions.includes(v));
+
+        updateDropdownOptions(target.id, availableOptions, retainedSelection);
+      });
 
       isCascading = false;
     }
@@ -1645,6 +1923,9 @@
         const { from: defaultFrom, to: defaultTo } = getDefaultFinancialYearMonths();
         $('#filterMonthFrom').val(defaultFrom).trigger('change');
         $('#filterMonthTo').val(defaultTo).trigger('change');
+        // Requirement 9: Reset modal filters as well
+        $('#modalFilterMonthFrom').val(defaultFrom);
+        $('#modalFilterMonthTo').val(defaultTo);
       }
       isCascading = false;
       populateFilterDropdowns();
@@ -1661,7 +1942,6 @@
       if (fromIdx === -1 || toIdx === -1 || fromIdx > toIdx) {
         return monthColumns;
       }
-
       return monthColumns.slice(fromIdx, toIdx + 1);
     }
 
@@ -1669,6 +1949,10 @@
       if (!rawDataset || rawDataset.length === 0) return;
 
       const activeMonths = getActiveSelectedMonths();
+
+      // Requirement 9: Keep Modal month filters synced with Smart Filters on dashboard update
+      $('#modalFilterMonthFrom').val($('#filterMonthFrom').val());
+      $('#modalFilterMonthTo').val($('#filterMonthTo').val());
 
       const selRegions = $('#filterRegion').val() || [];
       const selProgramTypes = $('#filterProgramType').val() || [];
@@ -1699,68 +1983,41 @@
         return true;
       });
 
-      const processedRows = filteredDataset.map(row => {
-        let periodBudget = 0;
-        let periodActual = 0;
-
-        activeMonths.forEach(m => {
-          periodBudget += parseFloat(row[`Budget ${m}`]) || 0;
-          periodActual += parseFloat(row[`Actual ${m}`]) || 0;
-        });
-
-        const annual = row['Annual Budget'];
-        const actualAnnual = row['Actual Total'];
-        const varianceAnnual = annual - actualAnnual;
-        const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
-
-        const variancePeriod = periodBudget - periodActual;
-        const utilizationPeriod = periodBudget > 0 ? (periodActual / periodBudget) * 100 : 0;
-
-        return {
-          ...row,
-          AnnualBudgetCalc: annual,
-          ActualTotalCalc: actualAnnual,
-          VarianceAnnual: varianceAnnual,
-          UtilizationAnnual: utilizationAnnual,
-          YTDBudgetCalc: periodBudget,
-          YTDActualCalc: periodActual,
-          YTDVariance: variancePeriod,
-          YTDUtilization: utilizationPeriod
-        };
-      });
+      const processedRows = getProcessedRows();
 
       renderKPIs(processedRows);
       renderCharts(processedRows, activeMonths);
       renderQuoterReport(processedRows, activeMonths);
-      renderTable(processedRows);
+      renderTop10BudgetLines(processedRows);
+      renderModalBreakdownTable();
     }
 
     function renderKPIs(data) {
       const totalProjectsCount = new Set(data.map(d => d['Project Name'])).size;
       
-      const totalYTDBudget = data.reduce((acc, curr) => acc + curr.YTDBudgetCalc, 0);
-      const totalYTDActual = data.reduce((acc, curr) => acc + curr.YTDActualCalc, 0);
+      const totalYTDBudget = aggregate(data, 'YTDBudgetCalc');
+      const totalYTDActual = aggregate(data, 'YTDActualCalc');
       const totalYTDVariance = totalYTDBudget - totalYTDActual;
       const ytdUtilizationPct = totalYTDBudget > 0 ? (totalYTDActual / totalYTDBudget) * 100 : 0;
 
-      const totalAnnualBudget = data.reduce((acc, curr) => acc + curr.AnnualBudgetCalc, 0);
-      const totalAnnualActual = data.reduce((acc, curr) => acc + curr.ActualTotalCalc, 0);
+      const totalAnnualBudget = aggregate(data, 'AnnualBudgetCalc');
+      const totalAnnualActual = aggregate(data, 'ActualTotalCalc');
       const totalAnnualVariance = totalAnnualBudget - totalAnnualActual;
       const annualUtilizationPct = totalAnnualBudget > 0 ? (totalAnnualActual / totalAnnualBudget) * 100 : 0;
 
       $('#kpiTotalProjects').text(totalProjectsCount);
-      $('#kpiYTDBudget').text(formatINR(totalYTDBudget));
-      $('#kpiYTDActual').text(formatINR(totalYTDActual));
+      $('#kpiYTDBudget').text(money(totalYTDBudget));
+      $('#kpiYTDActual').text(money(totalYTDActual));
 
       const $ytdVarEl = $('#kpiYTDVariance');
-      $ytdVarEl.text(formatINR(totalYTDVariance));
+      $ytdVarEl.text(money(totalYTDVariance));
       if (totalYTDVariance < 0) {
         $ytdVarEl.removeClass('status-green').addClass('status-red');
       } else {
         $ytdVarEl.removeClass('status-red').addClass('status-green');
       }
 
-      $('#kpiYTDUtilization').text(`${ytdUtilizationPct.toFixed(1)}%`);
+      $('#kpiYTDUtilization').text(pct(ytdUtilizationPct));
       const $ytdBadge = $('#kpiYTDStatusBadge');
       
       if (ytdUtilizationPct > 100) {
@@ -1771,18 +2028,18 @@
         $ytdBadge.text('Underspend').attr('class', 'badge rounded-pill bg-status-blue');
       }
 
-      $('#kpiAnnualBudget').text(formatINR(totalAnnualBudget));
-      $('#kpiActualTotal').text(formatINR(totalAnnualActual));
+      $('#kpiAnnualBudget').text(money(totalAnnualBudget));
+      $('#kpiActualTotal').text(money(totalAnnualActual));
 
       const $annVarEl = $('#kpiVariance');
-      $annVarEl.text(formatINR(totalAnnualVariance));
+      $annVarEl.text(money(totalAnnualVariance));
       if (totalAnnualVariance < 0) {
         $annVarEl.removeClass('status-green').addClass('status-red');
       } else {
         $annVarEl.removeClass('status-red').addClass('status-green');
       }
 
-      $('#kpiUtilization').text(`${annualUtilizationPct.toFixed(1)}%`);
+      $('#kpiUtilization').text(pct(annualUtilizationPct));
       const $annBadge = $('#kpiAnnualStatusBadge');
       
       if (annualUtilizationPct > 100) {
@@ -1800,14 +2057,37 @@
       const monthlyBudgets = activeMonths.map(m => data.reduce((a, b) => a + (parseFloat(b[`Budget ${m}`]) || 0), 0));
       const monthlyActuals = activeMonths.map(m => data.reduce((a, b) => a + (parseFloat(b[`Actual ${m}`]) || 0), 0));
 
+      let cumBudget = 0;
+      let cumActual = 0;
+      const trendBudget = [];
+      const trendActual = [];
+
+      activeMonths.forEach((m, idx) => {
+        cumBudget += monthlyBudgets[idx];
+        cumActual += monthlyActuals[idx];
+        trendBudget.push(cumBudget);
+        trendActual.push(cumActual);
+      });
+
+      // Chart 1: Monthly Bar Chart
       chartInstances.monthlyBar.data = {
         labels: displayMonths,
         datasets: [
-          { label: 'Budget', data: monthlyBudgets, backgroundColor: '#0d6efd' },
-          { label: 'Actual', data: monthlyActuals, backgroundColor: '#17a2b8' }
+          { label: 'Monthly Budget', data: monthlyBudgets, backgroundColor: '#0d6efd' },
+          { label: 'Monthly Actual', data: monthlyActuals, backgroundColor: '#17a2b8' }
         ]
       };
       chartInstances.monthlyBar.update();
+
+      // Chart 2: Cumulative Line Chart
+      chartInstances.cumulativeTrend.data = {
+        labels: displayMonths,
+        datasets: [
+          { label: 'Cumulative Budget', data: trendBudget, borderColor: '#0a4b9a', backgroundColor: '#0a4b9a', fill: false, tension: 0.3 },
+          { label: 'Cumulative Actual', data: trendActual, borderColor: '#dc3545', backgroundColor: '#dc3545', fill: false, tension: 0.3 }
+        ]
+      };
+      chartInstances.cumulativeTrend.update();
 
       const categoryMap = {};
       data.forEach(d => {
@@ -1823,35 +2103,12 @@
       };
       chartInstances.categoryDoughnut.update();
 
-      let cumBudget = 0;
-      let cumActual = 0;
-      const trendBudget = [];
-      const trendActual = [];
-
-      activeMonths.forEach(m => {
-        cumBudget += data.reduce((a, b) => a + (parseFloat(b[`Budget ${m}`]) || 0), 0);
-        cumActual += data.reduce((a, b) => a + (parseFloat(b[`Actual ${m}`]) || 0), 0);
-        trendBudget.push(cumBudget);
-        trendActual.push(cumActual);
-      });
-
-      chartInstances.trendLine.data = {
-        labels: displayMonths,
-        datasets: [
-          { label: 'Cumulative Budget', data: trendBudget, borderColor: '#0d6efd', fill: false },
-          { label: 'Cumulative Actual', data: trendActual, borderColor: '#dc3545', fill: false }
-        ]
-      };
-      chartInstances.trendLine.update();
-
       const lineMap = {};
       data.forEach(d => {
         lineMap[d['Budget Line']] = (lineMap[d['Budget Line']] || 0) + d.AnnualBudgetCalc;
       });
 
-      const sortedLines = Object.entries(lineMap)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
+      const sortedLines = Object.entries(lineMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
       chartInstances.topBudgetLines.data = {
         labels: sortedLines.map(item => item[0]),
@@ -1866,7 +2123,7 @@
 
     function getQuarterName(dateObj) {
       if (!dateObj || isNaN(dateObj)) return 'Q1';
-      const m = dateObj.getMonth(); // 0-11
+      const m = dateObj.getMonth();
       if (m >= 3 && m <= 5) return 'Q1';
       if (m >= 6 && m <= 8) return 'Q2';
       if (m >= 9 && m <= 11) return 'Q3';
@@ -1882,7 +2139,6 @@
       let quartersMap = [];
       let currentQ = null;
 
-      // Group active sorted months into chronological quarter sets
       activeMonths.forEach(m => {
         const dObj = parseDDMMYY(m);
         const qName = getQuarterName(dObj);
@@ -1920,15 +2176,14 @@
             <tr>
               <td class="fw-bold text-primary">${qGroup.quarter}</td>
               <td>${monthDisplay}</td>
-              <td class="text-end">${formatINR(mBudget)}</td>
-              <td class="text-end">${formatINR(mActual)}</td>
-              <td class="text-end ${varCls}">${formatINR(mVar)}</td>
-              <td class="text-center"><span class="badge ${utilBadge}">${mUtil.toFixed(1)}%</span></td>
+              <td class="text-end">${money(mBudget)}</td>
+              <td class="text-end">${money(mActual)}</td>
+              <td class="text-end ${varCls}">${money(mVar)}</td>
+              <td class="text-center"><span class="badge ${utilBadge}">${pct(mUtil)}</span></td>
             </tr>
           `);
         });
 
-        // Quarter Subtotal Row
         let qVar = qBudget - qActual;
         let qUtil = qBudget > 0 ? (qActual / qBudget) * 100 : 0;
         let qVarCls = qVar < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
@@ -1938,15 +2193,14 @@
           <tr class="table-warning fw-bold">
             <td>${qGroup.quarter} Sub Total</td>
             <td>-</td>
-            <td class="text-end">${formatINR(qBudget)}</td>
-            <td class="text-end">${formatINR(qActual)}</td>
-            <td class="text-end ${qVarCls}">${formatINR(qVar)}</td>
-            <td class="text-center"><span class="badge ${qUtilBadge}">${qUtil.toFixed(1)}%</span></td>
+            <td class="text-end">${money(qBudget)}</td>
+            <td class="text-end">${money(qActual)}</td>
+            <td class="text-end ${qVarCls}">${money(qVar)}</td>
+            <td class="text-center"><span class="badge ${qUtilBadge}">${pct(qUtil)}</span></td>
           </tr>
         `);
       });
 
-      // Grand Total Row
       let gVar = grandTotalBudget - grandTotalActual;
       let gUtil = grandTotalBudget > 0 ? (grandTotalActual / grandTotalBudget) * 100 : 0;
       let gVarCls = gVar < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
@@ -1955,16 +2209,19 @@
       $tbody.append(`
         <tr class="table-dark text-white fw-bold">
           <td colspan="2">Grand Total</td>
-          <td class="text-end">${formatINR(grandTotalBudget)}</td>
-          <td class="text-end">${formatINR(grandTotalActual)}</td>
-          <td class="text-end ${gVarCls}">${formatINR(gVar)}</td>
-          <td class="text-center"><span class="badge ${gUtilBadge}">${gUtil.toFixed(1)}%</span></td>
+          <td class="text-end">${money(grandTotalBudget)}</td>
+          <td class="text-end">${money(grandTotalActual)}</td>
+          <td class="text-end ${gVarCls}">${money(gVar)}</td>
+          <td class="text-center"><span class="badge ${gUtilBadge}">${pct(gUtil)}</span></td>
         </tr>
       `);
     }
 
-    function renderTable(data) {
-      const tableData = data.map(d => ({
+    // Requirement 8 & 9: Render Budget Breakdown Details Data Table with new columns and month filters
+    function renderModalBreakdownTable() {
+      const modalData = getModalProcessedRows();
+
+      const tableData = modalData.map(d => ({
         'Sr No.': d['Sr No.'],
         'Region': d['Region'],
         'Funder ID': d['Funder ID'],
@@ -1974,15 +2231,116 @@
         'Broad Category': d['Broad Category'],
         'Category Id': d['Category Id'],
         'Budget Line': d['Budget Line'],
+        'YTD Budget': d.YTDBudgetCalc,
+        'YTD Actual spend': d.YTDActualCalc,
+        'YTD Budget Variance': d.YTDVariance,
+        'YTD Budget Utilization': d.YTDUtilization,
         'Annual Budget': d.AnnualBudgetCalc,
         'Annual Actual': d.ActualTotalCalc,
         'Annual Variance': d.VarianceAnnual,
-        'Utilization': d.UtilizationAnnual
+        'Utilization': d.UtilizationAnnual,
+        'Total Open PO Value': d.OpenPOVal
       }));
 
       dataTableInstance.clear();
       dataTableInstance.rows.add(tableData);
       dataTableInstance.draw();
+
+      if (isModalAllExpanded) {
+        $('.toggle-group-btn').each(function() {
+          const groupId = $(this).data('group-id');
+          $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
+          $(this).removeClass('btn-outline-primary').addClass('btn-primary text-white');
+          $('tr.' + groupId).show();
+          $(this).closest('tr').find('.group-subtotal-info').hide();
+        });
+      }
+    }
+
+    function renderTop10BudgetLines(processedRows) {
+      const $tbody = $('#top10BudgetLineBody');
+      $tbody.empty();
+
+      if (!processedRows || processedRows.length === 0) return;
+
+      const groupedMap = new Map();
+
+      processedRows.forEach(row => {
+        const funderName = row['Funder Name'] || 'Unassigned';
+        const projectId = row['Project Id'] || 'Unassigned';
+        const projectName = row['Project Name'] || 'Unassigned';
+        const categoryId = row['Category Id'] || 'Unassigned';
+        const budgetLine = row['Budget Line'] || 'Unassigned';
+
+        const key = `${funderName}|${projectId}|${projectName}|${categoryId}|${budgetLine}`;
+
+        if (!groupedMap.has(key)) {
+          groupedMap.set(key, {
+            funderName, projectId, projectName, categoryId, budgetLine,
+            ytdBudget: 0, ytdActual: 0
+          });
+        }
+        const item = groupedMap.get(key);
+        item.ytdBudget += row.YTDBudgetCalc;
+        item.ytdActual += row.YTDActualCalc;
+      });
+
+      const budgetLineList = [];
+      groupedMap.forEach(item => {
+        const balance = item.ytdBudget - item.ytdActual;
+        const utilPct = item.ytdBudget > 0 ? (item.ytdActual / item.ytdBudget) * 100 : 0;
+        const riskCat = getRiskCategory(utilPct, balance);
+        const score = getRiskScore(utilPct, balance);
+        const action = getSuggestedAction(riskCat, balance);
+
+        budgetLineList.push({
+          funderName: item.funderName,
+          projectId: item.projectId,
+          projectName: item.projectName,
+          categoryId: item.categoryId,
+          budgetLine: item.budgetLine,
+          ytdBudget: item.ytdBudget,
+          ytdActual: item.ytdActual,
+          balance: balance,
+          absBalance: Math.abs(balance),
+          utilizationPct: utilPct,
+          riskCategory: riskCat,
+          riskScore: score,
+          suggestedAction: action
+        });
+      });
+
+      budgetLineList.sort((a, b) => (b.riskScore !== a.riskScore) ? b.riskScore - a.riskScore : b.absBalance - a.absBalance);
+
+      const top10 = budgetLineList.slice(0, 10);
+
+      top10.forEach((item, index) => {
+        let badgeClass = 'bg-secondary';
+        if (item.riskCategory === 'High Overspend Risk') badgeClass = 'bg-danger';
+        else if (item.riskCategory === 'Medium Risk') badgeClass = 'bg-warning text-dark';
+        else if (item.riskCategory === 'Underutilization Risk') badgeClass = 'bg-info text-dark';
+        else if (item.riskCategory === 'Low Risk') badgeClass = 'bg-success';
+
+        const balClass = item.balance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
+
+        $tbody.append(`
+          <tr>
+            <td class="text-center fw-bold">${index + 1}</td>
+            <td>${item.funderName}</td>
+            <td>${item.projectId}</td>
+            <td>${item.projectName}</td>
+            <td>${item.categoryId}</td>
+            <td class="fw-semibold">${item.budgetLine}</td>
+            <td class="text-end">${money(item.ytdBudget)}</td>
+            <td class="text-end">${money(item.ytdActual)}</td>
+            <td class="text-end ${balClass}">${money(item.balance)}</td>
+            <td class="text-center">${pct(item.utilizationPct)}</td>
+            <td class="text-center"><span class="badge ${badgeClass}">${item.riskCategory}</span></td>
+            <td class="text-end fw-bold">${item.riskScore.toFixed(1)}</td>
+            <td class="small text-muted">${item.suggestedAction}</td>
+          </tr>
+        `);
+      });
     }
   </script>
 </body>
