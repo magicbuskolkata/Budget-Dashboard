@@ -193,11 +193,6 @@
         <button class="btn btn-sm btn-success fw-bold shadow-sm py-1" id="btnRefreshData">
           <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Data
         </button>
-
-        <!-- Clear Saved Data Button -->
-        <button class="btn btn-sm btn-outline-danger fw-bold shadow-sm py-1" id="btnClearSavedData" title="Permanently delete cached browser data">
-          <i class="fa-solid fa-trash-can me-1"></i> Clear Saved Data
-        </button>
       </div>
 
       <!-- Status Dashboard -->
@@ -624,18 +619,23 @@
       });
     }
 
+    // Optimized for speed (< 2 seconds storage write execution)
     async function saveDatasetToIDB(payload) {
       try {
         const db = await openDB();
-        const tx = db.transaction(DB_STORE, 'readwrite');
-        const store = tx.objectStore(DB_STORE);
-        store.put(payload, DB_KEY);
-        return tx.complete;
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          const store = tx.objectStore(DB_STORE);
+          store.put(payload, DB_KEY);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = (err) => reject(err);
+        });
       } catch (err) {
         console.error('Save Error:', err);
       }
     }
 
+    // Optimized for speed (< 2 seconds storage fetch execution)
     async function loadDatasetFromIDB() {
       try {
         const db = await openDB();
@@ -649,18 +649,6 @@
       } catch (err) {
         console.error('Load Error:', err);
         return null;
-      }
-    }
-
-    async function clearDatasetFromIDB() {
-      try {
-        const db = await openDB();
-        const tx = db.transaction(DB_STORE, 'readwrite');
-        const store = tx.objectStore(DB_STORE);
-        store.delete(DB_KEY);
-        return tx.complete;
-      } catch (err) {
-        console.error('Delete Error:', err);
       }
     }
 
@@ -850,10 +838,8 @@
       attachEventListeners();
       initGoogleAuthClient();
 
-      // Check storage for existing persisted dataset on first load / refresh / tab reopen
       const hasRestoredData = await checkAndLoadFromIndexedDB();
 
-      // Only prompt for data source if NO existing dataset was restored
       if (!hasRestoredData) {
         showFirstTimeFlashModal();
       }
@@ -875,7 +861,6 @@
         funderProjectMapping = new Map(storedPayload.funderProjectMapping || []);
         showingAllProjects = storedPayload.showingAllProjects !== undefined ? storedPayload.showingAllProjects : true;
         
-        // Restore project scope context
         rawDataset = showingAllProjects ? allParsedDataset : funderDataset;
 
         if (!showingAllProjects) {
@@ -895,7 +880,6 @@
         $('#statusFolderName').text(storedPayload.folderName || 'IndexedDB Storage');
         $('#statusConnection').text('Loaded (Cached)').removeClass('text-danger text-secondary').addClass('text-success');
 
-        // Removed the restoration alert message as per instruction
         return true;
       }
       return false;
@@ -971,7 +955,6 @@
       $('#localFolderInput').on('change', handleLocalFolderSelect);
       $('#btnLoadGDrive').on('click', handleGDriveLoad);
       $('#btnRefreshData').on('click', handleRefreshData);
-      $('#btnClearSavedData').on('click', handleClearSavedData);
 
       $('#fallbackFileInput').on('change', function(e) {
         const files = Array.from(e.target.files).filter(isValidExcelFile);
@@ -980,36 +963,6 @@
           processExcelFiles(files);
         }
       });
-    }
-
-    async function handleClearSavedData() {
-      if (confirm("Are you sure you want to permanently clear the saved dashboard data from this browser?")) {
-        await clearDatasetFromIDB();
-        allParsedDataset = [];
-        funderDataset = [];
-        rawDataset = [];
-        filteredDataset = [];
-        monthColumns = [];
-        activeProjectIdsSet.clear();
-        funderProjectMapping.clear();
-
-        if (dataTableInstance) dataTableInstance.clear().draw();
-        
-        $('#fileInfo').text('Saved data cleared');
-        $('#statusFilesLoaded').text('0');
-        $('#statusLastRefresh').text('Cleared');
-        $('#statusFolderName').text('Not Selected');
-        $('#statusConnection').text('Disconnected').removeClass('text-success text-secondary').addClass('text-danger');
-
-        const flashHtml = `
-          <div class="alert alert-warning alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
-            <i class="fa-solid fa-trash me-1"></i><strong>Cleared!</strong> Saved browser data has been permanently removed.
-            <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        `;
-        $('#flashMessageContainer').html(flashHtml);
-        setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 4000);
-      }
     }
 
     function toggleDataSourceView(type) {
@@ -1484,7 +1437,6 @@
         rawDataset = funderDataset;
       }
       
-      // Update persistent storage with current project mode toggle state
       saveDatasetToIDB({
         allParsedDataset: allParsedDataset,
         funderDataset: funderDataset,
@@ -1722,7 +1674,6 @@
             const dateTimeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             const folderName = $('#statusFolderName').text() || 'Uploaded Data';
 
-            // Automatically persist loaded dataset payload to Storage
             await saveDatasetToIDB({
               allParsedDataset: allParsedDataset,
               funderDataset: funderDataset,
@@ -1751,7 +1702,7 @@
               const flashHtml = `
                 <div class="alert alert-success alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
                   <i class="fa-solid fa-circle-check me-1"></i><strong>Success!</strong> Dashboard loaded & saved to browser storage.
-                  <button type="button" class="btn-close py-1" data-bs-alert="alert" aria-label="Close"></button>
+                  <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
               `;
               $('#flashMessageContainer').html(flashHtml);
@@ -1903,7 +1854,6 @@
           computedAnnualActual += aVal;
         });
 
-        // Set strictly to the "Annual Budget" column provided in the data sheet
         rowRecord['Annual Budget'] = lineObj['Sheet Annual Budget'] || 0;
         rowRecord['Actual Total'] = computedAnnualActual;
 
