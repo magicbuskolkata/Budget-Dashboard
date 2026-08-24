@@ -632,7 +632,7 @@
         store.put(payload, DB_KEY);
         return tx.complete;
       } catch (err) {
-        console.error('IndexedDB Save Error:', err);
+        console.error('Save Error:', err);
       }
     }
 
@@ -647,7 +647,7 @@
           request.onerror = () => reject(request.error);
         });
       } catch (err) {
-        console.error('IndexedDB Load Error:', err);
+        console.error('Load Error:', err);
         return null;
       }
     }
@@ -660,7 +660,7 @@
         store.delete(DB_KEY);
         return tx.complete;
       } catch (err) {
-        console.error('IndexedDB Delete Error:', err);
+        console.error('Delete Error:', err);
       }
     }
 
@@ -755,7 +755,7 @@
         });
 
         const annual = parseFloat(row['Annual Budget']) || 0;
-        const actualAnnual = parseFloat(row['Actual Total']) || 0;
+        const actualAnnual = row['Actual Total'];
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -789,7 +789,7 @@
         });
 
         const annual = parseFloat(row['Annual Budget']) || 0;
-        const actualAnnual = parseFloat(row['Actual Total']) || 0;
+        const actualAnnual = row['Actual Total'];
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -850,7 +850,7 @@
       attachEventListeners();
       initGoogleAuthClient();
 
-      // Check IndexedDB for existing persisted dataset on first load / refresh / tab reopen
+      // Check storage for existing persisted dataset on first load / refresh / tab reopen
       const hasRestoredData = await checkAndLoadFromIndexedDB();
 
       // Only prompt for data source if NO existing dataset was restored
@@ -895,14 +895,7 @@
         $('#statusFolderName').text(storedPayload.folderName || 'IndexedDB Storage');
         $('#statusConnection').text('Loaded (Cached)').removeClass('text-danger text-secondary').addClass('text-success');
 
-        const flashHtml = `
-          <div class="alert alert-info alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
-            <i class="fa-solid fa-database me-1"></i><strong>Restored!</strong> Automatically loaded saved dashboard dataset from browser storage.
-            <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        `;
-        $('#flashMessageContainer').html(flashHtml);
-        setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 4000);
+        // Removed the restoration alert message as per instruction
         return true;
       }
       return false;
@@ -1723,13 +1716,13 @@
             processMultipleFilesData(fileResults);
 
             $bar.css('width', '98%').text('98%').attr('aria-valuenow', 98);
-            $status.text('Persisting dataset to IndexedDB...');
+            $status.text('Persisting dataset to Storage...');
 
             const now = new Date();
             const dateTimeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             const folderName = $('#statusFolderName').text() || 'Uploaded Data';
 
-            // Automatically persist loaded dataset payload to IndexedDB
+            // Automatically persist loaded dataset payload to Storage
             await saveDatasetToIDB({
               allParsedDataset: allParsedDataset,
               funderDataset: funderDataset,
@@ -1757,8 +1750,8 @@
               
               const flashHtml = `
                 <div class="alert alert-success alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
-                  <i class="fa-solid fa-circle-check me-1"></i><strong>Success!</strong> Dashboard loaded & saved to browser IndexedDB.
-                  <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
+                  <i class="fa-solid fa-circle-check me-1"></i><strong>Success!</strong> Dashboard loaded & saved to browser storage.
+                  <button type="button" class="btn-close py-1" data-bs-alert="alert" aria-label="Close"></button>
                 </div>
               `;
               $('#flashMessageContainer').html(flashHtml);
@@ -1834,8 +1827,7 @@
           const categoryName = String(row['Category Name'] || 'Unassigned');
           const budgetLine = String(row['Budget Line'] || 'Unassigned');
           const openPO = parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0);
-
-          const rawAnnualBudget = parseFloat(row['Annual Budget'] || row['AnnualBudget'] || row['Total Annual Budget'] || 0);
+          const sheetAnnualBudget = parseFloat(row['Annual Budget'] || row['AnnualBudget'] || 0);
 
           const compositeKey = `${region}|${programType}|${funderId}|${projectId}|${broadCategory}|${categoryId}|${budgetLine}`;
 
@@ -1853,15 +1845,15 @@
               'Category Name': categoryName,
               'Budget Line': budgetLine,
               'Open PO Value': openPO,
+              'Sheet Annual Budget': sheetAnnualBudget,
               'Projected Start Date': String(row['Projected Start Date'] || row['Start Month'] || ''),
-              'Raw Annual Budget': rawAnnualBudget,
               monthsData: {}
             });
           }
 
           const lineObj = lineMap.get(compositeKey);
-          if (rawAnnualBudget && !lineObj['Raw Annual Budget']) {
-            lineObj['Raw Annual Budget'] = rawAnnualBudget;
+          if (!lineObj['Sheet Annual Budget'] && sheetAnnualBudget) {
+            lineObj['Sheet Annual Budget'] = sheetAnnualBudget;
           }
 
           monthColumns.forEach(m => {
@@ -1898,7 +1890,6 @@
           'Projected Start Date': lineObj['Projected Start Date']
         };
 
-        let computedAnnualBudget = 0;
         let computedAnnualActual = 0;
 
         monthColumns.forEach(m => {
@@ -1909,12 +1900,11 @@
           rowRecord[`Budget ${m}`] = bVal;
           rowRecord[`Actual ${m}`] = aVal;
 
-          computedAnnualBudget += bVal;
           computedAnnualActual += aVal;
         });
 
-        // Use direct raw Annual Budget from data sheet column, falling back to computed period sum if 0/undefined
-        rowRecord['Annual Budget'] = lineObj['Raw Annual Budget'] > 0 ? lineObj['Raw Annual Budget'] : computedAnnualBudget;
+        // Set strictly to the "Annual Budget" column provided in the data sheet
+        rowRecord['Annual Budget'] = lineObj['Sheet Annual Budget'] || 0;
         rowRecord['Actual Total'] = computedAnnualActual;
 
         allParsedDataset.push(rowRecord);
@@ -2145,8 +2135,7 @@
       const totalYTDVariance = totalYTDBudget - totalYTDActual;
       const ytdUtilizationPct = totalYTDBudget > 0 ? (totalYTDActual / totalYTDBudget) * 100 : 0;
 
-      // Direct binding to the Annual Budget column of the data sheet
-      const totalAnnualBudget = aggregate(data, 'Annual Budget');
+      const totalAnnualBudget = aggregate(data, 'AnnualBudgetCalc');
       const totalAnnualActual = aggregate(data, 'ActualTotalCalc');
       const totalAnnualVariance = totalAnnualBudget - totalAnnualActual;
       const annualUtilizationPct = totalAnnualBudget > 0 ? (totalAnnualActual / totalAnnualBudget) * 100 : 0;
