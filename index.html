@@ -120,7 +120,6 @@
       color: #0a4b9a;
     }
 
-    /* Requirement 3: Highlight / Blink animation */
     .highlight-blink {
       animation: pulseHighlight 1s infinite alternate;
       border: 2px solid #0d6efd !important;
@@ -138,7 +137,6 @@
       }
     }
 
-    /* Modal size set to 90% of screen dashboard width */
     .modal-90-width {
       width: 90vw !important;
       max-width: 90vw !important;
@@ -195,6 +193,11 @@
         <button class="btn btn-sm btn-success fw-bold shadow-sm py-1" id="btnRefreshData">
           <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Data
         </button>
+
+        <!-- Clear Saved Data Button -->
+        <button class="btn btn-sm btn-outline-danger fw-bold shadow-sm py-1" id="btnClearSavedData" title="Permanently delete cached browser data">
+          <i class="fa-solid fa-trash-can me-1"></i> Clear Saved Data
+        </button>
       </div>
 
       <!-- Status Dashboard -->
@@ -244,7 +247,7 @@
     </div>
   </div>
 
-  <!-- Requirement 2: First Time Flash Message Modal -->
+  <!-- First Time Flash Message Modal -->
   <div class="modal fade" id="firstTimeFlashModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content shadow border-primary">
@@ -521,7 +524,7 @@
     </div>
   </div>
 
-  <!-- Budget Breakdown Details Modal (Updated size to 90% of Dashboard) -->
+  <!-- Budget Breakdown Details Modal -->
   <div class="modal fade" id="budgetBreakdownModal" tabindex="-1" aria-labelledby="budgetBreakdownModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-90-width modal-dialog-scrollable">
       <div class="modal-content">
@@ -544,7 +547,6 @@
                   <th>Broad Category</th>
                   <th>Category Id</th>
                   <th>Budget Line</th>
-                  <!-- Requirement 8: Columns added before Annual Budget -->
                   <th>YTD Budget</th>
                   <th>YTD Actual spend</th>
                   <th>YTD Budget Variance</th>
@@ -553,7 +555,6 @@
                   <th>Annual Actual</th>
                   <th>Annual Variance</th>
                   <th>Utilization</th>
-                  <!-- Requirement 8: Column added at the last -->
                   <th>Total Open PO Value</th>
                 </tr>
               </thead>
@@ -597,12 +598,73 @@
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
-  <!-- Application Logic -->
+  <!-- Application Logic & Persistence Layer -->
   <script>
     const CONFIG = {
       GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com'
     };
 
+    // --- INDEXEDDB STORAGE ENGINE (MagicBusFinancialDB) ---
+    const DB_NAME = 'MagicBusFinancialDB';
+    const DB_VERSION = 1;
+    const DB_STORE = 'dashboard_store';
+    const DB_KEY = 'raw_records';
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(DB_STORE)) {
+            db.createObjectStore(DB_STORE);
+          }
+        };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+      });
+    }
+
+    async function saveDatasetToIDB(payload) {
+      try {
+        const db = await openDB();
+        const tx = db.transaction(DB_STORE, 'readwrite');
+        const store = tx.objectStore(DB_STORE);
+        store.put(payload, DB_KEY);
+        return tx.complete;
+      } catch (err) {
+        console.error('IndexedDB Save Error:', err);
+      }
+    }
+
+    async function loadDatasetFromIDB() {
+      try {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readonly');
+          const store = tx.objectStore(DB_STORE);
+          const request = store.get(DB_KEY);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      } catch (err) {
+        console.error('IndexedDB Load Error:', err);
+        return null;
+      }
+    }
+
+    async function clearDatasetFromIDB() {
+      try {
+        const db = await openDB();
+        const tx = db.transaction(DB_STORE, 'readwrite');
+        const store = tx.objectStore(DB_STORE);
+        store.delete(DB_KEY);
+        return tx.complete;
+      } catch (err) {
+        console.error('IndexedDB Delete Error:', err);
+      }
+    }
+
+    // --- GLOBAL DASHBOARD STATE ---
     let rawDataset = [];
     let allParsedDataset = [];
     let funderDataset = [];
@@ -625,7 +687,6 @@
     let activeProjectIdsSet = new Set();
     let funderProjectMapping = new Map();
 
-    // Mapping definition for Smart Cascading Filters
     const FILTER_FIELDS = [
       { id: '#filterMonthFrom', key: 'MonthFrom', isDate: true },
       { id: '#filterMonthTo', key: 'MonthTo', isDate: true },
@@ -669,7 +730,6 @@
       }
     }
 
-    // Requirement 9: Modal specific Active Selected Months calculation
     function getModalSelectedMonths() {
       const fromVal = $('#modalFilterMonthFrom').val();
       const toVal = $('#modalFilterMonthTo').val();
@@ -694,8 +754,8 @@
           periodActual += parseFloat(row[`Actual ${m}`]) || 0;
         });
 
-        const annual = row['Annual Budget'];
-        const actualAnnual = row['Actual Total'];
+        const annual = parseFloat(row['Annual Budget']) || 0;
+        const actualAnnual = parseFloat(row['Actual Total']) || 0;
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -728,8 +788,8 @@
           periodActual += parseFloat(row[`Actual ${m}`]) || 0;
         });
 
-        const annual = row['Annual Budget'];
-        const actualAnnual = row['Actual Total'];
+        const annual = parseFloat(row['Annual Budget']) || 0;
+        const actualAnnual = parseFloat(row['Actual Total']) || 0;
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -782,7 +842,7 @@
       return `${m}'${y}`;
     }
 
-    $(document).ready(function() {
+    $(document).ready(async function() {
       initializeDataSourceUI();
       initializeSelect2();
       initializeCharts();
@@ -790,10 +850,14 @@
       attachEventListeners();
       initGoogleAuthClient();
 
-      // Requirement 2: Show flash message on initial page load
-      showFirstTimeFlashModal();
+      // Check IndexedDB for existing persisted dataset on first load / refresh / tab reopen
+      const hasRestoredData = await checkAndLoadFromIndexedDB();
 
-      // Recalculate DataTable headers when Modal opens
+      // Only prompt for data source if NO existing dataset was restored
+      if (!hasRestoredData) {
+        showFirstTimeFlashModal();
+      }
+
       $('#budgetBreakdownModal').on('shown.bs.modal', function () {
         if (dataTableInstance) {
           dataTableInstance.columns.adjust().responsive.recalc();
@@ -801,7 +865,49 @@
       });
     });
 
-    // Requirement 2: Check & Display First Time Flash Message Box
+    async function checkAndLoadFromIndexedDB() {
+      const storedPayload = await loadDatasetFromIDB();
+      if (storedPayload && storedPayload.allParsedDataset && storedPayload.allParsedDataset.length > 0) {
+        allParsedDataset = storedPayload.allParsedDataset;
+        funderDataset = storedPayload.funderDataset;
+        monthColumns = storedPayload.monthColumns || [];
+        activeProjectIdsSet = new Set(storedPayload.activeProjectIds || []);
+        funderProjectMapping = new Map(storedPayload.funderProjectMapping || []);
+        showingAllProjects = storedPayload.showingAllProjects !== undefined ? storedPayload.showingAllProjects : true;
+        
+        // Restore project scope context
+        rawDataset = showingAllProjects ? allParsedDataset : funderDataset;
+
+        if (!showingAllProjects) {
+          $('#nonFunderBtnText').text('Show All Projects');
+          $('#btnToggleNonFunder').removeClass('btn-outline-warning').addClass('btn-warning text-dark');
+        } else {
+          $('#nonFunderBtnText').text('Show Listed Projects');
+          $('#btnToggleNonFunder').removeClass('btn-warning text-dark').addClass('btn-outline-warning');
+        }
+
+        populateFilterDropdowns();
+        processAndRenderDashboard();
+
+        $('#fileInfo').text(`Restored saved data (${allParsedDataset.length} rows)`);
+        $('#statusFilesLoaded').text(storedPayload.fileCount || 'Cached');
+        $('#statusLastRefresh').text(storedPayload.lastRefresh || 'Restored');
+        $('#statusFolderName').text(storedPayload.folderName || 'IndexedDB Storage');
+        $('#statusConnection').text('Loaded (Cached)').removeClass('text-danger text-secondary').addClass('text-success');
+
+        const flashHtml = `
+          <div class="alert alert-info alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
+            <i class="fa-solid fa-database me-1"></i><strong>Restored!</strong> Automatically loaded saved dashboard dataset from browser storage.
+            <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `;
+        $('#flashMessageContainer').html(flashHtml);
+        setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 4000);
+        return true;
+      }
+      return false;
+    }
+
     function showFirstTimeFlashModal() {
       const flashModal = new bootstrap.Modal(document.getElementById('firstTimeFlashModal'));
       flashModal.show();
@@ -818,7 +924,6 @@
       });
     }
 
-    // Requirement 2: Highlight Data Source Section if user clicks No
     function highlightDataSourceSection() {
       const $ds = $('#dataSourceSection');
       $ds.addClass('highlight-blink');
@@ -827,7 +932,6 @@
       }, 4000);
     }
 
-    // Requirement 3: Highlight/Blink Filter section after uploading Data
     function highlightFilterSection() {
       const $filterCard = $('#filterSidebarCard');
       $filterCard.addClass('highlight-blink');
@@ -874,6 +978,7 @@
       $('#localFolderInput').on('change', handleLocalFolderSelect);
       $('#btnLoadGDrive').on('click', handleGDriveLoad);
       $('#btnRefreshData').on('click', handleRefreshData);
+      $('#btnClearSavedData').on('click', handleClearSavedData);
 
       $('#fallbackFileInput').on('change', function(e) {
         const files = Array.from(e.target.files).filter(isValidExcelFile);
@@ -882,6 +987,36 @@
           processExcelFiles(files);
         }
       });
+    }
+
+    async function handleClearSavedData() {
+      if (confirm("Are you sure you want to permanently clear the saved dashboard data from this browser?")) {
+        await clearDatasetFromIDB();
+        allParsedDataset = [];
+        funderDataset = [];
+        rawDataset = [];
+        filteredDataset = [];
+        monthColumns = [];
+        activeProjectIdsSet.clear();
+        funderProjectMapping.clear();
+
+        if (dataTableInstance) dataTableInstance.clear().draw();
+        
+        $('#fileInfo').text('Saved data cleared');
+        $('#statusFilesLoaded').text('0');
+        $('#statusLastRefresh').text('Cleared');
+        $('#statusFolderName').text('Not Selected');
+        $('#statusConnection').text('Disconnected').removeClass('text-success text-secondary').addClass('text-danger');
+
+        const flashHtml = `
+          <div class="alert alert-warning alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
+            <i class="fa-solid fa-trash me-1"></i><strong>Cleared!</strong> Saved browser data has been permanently removed.
+            <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `;
+        $('#flashMessageContainer').html(flashHtml);
+        setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 4000);
+      }
     }
 
     function toggleDataSourceView(type) {
@@ -1028,7 +1163,7 @@
       
       if (isError) {
         $conn.removeClass('text-success text-secondary').addClass('text-danger');
-      } else if (connectionStatus === 'Connected' || connectionStatus === 'Loaded') {
+      } else if (connectionStatus === 'Connected' || connectionStatus === 'Loaded' || connectionStatus.includes('Cached')) {
         $conn.removeClass('text-danger text-secondary').addClass('text-success');
       } else {
         $conn.removeClass('text-danger text-success').addClass('text-secondary');
@@ -1053,7 +1188,6 @@
         rowGroup: {
           dataSrc: 'Broad Category',
           startRender: function (rows, group) {
-            // Calculate totals for Requirement 1 & 7
             let sumYtdBudget = rows.data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumYtdActual = rows.data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumYtdVariance = sumYtdBudget - sumYtdActual;
@@ -1069,8 +1203,6 @@
             const cls = sumVariance < 0 ? 'status-red' : 'status-green';
             let badgeClass = sumUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
-            // Requirement 6: Show only group name without "Broad Category:"
-            // Requirement 7: Show subtotal on group row when collapsed, hide when expanded
             return $('<tr class="group-header-row"/>')
               .append('<td colspan="17" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
                 '<button type="button" class="btn btn-sm btn-outline-primary me-2 toggle-group-btn" data-group-id="' + groupId + '" style="width: 22px; height: 22px; padding: 0; line-height: 1; font-size: 0.65rem;"><i class="fa-solid fa-plus"></i></button>' +
@@ -1086,7 +1218,6 @@
                 '</td>');
           },
           endRender: function (rows, group) {
-            // Requirement 1: Show subtotal at the below of each group under the same column
             let sumYtdBudget = rows.data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumYtdActual = rows.data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumYtdVariance = sumYtdBudget - sumYtdActual;
@@ -1129,7 +1260,6 @@
           { data: 'Broad Category', visible: false },
           { data: 'Category Id' },
           { data: 'Budget Line' },
-          // Requirement 8: a, b, c, d columns added
           { data: 'YTD Budget', render: (data) => formatINR(data), className: 'text-end' },
           { data: 'YTD Actual spend', render: (data) => formatINR(data), className: 'text-end' },
           { 
@@ -1154,7 +1284,6 @@
             render: (data) => `<span class="badge ${data > 100 ? 'bg-status-red' : 'bg-status-green'}">${data.toFixed(1)}%</span>`, 
             className: 'text-center' 
           },
-          // Requirement 8: e column added at the last
           { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'text-end' }
         ],
         footerCallback: function (row, data, start, end, display) {
@@ -1190,8 +1319,6 @@
         ]
       });
 
-      // Requirement 7: Add Expand / Collapse Rows button beside Print button
-      // Requirement 9: Add Month From and Month To search filter beside Expand / Collapse button
       const $dtButtons = $('.dt-buttons');
       const expandBtnHtml = `
         <button type="button" class="btn btn-outline-primary btn-xs py-1 me-3" id="btnToggleExpandCollapse">
@@ -1209,7 +1336,6 @@
       `;
       $dtButtons.append(expandBtnHtml + modalFilterHtml);
 
-      // Handle Expand / Collapse All Toggle
       $('#btnToggleExpandCollapse').on('click', function() {
         isModalAllExpanded = !isModalAllExpanded;
         const $btn = $(this);
@@ -1235,7 +1361,6 @@
         }
       });
 
-      // Individual Group Expand/Collapse Handler
       $('#budgetDataTable').on('click', '.toggle-group-btn', function(e) {
         e.stopPropagation();
         const groupId = $(this).data('group-id');
@@ -1247,18 +1372,15 @@
           $icon.removeClass('fa-plus').addClass('fa-minus');
           $(this).removeClass('btn-outline-primary').addClass('btn-primary text-white');
           $rows.show();
-          // Requirement 7: Hide subtotal from group row when expanded
           $headerSubtotal.hide();
         } else {
           $icon.removeClass('fa-minus').addClass('fa-plus');
           $(this).removeClass('btn-primary text-white').addClass('btn-outline-primary');
           $rows.hide();
-          // Requirement 7: Show subtotal on group row when collapsed
           $headerSubtotal.show();
         }
       });
 
-      // Requirement 9: Month From & Month To modal filters listener
       $(document).on('change', '#modalFilterMonthFrom, #modalFilterMonthTo', function() {
         renderModalBreakdownTable();
       });
@@ -1271,7 +1393,6 @@
         plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
       };
 
-      // Monthly Bar Chart (Budget vs Actual)
       chartInstances.monthlyBar = new Chart(document.getElementById('chartMonthlyBar'), {
         type: 'bar',
         data: { labels: [], datasets: [] },
@@ -1283,7 +1404,6 @@
         }
       });
 
-      // Cumulative Trend Chart
       chartInstances.cumulativeTrend = new Chart(document.getElementById('chartCumulativeTrend'), {
         type: 'line',
         data: { labels: [], datasets: [] },
@@ -1317,13 +1437,11 @@
       $('#btnResetFilters').on('click', resetFilters);
       $('#btnToggleFilter').on('click', toggleFilterSidebar);
 
-      // Requirement 4: After click "Show Listed project/Show All project" button, automatically "reset" filter must run
       $('#btnToggleNonFunder').on('click', function() {
         toggleProjectViewMode();
         resetFilters();
       });
 
-      // Smart Cascading Filter trigger attachment for all dynamic fields
       FILTER_FIELDS.forEach(field => {
         $(field.id).on('change', function() {
           if (isCascading) return;
@@ -1372,6 +1490,19 @@
         $text.text('Show All Projects');
         rawDataset = funderDataset;
       }
+      
+      // Update persistent storage with current project mode toggle state
+      saveDatasetToIDB({
+        allParsedDataset: allParsedDataset,
+        funderDataset: funderDataset,
+        monthColumns: monthColumns,
+        activeProjectIds: Array.from(activeProjectIdsSet),
+        funderProjectMapping: Array.from(funderProjectMapping.entries()),
+        showingAllProjects: showingAllProjects,
+        fileCount: $('#statusFilesLoaded').text(),
+        lastRefresh: $('#statusLastRefresh').text(),
+        folderName: $('#statusFolderName').text()
+      });
     }
 
     function parseFileStartWeight(filename) {
@@ -1404,7 +1535,6 @@
       };
     `;
 
-    // Requirement 10: Optimized Worker Pool Size & Dense mode to process within 3 sec
     function getWorkerPoolSize(fileCount) {
       const cores = (navigator.hardwareConcurrency || 4);
       return Math.max(2, Math.min(cores * 2, fileCount, 16));
@@ -1586,44 +1716,57 @@
             $status.text(`Parsed ${completedCount} of ${total} budget file(s)...`);
           };
 
-          const finishUpload = (fileResults) => {
+          const finishUpload = async (fileResults) => {
             $bar.css('width', '92%').text('92%').attr('aria-valuenow', 92);
             $status.text('Processing dataset records...');
 
-            requestAnimationFrame(() => {
-              processMultipleFilesData(fileResults);
+            processMultipleFilesData(fileResults);
 
-              $bar.css('width', '100%').text('100%').attr('aria-valuenow', 100);
-              $status.text('Complete! Rendering dashboard...');
+            $bar.css('width', '98%').text('98%').attr('aria-valuenow', 98);
+            $status.text('Persisting dataset to IndexedDB...');
 
-              const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(1);
-              $timing.text(`Uploading timing: completed in ${elapsedSec}s`).show();
+            const now = new Date();
+            const dateTimeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const folderName = $('#statusFolderName').text() || 'Uploaded Data';
 
-              setTimeout(() => {
-                uploadModal.hide();
-                $('#fileInfo').text(`Loaded Funder List & ${fileResults.length} budget file(s) in ${elapsedSec}s`);
-                $('#statusFilesLoaded').text(filesArray.length);
-                
-                const now = new Date();
-                const dateTimeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                $('#statusLastRefresh').text(dateTimeStr);
-                $('#statusConnection').text(currentDataSource === 'local' ? 'Loaded' : 'Connected').removeClass('text-danger text-secondary').addClass('text-success');
-                
-                const flashHtml = `
-                  <div class="alert alert-success alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
-                    <i class="fa-solid fa-circle-check me-1"></i><strong>Success!</strong> Dashboard successfully loaded from ${currentDataSource === 'local' ? 'Local Drive' : 'Google Drive'}.
-                    <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-                `;
-                $('#flashMessageContainer').html(flashHtml);
-                setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 5000);
-
-                processAndRenderDashboard();
-
-                // Requirement 3: After upload Data, highlight or blink filter section
-                highlightFilterSection();
-              }, 400);
+            // Automatically persist loaded dataset payload to IndexedDB
+            await saveDatasetToIDB({
+              allParsedDataset: allParsedDataset,
+              funderDataset: funderDataset,
+              monthColumns: monthColumns,
+              activeProjectIds: Array.from(activeProjectIdsSet),
+              funderProjectMapping: Array.from(funderProjectMapping.entries()),
+              showingAllProjects: showingAllProjects,
+              fileCount: filesArray.length,
+              lastRefresh: dateTimeStr,
+              folderName: folderName
             });
+
+            $bar.css('width', '100%').text('100%').attr('aria-valuenow', 100);
+            $status.text('Complete! Rendering dashboard...');
+
+            const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(1);
+            $timing.text(`Uploading timing: completed in ${elapsedSec}s`).show();
+
+            setTimeout(() => {
+              uploadModal.hide();
+              $('#fileInfo').text(`Loaded Funder List & ${fileResults.length} budget file(s) in ${elapsedSec}s`);
+              $('#statusFilesLoaded').text(filesArray.length);
+              $('#statusLastRefresh').text(dateTimeStr);
+              $('#statusConnection').text(currentDataSource === 'local' ? 'Loaded' : 'Connected').removeClass('text-danger text-secondary').addClass('text-success');
+              
+              const flashHtml = `
+                <div class="alert alert-success alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
+                  <i class="fa-solid fa-circle-check me-1"></i><strong>Success!</strong> Dashboard loaded & saved to browser IndexedDB.
+                  <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              `;
+              $('#flashMessageContainer').html(flashHtml);
+              setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 5000);
+
+              processAndRenderDashboard();
+              highlightFilterSection();
+            }, 400);
           };
 
           const handleFailure = (err) => {
@@ -1692,6 +1835,8 @@
           const budgetLine = String(row['Budget Line'] || 'Unassigned');
           const openPO = parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0);
 
+          const rawAnnualBudget = parseFloat(row['Annual Budget'] || row['AnnualBudget'] || row['Total Annual Budget'] || 0);
+
           const compositeKey = `${region}|${programType}|${funderId}|${projectId}|${broadCategory}|${categoryId}|${budgetLine}`;
 
           if (!lineMap.has(compositeKey)) {
@@ -1709,11 +1854,15 @@
               'Budget Line': budgetLine,
               'Open PO Value': openPO,
               'Projected Start Date': String(row['Projected Start Date'] || row['Start Month'] || ''),
+              'Raw Annual Budget': rawAnnualBudget,
               monthsData: {}
             });
           }
 
           const lineObj = lineMap.get(compositeKey);
+          if (rawAnnualBudget && !lineObj['Raw Annual Budget']) {
+            lineObj['Raw Annual Budget'] = rawAnnualBudget;
+          }
 
           monthColumns.forEach(m => {
             const bKey = `Budget ${m}`;
@@ -1764,7 +1913,8 @@
           computedAnnualActual += aVal;
         });
 
-        rowRecord['Annual Budget'] = computedAnnualBudget;
+        // Use direct raw Annual Budget from data sheet column, falling back to computed period sum if 0/undefined
+        rowRecord['Annual Budget'] = lineObj['Raw Annual Budget'] > 0 ? lineObj['Raw Annual Budget'] : computedAnnualBudget;
         rowRecord['Actual Total'] = computedAnnualActual;
 
         allParsedDataset.push(rowRecord);
@@ -1837,7 +1987,6 @@
         $('#filterMonthFrom').append(new Option(displayLabel, m, isSelectedFrom, isSelectedFrom));
         $('#filterMonthTo').append(new Option(displayLabel, m, isSelectedTo, isSelectedTo));
 
-        // Requirement 9: Default Budget Breakdown Details Month From/To = Smart Filters
         $('#modalFilterMonthFrom').append(new Option(displayLabel, m, isSelectedFrom, isSelectedFrom));
         $('#modalFilterMonthTo').append(new Option(displayLabel, m, isSelectedTo, isSelectedTo));
       });
@@ -1864,7 +2013,6 @@
       $el.trigger('change.select2');
     }
 
-    // Dynamic Multi-Directional Smart Cascading Filter Engine
     function handleSmartCascadingFilters(triggeredById) {
       isCascading = true;
 
@@ -1879,7 +2027,6 @@
           sampleMatch = rawDataset.find(d => selProjectIds.includes(d['Project Id']));
         }
 
-        // Requirement 5: Auto select "Month from" from "Projected start date"
         if (sampleMatch && sampleMatch['Projected Start Date']) {
           const matchMonth = monthColumns.find(m => {
             const d1 = parseDDMMYY(m);
@@ -1923,7 +2070,6 @@
         const { from: defaultFrom, to: defaultTo } = getDefaultFinancialYearMonths();
         $('#filterMonthFrom').val(defaultFrom).trigger('change');
         $('#filterMonthTo').val(defaultTo).trigger('change');
-        // Requirement 9: Reset modal filters as well
         $('#modalFilterMonthFrom').val(defaultFrom);
         $('#modalFilterMonthTo').val(defaultTo);
       }
@@ -1950,7 +2096,6 @@
 
       const activeMonths = getActiveSelectedMonths();
 
-      // Requirement 9: Keep Modal month filters synced with Smart Filters on dashboard update
       $('#modalFilterMonthFrom').val($('#filterMonthFrom').val());
       $('#modalFilterMonthTo').val($('#filterMonthTo').val());
 
@@ -2000,7 +2145,8 @@
       const totalYTDVariance = totalYTDBudget - totalYTDActual;
       const ytdUtilizationPct = totalYTDBudget > 0 ? (totalYTDActual / totalYTDBudget) * 100 : 0;
 
-      const totalAnnualBudget = aggregate(data, 'AnnualBudgetCalc');
+      // Direct binding to the Annual Budget column of the data sheet
+      const totalAnnualBudget = aggregate(data, 'Annual Budget');
       const totalAnnualActual = aggregate(data, 'ActualTotalCalc');
       const totalAnnualVariance = totalAnnualBudget - totalAnnualActual;
       const annualUtilizationPct = totalAnnualBudget > 0 ? (totalAnnualActual / totalAnnualBudget) * 100 : 0;
@@ -2069,7 +2215,6 @@
         trendActual.push(cumActual);
       });
 
-      // Chart 1: Monthly Bar Chart
       chartInstances.monthlyBar.data = {
         labels: displayMonths,
         datasets: [
@@ -2079,7 +2224,6 @@
       };
       chartInstances.monthlyBar.update();
 
-      // Chart 2: Cumulative Line Chart
       chartInstances.cumulativeTrend.data = {
         labels: displayMonths,
         datasets: [
@@ -2170,18 +2314,16 @@
           let mUtil = mBudget > 0 ? (mActual / mBudget) * 100 : 0;
           let varCls = mVar < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
           let utilBadge = mUtil > 100 ? 'bg-status-red' : 'bg-status-green';
-          let monthDisplay = formatMonthYear(parseDDMMYY(m)) || m;
 
-          $tbody.append(`
-            <tr>
-              <td class="fw-bold text-primary">${qGroup.quarter}</td>
-              <td>${monthDisplay}</td>
-              <td class="text-end">${money(mBudget)}</td>
-              <td class="text-end">${money(mActual)}</td>
-              <td class="text-end ${varCls}">${money(mVar)}</td>
-              <td class="text-center"><span class="badge ${utilBadge}">${pct(mUtil)}</span></td>
-            </tr>
-          `);
+          let mRow = `<tr>
+            <td class="ps-4 text-muted">${qGroup.quarter}</td>
+            <td>${formatMonthYear(parseDDMMYY(m)) || m}</td>
+            <td class="text-end">${money(mBudget)}</td>
+            <td class="text-end">${money(mActual)}</td>
+            <td class="text-end ${varCls}">${money(mVar)}</td>
+            <td class="text-center"><span class="badge ${utilBadge}">${mUtil.toFixed(1)}%</span></td>
+          </tr>`;
+          $tbody.append(mRow);
         });
 
         let qVar = qBudget - qActual;
@@ -2189,16 +2331,15 @@
         let qVarCls = qVar < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
         let qUtilBadge = qUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
-        $tbody.append(`
-          <tr class="table-warning fw-bold">
-            <td>${qGroup.quarter} Sub Total</td>
-            <td>-</td>
-            <td class="text-end">${money(qBudget)}</td>
-            <td class="text-end">${money(qActual)}</td>
-            <td class="text-end ${qVarCls}">${money(qVar)}</td>
-            <td class="text-center"><span class="badge ${qUtilBadge}">${pct(qUtil)}</span></td>
-          </tr>
-        `);
+        let qSubtotalRow = `<tr class="table-secondary fw-bold">
+          <td>${qGroup.quarter} Total</td>
+          <td>-</td>
+          <td class="text-end">${money(qBudget)}</td>
+          <td class="text-end">${money(qActual)}</td>
+          <td class="text-end ${qVarCls}">${money(qVar)}</td>
+          <td class="text-center"><span class="badge ${qUtilBadge}">${qUtil.toFixed(1)}%</span></td>
+        </tr>`;
+        $tbody.append(qSubtotalRow);
       });
 
       let gVar = grandTotalBudget - grandTotalActual;
@@ -2206,55 +2347,14 @@
       let gVarCls = gVar < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
       let gUtilBadge = gUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
-      $tbody.append(`
-        <tr class="table-dark text-white fw-bold">
-          <td colspan="2">Grand Total</td>
-          <td class="text-end">${money(grandTotalBudget)}</td>
-          <td class="text-end">${money(grandTotalActual)}</td>
-          <td class="text-end ${gVarCls}">${money(gVar)}</td>
-          <td class="text-center"><span class="badge ${gUtilBadge}">${pct(gUtil)}</span></td>
-        </tr>
-      `);
-    }
-
-    // Requirement 8 & 9: Render Budget Breakdown Details Data Table with new columns and month filters
-    function renderModalBreakdownTable() {
-      const modalData = getModalProcessedRows();
-
-      const tableData = modalData.map(d => ({
-        'Sr No.': d['Sr No.'],
-        'Region': d['Region'],
-        'Funder ID': d['Funder ID'],
-        'Funder Name': d['Funder Name'],
-        'Project Id': d['Project Id'],
-        'Project Name': d['Project Name'],
-        'Broad Category': d['Broad Category'],
-        'Category Id': d['Category Id'],
-        'Budget Line': d['Budget Line'],
-        'YTD Budget': d.YTDBudgetCalc,
-        'YTD Actual spend': d.YTDActualCalc,
-        'YTD Budget Variance': d.YTDVariance,
-        'YTD Budget Utilization': d.YTDUtilization,
-        'Annual Budget': d.AnnualBudgetCalc,
-        'Annual Actual': d.ActualTotalCalc,
-        'Annual Variance': d.VarianceAnnual,
-        'Utilization': d.UtilizationAnnual,
-        'Total Open PO Value': d.OpenPOVal
-      }));
-
-      dataTableInstance.clear();
-      dataTableInstance.rows.add(tableData);
-      dataTableInstance.draw();
-
-      if (isModalAllExpanded) {
-        $('.toggle-group-btn').each(function() {
-          const groupId = $(this).data('group-id');
-          $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
-          $(this).removeClass('btn-outline-primary').addClass('btn-primary text-white');
-          $('tr.' + groupId).show();
-          $(this).closest('tr').find('.group-subtotal-info').hide();
-        });
-      }
+      let grandRow = `<tr class="table-dark text-white fw-bold">
+        <td colspan="2">Grand Total</td>
+        <td class="text-end">${money(grandTotalBudget)}</td>
+        <td class="text-end">${money(grandTotalActual)}</td>
+        <td class="text-end ${gVarCls}">${money(gVar)}</td>
+        <td class="text-center"><span class="badge ${gUtilBadge}">${gUtil.toFixed(1)}%</span></td>
+      </tr>`;
+      $tbody.append(grandRow);
     }
 
     function renderTop10BudgetLines(processedRows) {
@@ -2263,84 +2363,82 @@
 
       if (!processedRows || processedRows.length === 0) return;
 
-      const groupedMap = new Map();
+      const scoredLines = processedRows.map(row => {
+        const ytdB = row.YTDBudgetCalc;
+        const ytdA = row.YTDActualCalc;
+        const bal = row.YTDVariance;
+        const util = ytdB > 0 ? (ytdA / ytdB) * 100 : 0;
+        const riskCat = getRiskCategory(util, bal);
+        const riskScore = getRiskScore(util, bal);
+        const action = getSuggestedAction(riskCat, bal);
 
-      processedRows.forEach(row => {
-        const funderName = row['Funder Name'] || 'Unassigned';
-        const projectId = row['Project Id'] || 'Unassigned';
-        const projectName = row['Project Name'] || 'Unassigned';
-        const categoryId = row['Category Id'] || 'Unassigned';
-        const budgetLine = row['Budget Line'] || 'Unassigned';
-
-        const key = `${funderName}|${projectId}|${projectName}|${categoryId}|${budgetLine}`;
-
-        if (!groupedMap.has(key)) {
-          groupedMap.set(key, {
-            funderName, projectId, projectName, categoryId, budgetLine,
-            ytdBudget: 0, ytdActual: 0
-          });
-        }
-        const item = groupedMap.get(key);
-        item.ytdBudget += row.YTDBudgetCalc;
-        item.ytdActual += row.YTDActualCalc;
+        return {
+          ...row,
+          YtdUtil: util,
+          RiskCat: riskCat,
+          RiskScore: riskScore,
+          Action: action
+        };
       });
 
-      const budgetLineList = [];
-      groupedMap.forEach(item => {
-        const balance = item.ytdBudget - item.ytdActual;
-        const utilPct = item.ytdBudget > 0 ? (item.ytdActual / item.ytdBudget) * 100 : 0;
-        const riskCat = getRiskCategory(utilPct, balance);
-        const score = getRiskScore(utilPct, balance);
-        const action = getSuggestedAction(riskCat, balance);
-
-        budgetLineList.push({
-          funderName: item.funderName,
-          projectId: item.projectId,
-          projectName: item.projectName,
-          categoryId: item.categoryId,
-          budgetLine: item.budgetLine,
-          ytdBudget: item.ytdBudget,
-          ytdActual: item.ytdActual,
-          balance: balance,
-          absBalance: Math.abs(balance),
-          utilizationPct: utilPct,
-          riskCategory: riskCat,
-          riskScore: score,
-          suggestedAction: action
-        });
-      });
-
-      budgetLineList.sort((a, b) => (b.riskScore !== a.riskScore) ? b.riskScore - a.riskScore : b.absBalance - a.absBalance);
-
-      const top10 = budgetLineList.slice(0, 10);
+      scoredLines.sort((a, b) => b.RiskScore - a.RiskScore);
+      const top10 = scoredLines.slice(0, 10);
 
       top10.forEach((item, index) => {
-        let badgeClass = 'bg-secondary';
-        if (item.riskCategory === 'High Overspend Risk') badgeClass = 'bg-danger';
-        else if (item.riskCategory === 'Medium Risk') badgeClass = 'bg-warning text-dark';
-        else if (item.riskCategory === 'Underutilization Risk') badgeClass = 'bg-info text-dark';
-        else if (item.riskCategory === 'Low Risk') badgeClass = 'bg-success';
+        let badgeCls = 'bg-secondary';
+        if (item.RiskCat === 'High Overspend Risk') badgeCls = 'bg-status-red';
+        else if (item.RiskCat === 'Medium Risk') badgeCls = 'bg-status-blue';
+        else if (item.RiskCat === 'Underutilization Risk') badgeCls = 'bg-warning text-dark';
+        else badgeCls = 'bg-status-green';
 
-        const balClass = item.balance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
+        let balCls = item.YTDVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
 
-        $tbody.append(`
-          <tr>
-            <td class="text-center fw-bold">${index + 1}</td>
-            <td>${item.funderName}</td>
-            <td>${item.projectId}</td>
-            <td>${item.projectName}</td>
-            <td>${item.categoryId}</td>
-            <td class="fw-semibold">${item.budgetLine}</td>
-            <td class="text-end">${money(item.ytdBudget)}</td>
-            <td class="text-end">${money(item.ytdActual)}</td>
-            <td class="text-end ${balClass}">${money(item.balance)}</td>
-            <td class="text-center">${pct(item.utilizationPct)}</td>
-            <td class="text-center"><span class="badge ${badgeClass}">${item.riskCategory}</span></td>
-            <td class="text-end fw-bold">${item.riskScore.toFixed(1)}</td>
-            <td class="small text-muted">${item.suggestedAction}</td>
-          </tr>
-        `);
+        let rowHtml = `<tr>
+          <td class="text-center fw-bold">${index + 1}</td>
+          <td>${item['Funder Name']}</td>
+          <td>${item['Project Id']}</td>
+          <td>${item['Project Name']}</td>
+          <td>${item['Category Id']}</td>
+          <td>${item['Budget Line']}</td>
+          <td class="text-end">${money(item.YTDBudgetCalc)}</td>
+          <td class="text-end">${money(item.YTDActualCalc)}</td>
+          <td class="text-end ${balCls}">${money(item.YTDVariance)}</td>
+          <td class="text-center"><span class="badge ${item.YtdUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${item.YtdUtil.toFixed(1)}%</span></td>
+          <td class="text-center"><span class="badge ${badgeCls}">${item.RiskCat}</span></td>
+          <td class="text-end fw-bold">${item.RiskScore}</td>
+          <td class="small">${item.Action}</td>
+        </tr>`;
+        $tbody.append(rowHtml);
       });
+    }
+
+    function renderModalBreakdownTable() {
+      if (!dataTableInstance) return;
+
+      const modalRows = getModalProcessedRows();
+      const formattedData = modalRows.map(r => ({
+        'Region': r['Region'],
+        'Funder ID': r['Funder ID'],
+        'Funder Name': r['Funder Name'],
+        'Project Id': r['Project Id'],
+        'Project Name': r['Project Name'],
+        'Broad Category': r['Broad Category'],
+        'Category Id': r['Category Id'],
+        'Budget Line': r['Budget Line'],
+        'YTD Budget': r.YTDBudgetCalc,
+        'YTD Actual spend': r.YTDActualCalc,
+        'YTD Budget Variance': r.YTDVariance,
+        'YTD Budget Utilization': r.YTDUtilization,
+        'Annual Budget': r.AnnualBudgetCalc,
+        'Annual Actual': r.ActualTotalCalc,
+        'Annual Variance': r.VarianceAnnual,
+        'Utilization': r.UtilizationAnnual,
+        'Total Open PO Value': r.OpenPOVal
+      }));
+
+      dataTableInstance.clear();
+      dataTableInstance.rows.add(formattedData);
+      dataTableInstance.draw();
     }
   </script>
 </body>
