@@ -229,15 +229,6 @@
         </div>
       </div>
     </div>
-    <!-- Browser Persistence Limitation Disclaimer -->
-    <div class="row mt-1">
-      <div class="col-12">
-        <div class="text-muted small" style="font-size: 0.68rem;">
-          <i class="fa-solid fa-circle-info text-info me-1"></i>
-          <em><strong>IndexedDB Notice:</strong> Data saved locally in this browser is specific to this browser and profile/file-path. Saved data will not carry over to Incognito mode, another browser, or after clearing browser history.</em>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Upload Progress Modal -->
@@ -764,7 +755,7 @@
         });
 
         const annual = parseFloat(row['Annual Budget']) || 0;
-        const actualAnnual = parseFloat(row['Actual Total']) || 0;
+        const actualAnnual = row['Actual Total'];
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -798,7 +789,7 @@
         });
 
         const annual = parseFloat(row['Annual Budget']) || 0;
-        const actualAnnual = parseFloat(row['Actual Total']) || 0;
+        const actualAnnual = row['Actual Total'];
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -1767,7 +1758,7 @@
               const flashHtml = `
                 <div class="alert alert-success alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
                   <i class="fa-solid fa-circle-check me-1"></i><strong>Success!</strong> Dashboard loaded & saved to browser IndexedDB.
-                  <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
+                  <button type="button" class="btn-close py-1" data-bs-alert="alert" aria-label="Close"></button>
                 </div>
               `;
               $('#flashMessageContainer').html(flashHtml);
@@ -1843,9 +1834,7 @@
           const categoryName = String(row['Category Name'] || 'Unassigned');
           const budgetLine = String(row['Budget Line'] || 'Unassigned');
           const openPO = parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0);
-
-          // Standardized lookup for Annual Budget column
-          const rawAnnualBudget = row['Annual Budget'] !== undefined ? row['Annual Budget'] : (row['AnnualBudget'] !== undefined ? row['AnnualBudget'] : null);
+          const sheetAnnualBudget = parseFloat(row['Annual Budget'] || row['AnnualBudget'] || 0);
 
           const compositeKey = `${region}|${programType}|${funderId}|${projectId}|${broadCategory}|${categoryId}|${budgetLine}`;
 
@@ -1863,15 +1852,15 @@
               'Category Name': categoryName,
               'Budget Line': budgetLine,
               'Open PO Value': openPO,
+              'Sheet Annual Budget': sheetAnnualBudget,
               'Projected Start Date': String(row['Projected Start Date'] || row['Start Month'] || ''),
-              'Raw Annual Budget': rawAnnualBudget !== null ? parseFloat(rawAnnualBudget) : null,
               monthsData: {}
             });
           }
 
           const lineObj = lineMap.get(compositeKey);
-          if (lineObj['Raw Annual Budget'] === null && rawAnnualBudget !== null) {
-            lineObj['Raw Annual Budget'] = parseFloat(rawAnnualBudget);
+          if (!lineObj['Sheet Annual Budget'] && sheetAnnualBudget) {
+            lineObj['Sheet Annual Budget'] = sheetAnnualBudget;
           }
 
           monthColumns.forEach(m => {
@@ -1923,11 +1912,7 @@
           computedAnnualActual += aVal;
         });
 
-        // Use the explicit Annual Budget column if present; fallback to sum of months
-        rowRecord['Annual Budget'] = (lineObj['Raw Annual Budget'] !== null && !isNaN(lineObj['Raw Annual Budget'])) 
-          ? lineObj['Raw Annual Budget'] 
-          : computedAnnualBudget;
-          
+        rowRecord['Annual Budget'] = lineObj['Sheet Annual Budget'] || computedAnnualBudget;
         rowRecord['Actual Total'] = computedAnnualActual;
 
         allParsedDataset.push(rowRecord);
@@ -2158,7 +2143,7 @@
       const totalYTDVariance = totalYTDBudget - totalYTDActual;
       const ytdUtilizationPct = totalYTDBudget > 0 ? (totalYTDActual / totalYTDBudget) * 100 : 0;
 
-      const totalAnnualBudget = aggregate(data, 'AnnualBudgetCalc');
+      const totalAnnualBudget = aggregate(data, 'Annual Budget');
       const totalAnnualActual = aggregate(data, 'ActualTotalCalc');
       const totalAnnualVariance = totalAnnualBudget - totalAnnualActual;
       const annualUtilizationPct = totalAnnualBudget > 0 ? (totalAnnualActual / totalAnnualBudget) * 100 : 0;
