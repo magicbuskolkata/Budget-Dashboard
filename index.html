@@ -763,8 +763,8 @@
           periodActual += parseFloat(row[`Actual ${m}`]) || 0;
         });
 
-        const annual = row['Annual Budget'];
-        const actualAnnual = row['Actual Total'];
+        const annual = parseFloat(row['Annual Budget']) || 0;
+        const actualAnnual = parseFloat(row['Actual Total']) || 0;
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -797,8 +797,8 @@
           periodActual += parseFloat(row[`Actual ${m}`]) || 0;
         });
 
-        const annual = row['Annual Budget'];
-        const actualAnnual = row['Actual Total'];
+        const annual = parseFloat(row['Annual Budget']) || 0;
+        const actualAnnual = parseFloat(row['Actual Total']) || 0;
         const varianceAnnual = annual - actualAnnual;
         const utilizationAnnual = annual > 0 ? (actualAnnual / annual) * 100 : 0;
 
@@ -1844,6 +1844,9 @@
           const budgetLine = String(row['Budget Line'] || 'Unassigned');
           const openPO = parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0);
 
+          // Standardized lookup for Annual Budget column
+          const rawAnnualBudget = row['Annual Budget'] !== undefined ? row['Annual Budget'] : (row['AnnualBudget'] !== undefined ? row['AnnualBudget'] : null);
+
           const compositeKey = `${region}|${programType}|${funderId}|${projectId}|${broadCategory}|${categoryId}|${budgetLine}`;
 
           if (!lineMap.has(compositeKey)) {
@@ -1861,11 +1864,15 @@
               'Budget Line': budgetLine,
               'Open PO Value': openPO,
               'Projected Start Date': String(row['Projected Start Date'] || row['Start Month'] || ''),
+              'Raw Annual Budget': rawAnnualBudget !== null ? parseFloat(rawAnnualBudget) : null,
               monthsData: {}
             });
           }
 
           const lineObj = lineMap.get(compositeKey);
+          if (lineObj['Raw Annual Budget'] === null && rawAnnualBudget !== null) {
+            lineObj['Raw Annual Budget'] = parseFloat(rawAnnualBudget);
+          }
 
           monthColumns.forEach(m => {
             const bKey = `Budget ${m}`;
@@ -1916,7 +1923,11 @@
           computedAnnualActual += aVal;
         });
 
-        rowRecord['Annual Budget'] = computedAnnualBudget;
+        // Use the explicit Annual Budget column if present; fallback to sum of months
+        rowRecord['Annual Budget'] = (lineObj['Raw Annual Budget'] !== null && !isNaN(lineObj['Raw Annual Budget'])) 
+          ? lineObj['Raw Annual Budget'] 
+          : computedAnnualBudget;
+          
         rowRecord['Actual Total'] = computedAnnualActual;
 
         allParsedDataset.push(rowRecord);
