@@ -142,6 +142,21 @@
       max-width: 90vw !important;
       margin: 1.75rem auto;
     }
+
+    /* Column Formatting Customizations */
+    #budgetDataTable tbody tr {
+      background-color: #ffffff !important;
+    }
+    .col-budget-line {
+      color: #0d6efd !important;
+      font-weight: bold !important;
+    }
+    .col-ytd-variance {
+      background-color: #D9EAF7 !important;
+    }
+    .col-annual-variance {
+      background-color: #FFF2CC !important;
+    }
   </style>
 </head>
 <body>
@@ -531,41 +546,34 @@
         </div>
         <div class="modal-body p-2">
           <div class="table-responsive">
-            <table id="budgetDataTable" class="table table-sm table-striped table-hover align-middle w-100 style-table">
+            <table id="budgetDataTable" class="table table-sm table-hover align-middle w-100 style-table">
               <thead class="table-light">
                 <tr>
                   <th>Region</th>
                   <th>Funder ID</th>
-                  <th>Funder Name</th>
                   <th>Project Id</th>
                   <th>Project Name</th>
                   <th>Broad Category</th>
                   <th>Category Id</th>
                   <th>Budget Line</th>
-                  <th>YTD Budget</th>
-                  <th>YTD Actual spend</th>
-                  <th>YTD Budget Variance</th>
-                  <th>YTD Budget Utilization</th>
                   <th>Annual Budget</th>
                   <th>Annual Actual</th>
                   <th>Annual Variance</th>
                   <th>Utilization</th>
+                  <th>YTD Variance</th>
                   <th>Total Open PO Value</th>
                 </tr>
               </thead>
               <tbody></tbody>
               <tfoot class="table-light">
                 <tr>
-                  <td colspan="7" class="text-end fw-bold">Grand Total:</td>
+                  <td colspan="5" class="text-end fw-bold">Grand Total:</td>
+                  <td class="col-budget-line"></td>
                   <td class="text-end fw-bold"></td>
                   <td class="text-end fw-bold"></td>
-                  <td class="text-end fw-bold"></td>
-                  <td class="text-end fw-bold"></td>
+                  <td class="col-annual-variance text-end fw-bold"></td>
                   <td class="text-center fw-bold"></td>
-                  <td class="text-end fw-bold"></td>
-                  <td class="text-end fw-bold"></td>
-                  <td class="text-end fw-bold"></td>
-                  <td class="text-center fw-bold"></td>
+                  <td class="col-ytd-variance text-end fw-bold"></td>
                   <td class="text-end fw-bold"></td>
                 </tr>
               </tfoot>
@@ -843,7 +851,7 @@
 
       $('#budgetBreakdownModal').on('shown.bs.modal', function () {
         if (dataTableInstance) {
-          dataTableInstance.columns.adjust().responsive.recalc();
+          dataTableInstance.columns.adjust();
         }
       });
     });
@@ -1124,35 +1132,29 @@
 
     function initializeDataTable() {
       dataTableInstance = $('#budgetDataTable').DataTable({
-        responsive: true,
+        responsive: false,
+        autoWidth: true,
         destroy: true,
         data: [],
-        order: [[5, 'asc']], 
+        order: [[4, 'asc'], [6, 'asc']], // Default Group Sort by "Broad Category" asc, then by "Budget Line" asc
         rowGroup: {
           dataSrc: 'Broad Category',
           startRender: function (rows, group) {
-            let sumYtdBudget = rows.data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
-            let sumYtdActual = rows.data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
-            let sumYtdVariance = sumYtdBudget - sumYtdActual;
-            let sumYtdUtil = sumYtdBudget > 0 ? (sumYtdActual / sumYtdBudget) * 100 : 0;
-
+            let sumYtdVariance = rows.data().pluck('YTD Budget Variance').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumBudget = rows.data().pluck('Annual Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumActual = rows.data().pluck('Annual Actual').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumVariance = sumBudget - sumActual;
             let sumUtil = sumBudget > 0 ? (sumActual / sumBudget) * 100 : 0;
-            let sumOpenPO = rows.data().pluck('Total Open PO Value').reduce((a, b) => a + parseFloat(b || 0), 0);
             
             const groupId = 'group_' + group.replace(/[^a-zA-Z0-9]/g, '_');
             const cls = sumVariance < 0 ? 'status-red' : 'status-green';
             let badgeClass = sumUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
             return $('<tr class="group-header-row"/>')
-              .append('<td colspan="17" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
+              .append('<td colspan="13" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
                 '<button type="button" class="btn btn-sm btn-outline-primary me-2 toggle-group-btn" data-group-id="' + groupId + '" style="width: 22px; height: 22px; padding: 0; line-height: 1; font-size: 0.65rem;"><i class="fa-solid fa-plus"></i></button>' +
                 '<span class="me-3">' + group + '</span>' +
                 '<span class="group-subtotal-info float-end text-dark small fw-normal">' +
-                'YTD Budget: <strong>' + formatINR(sumYtdBudget) + '</strong> | ' +
-                'YTD Spend: <strong>' + formatINR(sumYtdActual) + '</strong> | ' +
                 'Annual Budget: <strong>' + formatINR(sumBudget) + '</strong> | ' +
                 'Annual Actual: <strong>' + formatINR(sumActual) + '</strong> | ' +
                 'Variance: <strong class="' + cls + '">' + formatINR(sumVariance) + '</strong> | ' +
@@ -1161,11 +1163,7 @@
                 '</td>');
           },
           endRender: function (rows, group) {
-            let sumYtdBudget = rows.data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
-            let sumYtdActual = rows.data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
-            let sumYtdVariance = sumYtdBudget - sumYtdActual;
-            let sumYtdUtil = sumYtdBudget > 0 ? (sumYtdActual / sumYtdBudget) * 100 : 0;
-
+            let sumYtdVariance = rows.data().pluck('YTD Budget Variance').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumBudget = rows.data().pluck('Annual Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumActual = rows.data().pluck('Annual Actual').reduce((a, b) => a + parseFloat(b || 0), 0);
             let sumVariance = sumBudget - sumActual;
@@ -1177,15 +1175,13 @@
             const varCls = sumVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
 
             return $('<tr class="group-subtotal-row ' + groupId + ' table-secondary fw-bold" style="display:none; font-size: 0.75rem;"/>')
-              .append('<td colspan="7" class="text-end fw-bold">' + group + ' Subtotal:</td>')
-              .append('<td class="text-end">' + formatINR(sumYtdBudget) + '</td>')
-              .append('<td class="text-end">' + formatINR(sumYtdActual) + '</td>')
-              .append('<td class="text-end ' + ytdVarCls + '">' + formatINR(sumYtdVariance) + '</td>')
-              .append('<td class="text-center"><span class="badge ' + (sumYtdUtil > 100 ? 'bg-status-red' : 'bg-status-green') + '">' + sumYtdUtil.toFixed(1) + '%</span></td>')
+              .append('<td colspan="6" class="text-end fw-bold">' + group + ' Subtotal:</td>')
+              .append('<td class="col-budget-line"></td>')
               .append('<td class="text-end">' + formatINR(sumBudget) + '</td>')
               .append('<td class="text-end">' + formatINR(sumActual) + '</td>')
-              .append('<td class="text-end ' + varCls + '">' + formatINR(sumVariance) + '</td>')
+              .append('<td class="col-annual-variance text-end ' + varCls + '">' + formatINR(sumVariance) + '</td>')
               .append('<td class="text-center"><span class="badge ' + (sumUtil > 100 ? 'bg-status-red' : 'bg-status-green') + '">' + sumUtil.toFixed(1) + '%</span></td>')
+              .append('<td class="col-ytd-variance text-end ' + ytdVarCls + '">' + formatINR(sumYtdVariance) + '</td>')
               .append('<td class="text-end">' + formatINR(sumOpenPO) + '</td>');
           }
         },
@@ -1197,44 +1193,33 @@
         columns: [
           { data: 'Region' },
           { data: 'Funder ID' },
-          { data: 'Funder Name' },
           { data: 'Project Id' },
           { data: 'Project Name' },
           { data: 'Broad Category', visible: false },
           { data: 'Category Id' },
-          { data: 'Budget Line' },
-          { data: 'YTD Budget', render: (data) => formatINR(data), className: 'text-end' },
-          { data: 'YTD Actual spend', render: (data) => formatINR(data), className: 'text-end' },
-          { 
-            data: 'YTD Budget Variance', 
-            render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`, 
-            className: 'text-end' 
-          },
-          { 
-            data: 'YTD Budget Utilization', 
-            render: (data) => `<span class="badge ${data > 100 ? 'bg-status-red' : 'bg-status-green'}">${data.toFixed(1)}%</span>`, 
-            className: 'text-center' 
-          },
+          { data: 'Budget Line', className: 'col-budget-line' },
           { data: 'Annual Budget', render: (data) => formatINR(data), className: 'text-end' },
           { data: 'Annual Actual', render: (data) => formatINR(data), className: 'text-end' },
           { 
             data: 'Annual Variance', 
             render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`, 
-            className: 'text-end' 
+            className: 'col-annual-variance text-end' 
           },
           { 
             data: 'Utilization', 
             render: (data) => `<span class="badge ${data > 100 ? 'bg-status-red' : 'bg-status-green'}">${data.toFixed(1)}%</span>`, 
             className: 'text-center' 
           },
+          { 
+            data: 'YTD Budget Variance', 
+            render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`, 
+            className: 'col-ytd-variance text-end' 
+          },
           { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'text-end' }
         ],
         footerCallback: function (row, data, start, end, display) {
           let api = this.api();
-          let totalYtdBudget = api.rows({search: 'applied'}).data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
-          let totalYtdActual = api.rows({search: 'applied'}).data().pluck('YTD Actual spend').reduce((a, b) => a + parseFloat(b || 0), 0);
-          let totalYtdVariance = totalYtdBudget - totalYtdActual;
-          let totalYtdUtil = totalYtdBudget > 0 ? (totalYtdActual / totalYtdBudget) * 100 : 0;
+          let totalYtdVariance = api.rows({search: 'applied'}).data().pluck('YTD Budget Variance').reduce((a, b) => a + parseFloat(b || 0), 0);
 
           let totalBudget = api.rows({search: 'applied'}).data().pluck('Annual Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
           let totalActual = api.rows({search: 'applied'}).data().pluck('Annual Actual').reduce((a, b) => a + parseFloat(b || 0), 0);
@@ -1242,16 +1227,12 @@
           let totalUtil = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
           let totalOpenPO = api.rows({search: 'applied'}).data().pluck('Total Open PO Value').reduce((a, b) => a + parseFloat(b || 0), 0);
 
-          $(api.column(7).footer()).html(formatINR(totalYtdBudget));
-          $(api.column(8).footer()).html(formatINR(totalYtdActual));
-          $(api.column(9).footer()).html(`<span class="${totalYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalYtdVariance)}</span>`);
-          $(api.column(10).footer()).html(`<span class="badge ${totalYtdUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalYtdUtil.toFixed(1)}%</span>`);
-
-          $(api.column(11).footer()).html(formatINR(totalBudget));
-          $(api.column(12).footer()).html(formatINR(totalActual));
-          $(api.column(13).footer()).html(`<span class="${totalVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalVariance)}</span>`);
-          $(api.column(14).footer()).html(`<span class="badge ${totalUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalUtil.toFixed(1)}%</span>`);
-          $(api.column(15).footer()).html(formatINR(totalOpenPO));
+          $(api.column(7).footer()).html(formatINR(totalBudget));
+          $(api.column(8).footer()).html(formatINR(totalActual));
+          $(api.column(9).footer()).html(`<span class="${totalVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalVariance)}</span>`);
+          $(api.column(10).footer()).html(`<span class="badge ${totalUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalUtil.toFixed(1)}%</span>`);
+          $(api.column(11).footer()).html(`<span class="${totalYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalYtdVariance)}</span>`);
+          $(api.column(12).footer()).html(formatINR(totalOpenPO));
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
         buttons: [
@@ -1302,6 +1283,7 @@
             $(this).closest('tr').find('.group-subtotal-info').show();
           });
         }
+        if (dataTableInstance) dataTableInstance.columns.adjust();
       });
 
       $('#budgetDataTable').on('click', '.toggle-group-btn', function(e) {
@@ -1322,6 +1304,7 @@
           $rows.hide();
           $headerSubtotal.show();
         }
+        if (dataTableInstance) dataTableInstance.columns.adjust();
       });
 
       $(document).on('change', '#modalFilterMonthFrom, #modalFilterMonthTo', function() {
@@ -1415,7 +1398,7 @@
 
       setTimeout(() => {
         Object.values(chartInstances).forEach(chart => chart.resize());
-        if (dataTableInstance) dataTableInstance.columns.adjust().responsive.recalc();
+        if (dataTableInstance) dataTableInstance.columns.adjust();
       }, 250);
     }
 
@@ -2283,14 +2266,14 @@
       let gVarCls = gVar < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
       let gUtilBadge = gUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
-      let grandRow = `<tr class="table-dark text-white fw-bold">
+      let grandTotalRow = `<tr class="table-dark text-white fw-bold">
         <td colspan="2">Grand Total</td>
         <td class="text-end">${money(grandTotalBudget)}</td>
         <td class="text-end">${money(grandTotalActual)}</td>
         <td class="text-end ${gVarCls}">${money(gVar)}</td>
         <td class="text-center"><span class="badge ${gUtilBadge}">${gUtil.toFixed(1)}%</span></td>
       </tr>`;
-      $tbody.append(grandRow);
+      $tbody.append(grandTotalRow);
     }
 
     function renderTop10BudgetLines(processedRows) {
@@ -2299,52 +2282,49 @@
 
       if (!processedRows || processedRows.length === 0) return;
 
-      const scoredLines = processedRows.map(row => {
-        const ytdB = row.YTDBudgetCalc;
-        const ytdA = row.YTDActualCalc;
-        const bal = row.YTDVariance;
-        const util = ytdB > 0 ? (ytdA / ytdB) * 100 : 0;
-        const riskCat = getRiskCategory(util, bal);
-        const riskScore = getRiskScore(util, bal);
-        const action = getSuggestedAction(riskCat, bal);
+      const items = processedRows.map(r => {
+        const util = r.YTDBudgetCalc > 0 ? (r.YTDActualCalc / r.YTDBudgetCalc) * 100 : 0;
+        const balance = r.YTDBudgetCalc - r.YTDActualCalc;
+        const rCategory = getRiskCategory(util, balance);
+        const rScore = getRiskScore(util, balance);
+        const action = getSuggestedAction(rCategory, balance);
 
         return {
-          ...row,
-          YtdUtil: util,
-          RiskCat: riskCat,
-          RiskScore: riskScore,
-          Action: action
+          ...r,
+          utilization: util,
+          balance: balance,
+          riskCategory: rCategory,
+          riskScore: rScore,
+          suggestedAction: action
         };
       });
 
-      scoredLines.sort((a, b) => b.RiskScore - a.RiskScore);
-      const top10 = scoredLines.slice(0, 10);
+      items.sort((a, b) => b.riskScore - a.riskScore);
+      const top10 = items.slice(0, 10);
 
       top10.forEach((item, index) => {
-        let badgeCls = 'bg-secondary';
-        if (item.RiskCat === 'High Overspend Risk') badgeCls = 'bg-status-red';
-        else if (item.RiskCat === 'Medium Risk') badgeCls = 'bg-status-blue';
-        else if (item.RiskCat === 'Underutilization Risk') badgeCls = 'bg-warning text-dark';
-        else badgeCls = 'bg-status-green';
+        let badgeClass = 'bg-secondary';
+        if (item.riskCategory === 'High Overspend Risk') badgeClass = 'bg-danger';
+        else if (item.riskCategory === 'Medium Risk') badgeClass = 'bg-warning text-dark';
+        else if (item.riskCategory === 'Underutilization Risk') badgeClass = 'bg-info text-dark';
+        else badgeClass = 'bg-success';
 
-        let balCls = item.YTDVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
-
-        let rowHtml = `<tr>
+        const tr = `<tr>
           <td class="text-center fw-bold">${index + 1}</td>
           <td>${item['Funder Name']}</td>
           <td>${item['Project Id']}</td>
           <td>${item['Project Name']}</td>
           <td>${item['Category Id']}</td>
-          <td>${item['Budget Line']}</td>
+          <td class="col-budget-line">${item['Budget Line']}</td>
           <td class="text-end">${money(item.YTDBudgetCalc)}</td>
           <td class="text-end">${money(item.YTDActualCalc)}</td>
-          <td class="text-end ${balCls}">${money(item.YTDVariance)}</td>
-          <td class="text-center"><span class="badge ${item.YtdUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${item.YtdUtil.toFixed(1)}%</span></td>
-          <td class="text-center"><span class="badge ${badgeCls}">${item.RiskCat}</span></td>
-          <td class="text-end fw-bold">${item.RiskScore}</td>
-          <td class="small">${item.Action}</td>
+          <td class="text-end ${item.balance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${money(item.balance)}</td>
+          <td class="text-center"><span class="badge ${item.utilization > 100 ? 'bg-status-red' : 'bg-status-green'}">${pct(item.utilization)}</span></td>
+          <td class="text-center"><span class="badge ${badgeClass}">${item.riskCategory}</span></td>
+          <td class="text-end fw-bold">${item.riskScore}</td>
+          <td class="small">${item.suggestedAction}</td>
         </tr>`;
-        $tbody.append(rowHtml);
+        $tbody.append(tr);
       });
     }
 
@@ -2352,29 +2332,46 @@
       if (!dataTableInstance) return;
 
       const modalRows = getModalProcessedRows();
+      
       const formattedData = modalRows.map(r => ({
         'Region': r['Region'],
         'Funder ID': r['Funder ID'],
-        'Funder Name': r['Funder Name'],
         'Project Id': r['Project Id'],
         'Project Name': r['Project Name'],
         'Broad Category': r['Broad Category'],
         'Category Id': r['Category Id'],
         'Budget Line': r['Budget Line'],
-        'YTD Budget': r.YTDBudgetCalc,
-        'YTD Actual spend': r.YTDActualCalc,
-        'YTD Budget Variance': r.YTDVariance,
-        'YTD Budget Utilization': r.YTDUtilization,
         'Annual Budget': r.AnnualBudgetCalc,
         'Annual Actual': r.ActualTotalCalc,
         'Annual Variance': r.VarianceAnnual,
         'Utilization': r.UtilizationAnnual,
+        'YTD Budget Variance': r.YTDVariance,
         'Total Open PO Value': r.OpenPOVal
       }));
 
       dataTableInstance.clear();
       dataTableInstance.rows.add(formattedData);
       dataTableInstance.draw();
+
+      if (isModalAllExpanded) {
+        $('.toggle-group-btn').each(function() {
+          const groupId = $(this).data('group-id');
+          $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
+          $(this).removeClass('btn-outline-primary').addClass('btn-primary text-white');
+          $('tr.' + groupId).show();
+          $(this).closest('tr').find('.group-subtotal-info').hide();
+        });
+      } else {
+        $('.toggle-group-btn').each(function() {
+          const groupId = $(this).data('group-id');
+          $(this).find('i').removeClass('fa-minus').addClass('fa-plus');
+          $(this).removeClass('btn-primary text-white').addClass('btn-outline-primary');
+          $('tr.' + groupId).hide();
+          $(this).closest('tr').find('.group-subtotal-info').show();
+        });
+      }
+
+      dataTableInstance.columns.adjust();
     }
   </script>
 </body>
