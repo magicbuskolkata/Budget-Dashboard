@@ -1151,7 +1151,7 @@
             let badgeClass = sumUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
             return $('<tr class="group-header-row"/>')
-              .append('<td colspan="13" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
+              .append('<td colspan="12" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
                 '<button type="button" class="btn btn-sm btn-outline-primary me-2 toggle-group-btn" data-group-id="' + groupId + '" style="width: 22px; height: 22px; padding: 0; line-height: 1; font-size: 0.65rem;"><i class="fa-solid fa-plus"></i></button>' +
                 '<span class="me-3">' + group + '</span>' +
                 '<span class="group-subtotal-info float-end text-dark small fw-normal">' +
@@ -1175,7 +1175,7 @@
             const varCls = sumVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
 
             return $('<tr class="group-subtotal-row ' + groupId + ' table-secondary fw-bold" style="display:none; font-size: 0.75rem;"/>')
-              .append('<td colspan="6" class="text-end fw-bold">' + group + ' Subtotal:</td>')
+              .append('<td colspan="5" class="text-end fw-bold">' + group + ' Subtotal:</td>')
               .append('<td class="col-budget-line"></td>')
               .append('<td class="text-end">' + formatINR(sumBudget) + '</td>')
               .append('<td class="text-end">' + formatINR(sumActual) + '</td>')
