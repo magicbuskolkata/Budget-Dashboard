@@ -114,10 +114,13 @@
       padding: 0.3rem 0.4rem;
     }
 
-    /* Requirement 2: Custom Header Styling for Budget Report Table */
-    #budgetDataTable thead th {
+    /* Custom Header Styling for Budget Report Table */
+    #budgetDataTable thead th, #pipDataTable thead th {
       background-color: #E7F1FF !important;
       color: #0D6EFD !important;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     tr.group, tr.group:hover {
@@ -164,7 +167,130 @@
       background-color: #FFF2CC !important;
     }
 
-    /* Requirement 1: Professional styling for DataTable buttons */
+    /* Requirement 3 & 5: PIP Statement Unique Professional Colors & Increased Budget Line Width */
+    .pip-budget-col {
+      background-color: #F0F4F8 !important;
+      color: #1d3557 !important;
+    }
+    .pip-actual-col {
+      background-color: #EBF5FB !important;
+      color: #023e8a !important;
+    }
+    #pipDataTable th, #pipDataTable td {
+      white-space: nowrap;
+    }
+    #pipDataTable th:first-child, #pipDataTable td:first-child {
+      position: sticky;
+      left: 0;
+      background-color: #ffffff;
+      z-index: 3;
+      min-width: 280px;
+      max-width: 320px;
+      word-break: break-word;
+    }
+    #pipDataTable thead th:first-child {
+      z-index: 20;
+      background-color: #E7F1FF !important;
+    }
+    #pipDataTable tr.pip-group-row td {
+      background-color: #e2e8f0 !important;
+      color: #1e293b !important;
+      font-weight: bold;
+    }
+
+    /* PIP Statement: equal month widths and clear month-group borders */
+    #pipTablesContainer {
+      width: 100%;
+    }
+    .pip-project-section {
+      margin-bottom: 18px;
+    }
+    .pip-project-heading {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #0d3b66;
+      background: #eef5fc;
+      border: 1px solid #b8c7d9;
+      border-bottom: 0;
+      padding: 5px 8px;
+    }
+    .pip-project-table {
+      width: max-content !important;
+      min-width: 100%;
+      table-layout: fixed !important;
+      border-collapse: collapse !important;
+      margin-bottom: 0 !important;
+    }
+    .pip-project-table .pip-budget-line-col {
+      width: 280px !important;
+      min-width: 280px !important;
+      max-width: 280px !important;
+    }
+    .pip-project-table .pip-month-col {
+      width: 76px !important;
+      min-width: 76px !important;
+      max-width: 76px !important;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .pip-project-table .pip-month-head {
+      width: 152px !important;
+      min-width: 152px !important;
+      max-width: 152px !important;
+      text-align: center !important;
+      border-left: 2px solid #8ea5bd !important;
+      border-right: 2px solid #8ea5bd !important;
+    }
+    .pip-project-table .pip-month-budget,
+    .pip-project-table .pip-month-actual {
+      border-top: 1px solid #c5d1dd !important;
+      border-bottom: 1px solid #c5d1dd !important;
+    }
+    .pip-project-table .pip-month-budget {
+      border-left: 2px solid #8ea5bd !important;
+      border-right: 1px solid #c5d1dd !important;
+    }
+    .pip-project-table .pip-month-actual {
+      border-left: 1px solid #c5d1dd !important;
+      border-right: 2px solid #8ea5bd !important;
+    }
+    .pip-project-table .pip-month-head + .pip-month-head {
+      border-left: 2px solid #8ea5bd !important;
+    }
+    .pip-project-table .pip-annual-col {
+      width: 115px !important;
+      min-width: 115px !important;
+      max-width: 115px !important;
+      border-left: 2px solid #8ea5bd !important;
+    }
+    .pip-project-table th,
+    .pip-project-table td {
+      box-sizing: border-box;
+      white-space: nowrap;
+    }
+    .pip-project-table thead th {
+      vertical-align: middle !important;
+    }
+
+    /* Budget PIP Statement: Budget Line wraps while remaining frozen during horizontal scroll */
+    .pip-project-table .pip-budget-line-col {
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+
+    .pip-project-table th:first-child,
+    .pip-project-table td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 6;
+    }
+
+    .pip-project-table thead th:first-child {
+      z-index: 25;
+    }
+
+    /* Professional styling for DataTable buttons */
     .dt-buttons .btn {
       background-color: #F8F9FA !important;
       color: #212529 !important;
@@ -370,12 +496,15 @@
 
         <!-- Top Action Bar -->
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <div class="d-flex align-items-center gap-2">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
             <button id="btnToggleFilter" class="btn btn-outline-primary btn-sm py-1 fw-semibold shadow-sm" style="font-size: 0.75rem;">
               <i class="fa-solid fa-filter-circle-xmark me-1" id="toggleFilterIcon"></i> <span id="toggleFilterText">Hide Filters</span>
             </button>
             <button id="btnOpenBudgetDetails" class="btn btn-outline-secondary btn-sm py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#budgetBreakdownModal" style="font-size: 0.75rem;">
               <i class="fa-solid fa-table-list me-1 text-primary"></i> Budget Breakdown Details
+            </button>
+            <button id="btnOpenPipStatement" class="btn btn-outline-primary btn-sm py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#pipStatementModal" style="font-size: 0.75rem;">
+              <i class="fa-solid fa-chart-line me-1 text-success"></i> Budget PIP statement
             </button>
           </div>
           <button id="btnToggleNonFunder" class="btn btn-outline-warning btn-sm py-1 fw-semibold shadow-sm" style="font-size: 0.75rem;">
@@ -604,6 +733,26 @@
     </div>
   </div>
 
+  <!-- Budget PIP Statement Modal -->
+  <div class="modal fade" id="pipStatementModal" tabindex="-1" aria-labelledby="pipStatementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header py-2 px-3 bg-light d-flex justify-content-between align-items-center">
+          <h6 class="modal-title fw-bold text-primary" id="pipStatementModalLabel">
+            <i class="fa-solid fa-chart-line me-2"></i>Budget PIP Statement &nbsp;|&nbsp; <span id="pipModalProjectTitle" class="text-dark">All Projects</span>
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-2">
+          <div class="alert alert-warning py-1 px-2 mb-2 small" role="alert">
+            <i class="fa-solid fa-info-circle me-1"></i> Select one or more <strong>Project Id</strong> values in the <strong>Smart Filters</strong> sidebar. Each selected project will be shown with its own monthly columns based on Projected Start Date and Projected End Date from the <strong>Budget Vs Actual</strong> Excel file.
+          </div>
+          <div id="pipTablesContainer" class="pip-tables-container" style="max-height: 70vh; overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript Dependencies -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -659,7 +808,6 @@
       }
     }
 
-    // Optimized for rapid sub-2-second retrieval using direct IDB fast path
     async function loadDatasetFromIDB() {
       try {
         const db = await openDB();
@@ -698,6 +846,8 @@
 
     let activeProjectIdsSet = new Set();
     let funderProjectMapping = new Map();
+    // PIP Statement date source: ONLY files whose name starts with 'Budget Vs Actual'.
+    let budgetProjectDateMapping = new Map();
 
     const FILTER_FIELDS = [
       { id: '#filterMonthFrom', key: 'MonthFrom', isDate: true },
@@ -862,7 +1012,6 @@
       attachEventListeners();
       initGoogleAuthClient();
 
-      // Check storage for existing persisted dataset on first load / refresh / tab reopen with sub-2s threshold
       const hasRestoredData = await checkAndLoadFromIndexedDB();
 
       if (!hasRestoredData) {
@@ -874,6 +1023,10 @@
           dataTableInstance.columns.adjust();
         }
       });
+
+      $('#pipStatementModal').on('shown.bs.modal', function () {
+        renderPipStatementTable();
+      });
     });
 
     async function checkAndLoadFromIndexedDB() {
@@ -884,6 +1037,21 @@
         monthColumns = storedPayload.monthColumns || [];
         activeProjectIdsSet = new Set(storedPayload.activeProjectIds || []);
         funderProjectMapping = new Map(storedPayload.funderProjectMapping || []);
+        budgetProjectDateMapping = new Map(storedPayload.budgetProjectDateMapping || []);
+        // Compatibility with data saved by the previous version. The old
+        // dataset was parsed from the non-Funder budget files, so its project
+        // date fields can be used only as a legacy cache fallback. New uploads
+        // always rebuild this map strictly from 'Budget Vs Actual*' files.
+        if (budgetProjectDateMapping.size === 0) {
+          allParsedDataset.forEach(row => {
+            const pId = String(row['Project Id'] || '').trim();
+            const start = row['Projected Start Date'];
+            const end = row['Projected End Date'];
+            if (pId && (start || end) && !budgetProjectDateMapping.has(pId)) {
+              budgetProjectDateMapping.set(pId, { startDate: start || '', endDate: end || '', sourceFile: 'legacy cached dataset' });
+            }
+          });
+        }
         showingAllProjects = storedPayload.showingAllProjects !== undefined ? storedPayload.showingAllProjects : true;
         
         rawDataset = showingAllProjects ? allParsedDataset : funderDataset;
@@ -1156,7 +1324,7 @@
         autoWidth: true,
         destroy: true,
         data: [],
-        order: [[4, 'asc'], [6, 'asc']], // Default Group Sort by "Broad Category" asc, then by "Budget Line" asc
+        order: [[4, 'asc'], [6, 'asc']],
         rowGroup: {
           dataSrc: 'Broad Category',
           startRender: function (rows, group) {
@@ -1443,6 +1611,7 @@
         monthColumns: monthColumns,
         activeProjectIds: Array.from(activeProjectIdsSet),
         funderProjectMapping: Array.from(funderProjectMapping.entries()),
+        budgetProjectDateMapping: Array.from(budgetProjectDateMapping.entries()),
         showingAllProjects: showingAllProjects,
         fileCount: $('#statusFilesLoaded').text(),
         lastRefresh: $('#statusLastRefresh').text(),
@@ -1632,6 +1801,8 @@
           if (!statusKey) throw new Error("The Project List sheet was not found in Funder List.xlsx.");
 
           const projectNameKey = keys.find(k => ['project name', 'project_name', 'projectname'].includes(k.toLowerCase().trim()));
+          const projectedStartKey = keys.find(k => ['projected start date', 'start date', 'start_date'].includes(k.toLowerCase().trim()));
+          const projectedEndKey = keys.find(k => ['projected end date', 'end date', 'end_date'].includes(k.toLowerCase().trim()));
 
           activeProjectIdsSet.clear();
           funderProjectMapping.clear();
@@ -1642,10 +1813,11 @@
               const pId = String(row[projectIdKey] || '').trim();
               if (pId) {
                 activeProjectIdsSet.add(pId);
-                if (projectNameKey) {
-                  const pName = String(row[projectNameKey] || '').trim();
-                  if (pName) funderProjectMapping.set(pId, pName);
-                }
+                let pName = projectNameKey ? String(row[projectNameKey] || '').trim() : '';
+                let pStart = projectedStartKey ? String(row[projectedStartKey] || '').trim() : '';
+                let pEnd = projectedEndKey ? String(row[projectedEndKey] || '').trim() : '';
+                
+                funderProjectMapping.set(pId, { name: pName, startDate: pStart, endDate: pEnd });
               }
             }
           });
@@ -1680,6 +1852,7 @@
               monthColumns: monthColumns,
               activeProjectIds: Array.from(activeProjectIdsSet),
               funderProjectMapping: Array.from(funderProjectMapping.entries()),
+              budgetProjectDateMapping: Array.from(budgetProjectDateMapping.entries()),
               showingAllProjects: showingAllProjects,
               fileCount: filesArray.length,
               lastRefresh: dateTimeStr,
@@ -1763,6 +1936,50 @@
       monthColumns.sort((a, b) => parseDDMMYY(a) - parseDDMMYY(b));
       fileResults.sort((a, b) => b.startWeight - a.startWeight);
 
+      // IMPORTANT: PIP Projected Start/End Dates are sourced ONLY from
+      // Excel files whose filename starts with 'Budget Vs Actual'.
+      // Funder List.xlsx / Project List is NOT used for PIP dates.
+      budgetProjectDateMapping.clear();
+      const pipDateFiles = fileResults.filter(fileObj =>
+        /^\s*Budget\s+Vs\s+Actual/i.test(String(fileObj.filename || ''))
+      );
+
+      pipDateFiles.forEach(fileObj => {
+        (fileObj.data || []).forEach(row => {
+          const projectId = String(
+            row['Project Id'] || row['ProjectId'] || row['Project ID'] || ''
+          ).trim();
+          if (!projectId) return;
+
+          const keys = Object.keys(row);
+          const findKey = (aliases) => keys.find(k =>
+            aliases.includes(String(k).toLowerCase().trim())
+          );
+
+          const startKey = findKey([
+            'projected start date', 'projected start', 'start date', 'start_date'
+          ]);
+          const endKey = findKey([
+            'projected end date', 'projected end', 'end date', 'end_date'
+          ]);
+
+          const startValue = startKey ? row[startKey] : '';
+          const endValue = endKey ? row[endKey] : '';
+
+          if (!budgetProjectDateMapping.has(projectId)) {
+            budgetProjectDateMapping.set(projectId, {
+              startDate: startValue,
+              endDate: endValue,
+              sourceFile: fileObj.filename
+            });
+          } else {
+            const existing = budgetProjectDateMapping.get(projectId);
+            if (!existing.startDate && startValue) existing.startDate = startValue;
+            if (!existing.endDate && endValue) existing.endDate = endValue;
+          }
+        });
+      });
+
       const lineMap = new Map();
 
       fileResults.forEach(fileObj => {
@@ -1779,6 +1996,8 @@
           const budgetLine = String(row['Budget Line'] || 'Unassigned');
           const openPO = parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0);
           const sheetAnnualBudget = parseFloat(row['Annual Budget'] || row['AnnualBudget'] || 0);
+          const sheetStartDate = String(row['Projected Start Date'] || row['Start Month'] || '');
+          const sheetEndDate = String(row['Projected End Date'] || row['End Month'] || '');
 
           const compositeKey = `${region}|${programType}|${funderId}|${projectId}|${broadCategory}|${categoryId}|${budgetLine}`;
 
@@ -1797,7 +2016,8 @@
               'Budget Line': budgetLine,
               'Open PO Value': openPO,
               'Sheet Annual Budget': sheetAnnualBudget,
-              'Projected Start Date': String(row['Projected Start Date'] || row['Start Month'] || ''),
+              'Projected Start Date': sheetStartDate,
+              'Projected End Date': sheetEndDate,
               monthsData: {}
             });
           }
@@ -1805,6 +2025,12 @@
           const lineObj = lineMap.get(compositeKey);
           if (!lineObj['Sheet Annual Budget'] && sheetAnnualBudget) {
             lineObj['Sheet Annual Budget'] = sheetAnnualBudget;
+          }
+          if (!lineObj['Projected Start Date'] && sheetStartDate) {
+            lineObj['Projected Start Date'] = sheetStartDate;
+          }
+          if (!lineObj['Projected End Date'] && sheetEndDate) {
+            lineObj['Projected End Date'] = sheetEndDate;
           }
 
           monthColumns.forEach(m => {
@@ -1838,7 +2064,8 @@
           'Category Name': lineObj['Category Name'],
           'Budget Line': lineObj['Budget Line'],
           'Open PO Value': lineObj['Open PO Value'],
-          'Projected Start Date': lineObj['Projected Start Date']
+          'Projected Start Date': lineObj['Projected Start Date'],
+          'Projected End Date': lineObj['Projected End Date']
         };
 
         let computedAnnualActual = 0;
@@ -1871,7 +2098,12 @@
 
       allParsedDataset.forEach(item => {
         const pId = String(item['Project Id']).trim();
-        if (funderProjectMapping.has(pId)) item['Project Name'] = funderProjectMapping.get(pId);
+        if (funderProjectMapping.has(pId)) {
+          const info = funderProjectMapping.get(pId);
+          if (info.name) item['Project Name'] = info.name;
+          if (info.startDate && !item['Projected Start Date']) item['Projected Start Date'] = info.startDate;
+          if (info.endDate && !item['Projected End Date']) item['Projected End Date'] = info.endDate;
+        }
       });
 
       populateFilterDropdowns();
@@ -1956,28 +2188,97 @@
     function handleSmartCascadingFilters(triggeredById) {
       isCascading = true;
 
-      if (triggeredById === '#filterProject' || triggeredById === '#filterProjectId') {
-        const selProjects = $('#filterProject').val() || [];
-        const selProjectIds = $('#filterProjectId').val() || [];
-        let sampleMatch = null;
+      /*
+       * Project Name smart auto-selection:
+       * When one or more Project Name values are selected, automatically select
+       * their related Project Id, Region, Program Type and Funder Name values.
+       * Month From is set to the earliest Projected Start Date month among the
+       * selected projects, while Month To is set to the present month.
+       */
+      if (triggeredById === '#filterProject') {
+        const selectedProjectNames = ($('#filterProject').val() || [])
+          .map(v => String(v).trim())
+          .filter(Boolean);
 
-        if (selProjects.length > 0) {
-          sampleMatch = rawDataset.find(d => selProjects.includes(d['Project Name']));
-        } else if (selProjectIds.length > 0) {
-          sampleMatch = rawDataset.find(d => selProjectIds.includes(d['Project Id']));
-        }
+        if (selectedProjectNames.length > 0) {
+          const projectRows = rawDataset.filter(row =>
+            selectedProjectNames.includes(String(row['Project Name'] || '').trim())
+          );
 
-        if (sampleMatch && sampleMatch['Projected Start Date']) {
-          const matchMonth = monthColumns.find(m => {
-            const d1 = parseDDMMYY(m);
-            const d2 = parseDDMMYY(sampleMatch['Projected Start Date']);
-            return d1 && d2 && d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth();
-          }) || sampleMatch['Projected Start Date'];
+          const relatedProjectIds = Array.from(new Set(
+            projectRows.map(row => String(row['Project Id'] || '').trim()).filter(Boolean)
+          ));
 
-          if (monthColumns.includes(matchMonth)) {
-            $('#filterMonthFrom').val(matchMonth).trigger('change.select2');
-            $('#modalFilterMonthFrom').val(matchMonth);
+          const relatedRegions = Array.from(new Set(
+            projectRows.map(row => row['Region']).filter(Boolean)
+          ));
+
+          const relatedProgramTypes = Array.from(new Set(
+            projectRows.map(row => row['Program Type']).filter(Boolean)
+          ));
+
+          const relatedFunders = Array.from(new Set(
+            projectRows.map(row => row['Funder Name']).filter(Boolean)
+          ));
+
+          $('#filterProjectId').val(relatedProjectIds).trigger('change.select2');
+          $('#filterRegion').val(relatedRegions).trigger('change.select2');
+          $('#filterProgramType').val(relatedProgramTypes).trigger('change.select2');
+          $('#filterFunder').val(relatedFunders).trigger('change.select2');
+
+          /*
+           * Determine Month From from the earliest Projected Start Date of the
+           * selected project(s). The date source for PIP is the Budget Vs Actual
+           * mapping, as used elsewhere in this dashboard.
+           */
+          const selectedStartDates = relatedProjectIds
+            .map(projectId => budgetProjectDateMapping.get(projectId)?.startDate)
+            .map(parseDDMMYY)
+            .filter(dateObj => dateObj && !isNaN(dateObj.getTime()));
+
+          if (selectedStartDates.length > 0) {
+            const earliestStartDate = new Date(Math.min(
+              ...selectedStartDates.map(dateObj => dateObj.getTime())
+            ));
+
+            const startMonth = monthColumns.find(m => {
+              const monthDate = parseDDMMYY(m);
+              return monthDate &&
+                monthDate.getFullYear() === earliestStartDate.getFullYear() &&
+                monthDate.getMonth() === earliestStartDate.getMonth();
+            });
+
+            if (startMonth) {
+              $('#filterMonthFrom').val(startMonth).trigger('change.select2');
+              $('#modalFilterMonthFrom').val(startMonth);
+            }
           }
+
+          /*
+           * Month To is always the present month. If the exact current month
+           * exists in monthColumns, select that month.
+           */
+          const now = new Date();
+          const presentMonth = monthColumns.find(m => {
+            const monthDate = parseDDMMYY(m);
+            return monthDate &&
+              monthDate.getFullYear() === now.getFullYear() &&
+              monthDate.getMonth() === now.getMonth();
+          });
+
+          if (presentMonth) {
+            $('#filterMonthTo').val(presentMonth).trigger('change.select2');
+            $('#modalFilterMonthTo').val(presentMonth);
+          }
+        } else {
+          /*
+           * If Project Name selection is cleared, clear the automatically
+           * related selections. The normal cascading logic below will then
+           * rebuild the available dropdown options.
+           */
+          $('#filterProjectId, #filterRegion, #filterProgramType, #filterFunder')
+            .val(null)
+            .trigger('change.select2');
         }
       }
 
@@ -2048,13 +2349,19 @@
       const selCats = $('#filterCategory').val() || [];
       const selLines = $('#filterBudgetLine').val() || [];
 
+      let bannerTitle = showingAllProjects ? 'All Projects Selected' : 'Listed Projects Selected';
       if (selProjects.length === 1) {
-        $('#selectedProjectBannerTitle').text(selProjects[0]);
+        bannerTitle = selProjects[0];
       } else if (selProjects.length > 1) {
-        $('#selectedProjectBannerTitle').text(`${selProjects.length} Projects Selected`);
-      } else {
-        $('#selectedProjectBannerTitle').text(showingAllProjects ? 'All Projects Selected' : 'Listed Projects Selected');
+        bannerTitle = `${selProjects.length} Projects Selected`;
+      } else if (selProjectIds.length === 1) {
+        bannerTitle = selProjectIds[0];
+      } else if (selProjectIds.length > 1) {
+        bannerTitle = `${selProjectIds.length} Projects Selected`;
       }
+
+      $('#selectedProjectBannerTitle').text(bannerTitle);
+      $('#pipModalProjectTitle').text(bannerTitle);
 
       filteredDataset = rawDataset.filter(item => {
         if (selRegions.length && !selRegions.includes(item['Region'])) return false;
@@ -2075,6 +2382,266 @@
       renderQuoterReport(processedRows, activeMonths);
       renderTop10BudgetLines(processedRows);
       renderModalBreakdownTable();
+      renderPipStatementTable();
+    }
+
+    // --- BUDGET PIP STATEMENT: PROJECT-DATE-DRIVEN, MULTI-PROJECT RENDERING ---
+    function renderPipStatementTable() {
+      const $container = $('#pipTablesContainer');
+      if (!$container.length) return;
+      $container.empty();
+
+      const selectedProjectIds = ($('#filterProjectId').val() || [])
+        .map(v => String(v).trim())
+        .filter(Boolean);
+
+      if (selectedProjectIds.length === 0) {
+        $container.html(`
+          <div class="text-center text-muted py-4">
+            Please select one or more <strong>Project Id</strong> values in the Smart Filters sidebar.
+          </div>
+        `);
+        return;
+      }
+
+      // Local PIP date parser. Handles Excel serial dates and common date formats.
+      const parsePipDate = (value) => {
+        if (value === null || value === undefined || value === '') return null;
+
+        if (value instanceof Date) {
+          return isNaN(value.getTime()) ? null :
+            new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        }
+
+        if (typeof value === 'number' && isFinite(value) && value > 20000 && value < 80000) {
+          const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+          const date = new Date(excelEpoch.getTime() + value * 86400000);
+          return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+        }
+
+        const raw = String(value).trim();
+        if (!raw) return null;
+
+        if (/^\d+(?:\.\d+)?$/.test(raw)) {
+          const serial = Number(raw);
+          if (serial > 20000 && serial < 80000) {
+            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+            const date = new Date(excelEpoch.getTime() + serial * 86400000);
+            return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+          }
+        }
+
+        let match = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+        if (match) {
+          const day = Number(match[1]);
+          const month = Number(match[2]) - 1;
+          const year = Number(match[3]);
+          const d = new Date(year, month, day);
+          return (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) ? d : null;
+        }
+
+        match = raw.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+        if (match) {
+          const year = Number(match[1]);
+          const month = Number(match[2]) - 1;
+          const day = Number(match[3]);
+          const d = new Date(year, month, day);
+          return (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) ? d : null;
+        }
+
+        const parsed = new Date(raw);
+        return isNaN(parsed.getTime()) ? null :
+          new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      };
+
+      const escapeHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+      // Month keys available in the uploaded Budget Vs Actual data.
+      const monthKeyForPeriod = (year, month) => {
+        return monthColumns.find(m => {
+          const d = parsePipDate(m);
+          return d && d.getFullYear() === year && d.getMonth() === month;
+        }) || null;
+      };
+
+      selectedProjectIds.forEach((projectId, projectIndex) => {
+        const projectRows = filteredDataset.filter(row =>
+          String(row['Project Id'] || '').trim() === projectId
+        );
+
+        const dateInfo = budgetProjectDateMapping.get(projectId) || null;
+        const rawStart = dateInfo ? dateInfo.startDate : null;
+        const rawEnd = dateInfo ? dateInfo.endDate : null;
+        const startDate = parsePipDate(rawStart);
+        const endDate = parsePipDate(rawEnd);
+
+        const projectName = projectRows[0]?.['Project Name'] ||
+          funderProjectMapping.get(projectId)?.name || 'Project Name Not Available';
+
+        const section = $(`<div class="pip-project-section"></div>`);
+        const heading = $('<div class="pip-project-heading"></div>');
+
+        if (!startDate || !endDate || startDate.getTime() > endDate.getTime()) {
+          heading.html(`Project Id: <strong>${escapeHtml(projectId)}</strong> | ${escapeHtml(projectName)}`);
+          section.append(heading);
+          section.append(`
+            <div class="text-center text-danger border p-3 small">
+              Projected Start Date / Projected End Date could not be found or is invalid in a
+              <strong>Budget Vs Actual</strong> file for Project Id <strong>${escapeHtml(projectId)}</strong>.
+            </div>
+          `);
+          $container.append(section);
+          return;
+        }
+
+        const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+        const relevantMonths = [];
+
+        for (let d = new Date(startMonth); d <= endMonth; d.setMonth(d.getMonth() + 1)) {
+          const year = d.getFullYear();
+          const month = d.getMonth();
+          relevantMonths.push({
+            year,
+            month,
+            key: monthKeyForPeriod(year, month),
+            label: formatMonthYear(new Date(year, month, 1))
+          });
+        }
+
+        heading.html(`
+          <i class="fa-solid fa-folder-open me-1 text-primary"></i>
+          Project Id: <strong>${escapeHtml(projectId)}</strong>
+          <span class="mx-1">|</span> ${escapeHtml(projectName)}
+          <span class="mx-1">|</span>
+          ${formatMonthYear(startDate)} to ${formatMonthYear(endDate)}
+        `);
+        section.append(heading);
+
+        if (projectRows.length === 0) {
+          section.append(`
+            <div class="text-center text-muted border p-3 small">
+              No matching records found for Project Id <strong>${escapeHtml(projectId)}</strong>
+              under the current Smart Filter selections.
+            </div>
+          `);
+          $container.append(section);
+          return;
+        }
+
+        const table = $('<table class="table table-sm table-bordered table-striped align-middle pip-project-table"></table>');
+        const colgroup = $('<colgroup></colgroup>');
+        colgroup.append('<col class="pip-budget-line-col">');
+        relevantMonths.forEach(() => {
+          colgroup.append('<col class="pip-month-col">');
+          colgroup.append('<col class="pip-month-col">');
+        });
+        colgroup.append('<col class="pip-annual-col">');
+        table.append(colgroup);
+
+        let headRow1 = `<tr><th rowspan="2" class="align-middle pip-budget-line-col">Budget Line</th>`;
+        let headRow2 = `<tr>`;
+
+        relevantMonths.forEach(({ label }) => {
+          headRow1 += `<th colspan="2" class="pip-month-head">${escapeHtml(label)}</th>`;
+          headRow2 += `<th class="pip-month-col pip-month-budget text-end">Budget</th>`;
+          headRow2 += `<th class="pip-month-col pip-month-actual text-end">Actual</th>`;
+        });
+
+        headRow1 += `<th rowspan="2" class="align-middle text-end pip-annual-col bg-light">Annual Balance</th></tr>`;
+        headRow2 += `</tr>`;
+        table.append(`<thead class="table-light">${headRow1}${headRow2}</thead>`);
+
+        const tbody = $('<tbody></tbody>');
+        const groupedByCategory = {};
+        projectRows.forEach(row => {
+          const broadCat = row['Broad Category'] || 'Unassigned Category';
+          if (!groupedByCategory[broadCat]) groupedByCategory[broadCat] = [];
+          groupedByCategory[broadCat].push(row);
+        });
+
+        const monthlyTotalsBudget = {};
+        const monthlyTotalsActual = {};
+        relevantMonths.forEach(({ year, month }) => {
+          const period = `${year}-${month}`;
+          monthlyTotalsBudget[period] = 0;
+          monthlyTotalsActual[period] = 0;
+        });
+
+        let totalAnnualProjectBalance = 0;
+
+        Object.keys(groupedByCategory).forEach(broadCat => {
+          const groupColSpan = (relevantMonths.length * 2) + 2;
+          tbody.append(`
+            <tr class="pip-group-row">
+              <td colspan="${groupColSpan}">
+                <i class="fa-solid fa-folder-open me-2 text-primary"></i>
+                <strong>${escapeHtml(broadCat)}</strong>
+              </td>
+            </tr>
+          `);
+
+          groupedByCategory[broadCat].forEach(row => {
+            let tr = `<tr><td class="col-budget-line ps-3 pip-budget-line-col">${escapeHtml(row['Budget Line'])}</td>`;
+            let rowPeriodActual = 0;
+
+            relevantMonths.forEach(({ key, year, month }) => {
+              const period = `${year}-${month}`;
+              const bVal = key ? (parseFloat(row[`Budget ${key}`]) || 0) : 0;
+              const aVal = key ? (parseFloat(row[`Actual ${key}`]) || 0) : 0;
+
+              monthlyTotalsBudget[period] += bVal;
+              monthlyTotalsActual[period] += aVal;
+              rowPeriodActual += aVal;
+
+              const bDisplay = bVal === 0 ? '' : money(bVal);
+              const aDisplay = aVal === 0 ? '' : money(aVal);
+              const bClass = bVal < 0 ? 'status-red' : '';
+              const aClass = aVal < 0 ? 'status-red' : '';
+
+              tr += `<td class="pip-month-col pip-month-budget text-end ${bClass}">${bDisplay}</td>`;
+              tr += `<td class="pip-month-col pip-month-actual text-end ${aClass}">${aDisplay}</td>`;
+            });
+
+            // Annual Balance is calculated only for this project's selected period.
+            const rowAnnualBudget = parseFloat(row['Annual Budget']) || 0;
+            const annualBalance = rowAnnualBudget - rowPeriodActual;
+            totalAnnualProjectBalance += annualBalance;
+
+            const annCls = annualBalance < 0
+              ? 'status-red text-end fw-bold'
+              : 'status-green text-end fw-bold';
+
+            tr += `<td class="${annCls} pip-annual-col">${money(annualBalance)}</td></tr>`;
+            tbody.append(tr);
+          });
+        });
+
+        table.append(tbody);
+
+        let footTr = `<tr><td class="fw-bold pip-budget-line-col">Total</td>`;
+        relevantMonths.forEach(({ year, month }) => {
+          const period = `${year}-${month}`;
+          const totB = monthlyTotalsBudget[period];
+          const totA = monthlyTotalsActual[period];
+          footTr += `<td class="pip-month-col pip-month-budget text-end">${totB === 0 ? '' : money(totB)}</td>`;
+          footTr += `<td class="pip-month-col pip-month-actual text-end">${totA === 0 ? '' : money(totA)}</td>`;
+        });
+
+        const totAnnCls = totalAnnualProjectBalance < 0
+          ? 'status-red text-end'
+          : 'status-green text-end';
+        footTr += `<td class="${totAnnCls} pip-annual-col">${money(totalAnnualProjectBalance)}</td></tr>`;
+        table.append(`<tfoot class="table-light fw-bold">${footTr}</tfoot>`);
+
+        section.append(table);
+        $container.append(section);
+      });
     }
 
     function renderKPIs(data) {
@@ -2372,27 +2939,8 @@
       dataTableInstance.clear();
       dataTableInstance.rows.add(formattedData);
       dataTableInstance.draw();
-
-      if (isModalAllExpanded) {
-        $('.toggle-group-btn').each(function() {
-          const groupId = $(this).data('group-id');
-          $(this).find('i').removeClass('fa-plus').addClass('fa-minus');
-          $(this).removeClass('btn-outline-primary').addClass('btn-primary text-white');
-          $('tr.' + groupId).show();
-          $(this).closest('tr').find('.group-subtotal-info').hide();
-        });
-      } else {
-        $('.toggle-group-btn').each(function() {
-          const groupId = $(this).data('group-id');
-          $(this).find('i').removeClass('fa-minus').addClass('fa-plus');
-          $(this).removeClass('btn-primary text-white').addClass('btn-outline-primary');
-          $('tr.' + groupId).hide();
-          $(this).closest('tr').find('.group-subtotal-info').show();
-        });
-      }
-
-      dataTableInstance.columns.adjust();
     }
   </script>
 </body>
 </html>
+```[cite: 1]
