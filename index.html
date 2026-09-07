@@ -303,6 +303,57 @@
       color: #000000 !important;
       border-color: #adb5bd !important;
     }
+
+    /* Budget Breakdown Details: compact and highlighted export buttons */
+    #budgetDataTable_wrapper .dt-buttons .buttons-excel,
+    #budgetDataTable_wrapper .dt-buttons .buttons-csv,
+    #budgetDataTable_wrapper .dt-buttons .buttons-pdf,
+    #budgetDataTable_wrapper .dt-buttons .buttons-print {
+      font-size: 0.68rem !important;
+      padding: 0.2rem 0.45rem !important;
+      margin-right: 0.2rem !important;
+      font-weight: 700 !important;
+      border-width: 1px !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+    }
+
+    #budgetDataTable_wrapper .dt-buttons .buttons-excel {
+      background-color: #198754 !important;
+      color: #ffffff !important;
+      border-color: #198754 !important;
+    }
+
+    #budgetDataTable_wrapper .dt-buttons .buttons-csv {
+      background-color: #0d6efd !important;
+      color: #ffffff !important;
+      border-color: #0d6efd !important;
+    }
+
+    #budgetDataTable_wrapper .dt-buttons .buttons-pdf {
+      background-color: #dc3545 !important;
+      color: #ffffff !important;
+      border-color: #dc3545 !important;
+    }
+
+    #budgetDataTable_wrapper .dt-buttons .buttons-print {
+      background-color: #6f42c1 !important;
+      color: #ffffff !important;
+      border-color: #6f42c1 !important;
+    }
+
+    #budgetDataTable_wrapper .dt-buttons .buttons-excel:hover,
+    #budgetDataTable_wrapper .dt-buttons .buttons-csv:hover,
+    #budgetDataTable_wrapper .dt-buttons .buttons-pdf:hover,
+    #budgetDataTable_wrapper .dt-buttons .buttons-print:hover {
+      filter: brightness(0.92);
+      color: #ffffff !important;
+    }
+
+    #budgetDataTable_wrapper #btnToggleYtdDetails {
+      font-size: 0.65rem !important;
+      padding: 0.18rem 0.4rem !important;
+      font-weight: 700 !important;
+    }
   </style>
 </head>
 <body>
@@ -709,6 +760,7 @@
                   <th>Annual Actual</th>
                   <th>Annual Variance</th>
                   <th>Utilization</th>
+                  <th>YTD Budget</th>
                   <th>YTD Variance</th>
                   <th>Total Open PO Value</th>
                 </tr>
@@ -722,6 +774,7 @@
                   <td class="text-end fw-bold"></td>
                   <td class="col-annual-variance text-end fw-bold"></td>
                   <td class="text-center fw-bold"></td>
+                  <td class="text-end fw-bold"></td>
                   <td class="col-ytd-variance text-end fw-bold"></td>
                   <td class="text-end fw-bold"></td>
                 </tr>
@@ -744,6 +797,18 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-2">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div class="btn-group btn-group-sm" role="group">
+              <button class="btn btn-success" id="btnPipExcel"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+              <button class="btn btn-primary" id="btnPipCsv"><i class="fa-solid fa-file-csv me-1"></i>CSV</button>
+              <button class="btn btn-danger" id="btnPipPdf"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+              <button class="btn btn-secondary" id="btnPipPrint"><i class="fa-solid fa-print me-1"></i>Print</button>
+            </div>
+            <div class="input-group input-group-sm" style="max-width:240px;">
+              <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+              <input type="text" id="pipSearchInput" class="form-control" placeholder="Search...">
+            </div>
+          </div>
           <div class="alert alert-warning py-1 px-2 mb-2 small" role="alert">
             <i class="fa-solid fa-info-circle me-1"></i> Select one or more <strong>Project Id</strong> values in the <strong>Smart Filters</strong> sidebar. Each selected project will be shown with its own monthly columns based on Projected Start Date and Projected End Date from the <strong>Budget Vs Actual</strong> Excel file.
           </div>
@@ -1339,7 +1404,7 @@
             let badgeClass = sumUtil > 100 ? 'bg-status-red' : 'bg-status-green';
 
             return $('<tr class="group-header-row"/>')
-              .append('<td colspan="12" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
+              .append('<td colspan="13" class="fw-bold bg-light text-primary py-1 px-2" style="font-size: 0.75rem;">' +
                 '<button type="button" class="btn btn-sm btn-outline-primary me-2 toggle-group-btn" data-group-id="' + groupId + '" style="width: 22px; height: 22px; padding: 0; line-height: 1; font-size: 0.65rem;"><i class="fa-solid fa-plus"></i></button>' +
                 '<span class="me-3">' + group + '</span>' +
                 '<span class="group-subtotal-info float-end text-dark small fw-normal">' +
@@ -1350,28 +1415,7 @@
                 '</span>' +
                 '</td>');
           },
-          endRender: function (rows, group) {
-            let sumYtdVariance = rows.data().pluck('YTD Budget Variance').reduce((a, b) => a + parseFloat(b || 0), 0);
-            let sumBudget = rows.data().pluck('Annual Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
-            let sumActual = rows.data().pluck('Annual Actual').reduce((a, b) => a + parseFloat(b || 0), 0);
-            let sumVariance = sumBudget - sumActual;
-            let sumUtil = sumBudget > 0 ? (sumActual / sumBudget) * 100 : 0;
-            let sumOpenPO = rows.data().pluck('Total Open PO Value').reduce((a, b) => a + parseFloat(b || 0), 0);
-
-            const groupId = 'group_' + group.replace(/[^a-zA-Z0-9]/g, '_');
-            const ytdVarCls = sumYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
-            const varCls = sumVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold';
-
-            return $('<tr class="group-subtotal-row ' + groupId + ' table-secondary fw-bold" style="display:none; font-size: 0.75rem;"/>')
-              .append('<td colspan="5" class="text-end fw-bold">' + group + ' Subtotal:</td>')
-              .append('<td class="col-budget-line"></td>')
-              .append('<td class="text-end">' + formatINR(sumBudget) + '</td>')
-              .append('<td class="text-end">' + formatINR(sumActual) + '</td>')
-              .append('<td class="col-annual-variance text-end ' + varCls + '">' + formatINR(sumVariance) + '</td>')
-              .append('<td class="text-center"><span class="badge ' + (sumUtil > 100 ? 'bg-status-red' : 'bg-status-green') + '">' + sumUtil.toFixed(1) + '%</span></td>')
-              .append('<td class="col-ytd-variance text-end ' + ytdVarCls + '">' + formatINR(sumYtdVariance) + '</td>')
-              .append('<td class="text-end">' + formatINR(sumOpenPO) + '</td>');
-          }
+          endRender: null
         },
         createdRow: function (row, data, dataIndex) {
           const groupName = data['Broad Category'];
@@ -1398,12 +1442,14 @@
             render: (data) => `<span class="badge ${data > 100 ? 'bg-status-red' : 'bg-status-green'}">${data.toFixed(1)}%</span>`, 
             className: 'text-center' 
           },
+          { data: 'YTD Budget', render: (data) => formatINR(data), className: 'text-end', visible: false },
           { 
             data: 'YTD Budget Variance', 
             render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`, 
-            className: 'col-ytd-variance text-end' 
+            className: 'col-ytd-variance text-end',
+            visible: false
           },
-          { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'text-end' }
+          { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'text-end', visible: false }
         ],
         footerCallback: function (row, data, start, end, display) {
           let api = this.api();
@@ -1418,9 +1464,11 @@
           $(api.column(7).footer()).html(formatINR(totalBudget));
           $(api.column(8).footer()).html(formatINR(totalActual));
           $(api.column(9).footer()).html(`<span class="${totalVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalVariance)}</span>`);
+          let totalYtdBudget = api.rows({search: 'applied'}).data().pluck('YTD Budget').reduce((a, b) => a + parseFloat(b || 0), 0);
           $(api.column(10).footer()).html(`<span class="badge ${totalUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalUtil.toFixed(1)}%</span>`);
-          $(api.column(11).footer()).html(`<span class="${totalYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalYtdVariance)}</span>`);
-          $(api.column(12).footer()).html(formatINR(totalOpenPO));
+          $(api.column(11).footer()).html(formatINR(totalYtdBudget));
+          $(api.column(12).footer()).html(`<span class="${totalYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalYtdVariance)}</span>`);
+          $(api.column(13).footer()).html(formatINR(totalOpenPO));
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"Bf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
         buttons: [
@@ -1432,6 +1480,11 @@
       });
 
       const $dtButtons = $('.dt-buttons');
+      const ytdDetailsBtnHtml = `
+        <button type="button" class="btn btn-outline-secondary btn-xs py-1 me-2" id="btnToggleYtdDetails" title="Show or hide YTD Budget, YTD Variance and Total Open PO Value">
+          <i class="fa-solid fa-table-columns me-1"></i> YTD Details
+        </button>
+      `;
       const expandBtnHtml = `
         <button type="button" class="btn btn-outline-primary btn-xs py-1 me-3" id="btnToggleExpandCollapse">
           <i class="fa-solid fa-arrows-expand me-1"></i> Expand Rows
@@ -1446,7 +1499,19 @@
           <select id="modalFilterMonthTo" class="form-select form-select-sm py-0" style="width: auto; font-size: 0.75rem; min-height:24px;"></select>
         </div>
       `;
-      $dtButtons.append(expandBtnHtml + modalFilterHtml);
+      $dtButtons.append(ytdDetailsBtnHtml + expandBtnHtml + modalFilterHtml);
+
+      $('#btnToggleYtdDetails').on('click', function() {
+        const columns = [11, 12, 13];
+        const showDetails = !dataTableInstance.column(11).visible();
+        columns.forEach(idx => dataTableInstance.column(idx).visible(showDetails, false));
+        dataTableInstance.columns.adjust().draw(false);
+        $(this).html(
+          showDetails
+            ? '<i class="fa-solid fa-table-columns me-1"></i> Hide YTD Details'
+            : '<i class="fa-solid fa-table-columns me-1"></i> YTD Details'
+        );
+      });
 
       $('#btnToggleExpandCollapse').on('click', function() {
         isModalAllExpanded = !isModalAllExpanded;
@@ -2932,6 +2997,7 @@
         'Annual Actual': r.ActualTotalCalc,
         'Annual Variance': r.VarianceAnnual,
         'Utilization': r.UtilizationAnnual,
+        'YTD Budget': r.YTDBudgetCalc,
         'YTD Budget Variance': r.YTDVariance,
         'Total Open PO Value': r.OpenPOVal
       }));
@@ -2940,7 +3006,37 @@
       dataTableInstance.rows.add(formattedData);
       dataTableInstance.draw();
     }
-  </script>
+  
+// PIP toolbar: Search + Export
+$(document).on('input','#pipSearchInput',function(){
+ const q=this.value.toLowerCase();
+ $('#pipTablesContainer tbody tr').each(function(){
+   $(this).toggle($(this).text().toLowerCase().includes(q));
+ });
+});
+function pipExport(type){
+ const tables=$('#pipTablesContainer table');
+ if(!tables.length) return;
+ if(type==='print'){window.print();return;}
+ let wb=XLSX.utils.book_new();
+ let csv='';
+ tables.each(function(i,t){
+   const ws=XLSX.utils.table_to_sheet(t);
+   XLSX.utils.book_append_sheet(wb,ws,'Project_'+(i+1));
+   csv+=XLSX.utils.sheet_to_csv(ws)+'\n';
+ });
+ if(type==='excel') XLSX.writeFile(wb,'Budget_PIP_Statement.xlsx');
+ else if(type==='csv'){
+   const blob=new Blob([csv],{type:'text/csv'});
+   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Budget_PIP_Statement.csv';a.click();
+ } else if(type==='pdf'){window.print();}
+}
+$(document).on('click','#btnPipExcel',()=>pipExport('excel'));
+$(document).on('click','#btnPipCsv',()=>pipExport('csv'));
+$(document).on('click','#btnPipPdf',()=>pipExport('pdf'));
+$(document).on('click','#btnPipPrint',()=>pipExport('print'));
+
+</script>
 </body>
 </html>
 ```[cite: 1]
