@@ -530,6 +530,73 @@
       width: 100%;
       text-align: center;
     }
+
+    /* Top 10 Underspent search */
+    #top10BudgetLineSearch {
+      font-size: 0.75rem;
+    }
+
+    /* Production-ready Budget AI Assistant */
+    #budgetAIAssistantButton {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      z-index: 1080;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    }
+
+    #budgetAIChatPanel {
+      position: fixed;
+      right: 20px;
+      bottom: 82px;
+      width: min(420px, calc(100vw - 40px));
+      height: min(620px, calc(100vh - 120px));
+      z-index: 1079;
+      display: none;
+      overflow: hidden;
+      border: 1px solid #ced4da;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.24);
+    }
+
+    #budgetAIChatMessages {
+      height: calc(100% - 112px);
+      overflow-y: auto;
+      padding: 10px;
+      background: #f8f9fa;
+    }
+
+    .budget-ai-message {
+      max-width: 88%;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.78rem;
+    }
+
+    .budget-ai-user {
+      margin-left: auto;
+      background: #0d6efd;
+      color: #fff;
+    }
+
+    .budget-ai-assistant {
+      margin-right: auto;
+      background: #fff;
+      border: 1px solid #dee2e6;
+      color: #212529;
+    }
+
+    @media (max-width: 576px) {
+      #budgetAIAssistantButton { right: 12px; bottom: 12px; }
+      #budgetAIChatPanel { right: 10px; bottom: 74px; width: calc(100vw - 20px); }
+    }
   </style>
 </head>
 <body>
@@ -722,7 +789,7 @@
           </form>
         </div>
         <div class="smart-filter-developer text-center mt-2 mb-1 text-muted" style="font-size:0.65rem;">
-          © 2026 | Developer: Sanju Kumar Mallik | Version: 3.05
+          © 2026 | Developer: Sanju Kumar Mallik | Version: 3.06
         </div>
       </div>
 
@@ -861,7 +928,14 @@
 
         <!-- Top 10 Budget Line Analysis Report Below Separate -->
         <div class="card dashboard-card p-2 mb-2" id="top10BudgetLineSection">
-          <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>Top 10 Underspent Budget Line</h6>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <h6 class="fw-bold text-secondary mb-0" style="font-size: 0.8rem;"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>Top 10 Underspent Budget Line</h6>
+            <div class="input-group input-group-sm" style="max-width: 280px;">
+              <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+              <input type="text" id="top10BudgetLineSearch" class="form-control" placeholder="Search any keyword...">
+              <button type="button" class="btn btn-outline-secondary" id="btnClearTop10Search" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
           <div class="table-responsive">
             <table id="top10BudgetLineTable" class="table table-sm table-striped table-hover align-middle w-100 style-table mb-0">
               <thead class="table-light">
@@ -872,8 +946,8 @@
                   <th>Project Name</th>
                   <th>Category Id</th>
                   <th>Budget Line</th>
-                  <th class="text-end">YTD Budget</th>
-                  <th class="text-end">YTD Actual</th>
+                  <th class="text-end">Annual Budget</th>
+                  <th class="text-end">Annual Actual</th>
                   <th class="text-end">Balance</th>
                   <th class="text-center">Utilization %</th>
                   <th class="text-center">Risk Category</th>
@@ -997,6 +1071,28 @@
     </div>
   </div>
 
+  <!-- Production-ready Budget AI Assistant -->
+  <button type="button" id="budgetAIAssistantButton" class="btn btn-primary" title="Open Budget AI Assistant" aria-label="Open Budget AI Assistant">
+    <i class="fa-solid fa-robot"></i>
+  </button>
+
+  <div id="budgetAIChatPanel" class="card" role="dialog" aria-label="Budget AI Assistant">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+      <div class="fw-bold" style="font-size:0.85rem;"><i class="fa-solid fa-robot me-2"></i>Budget AI Assistant</div>
+      <button type="button" class="btn btn-sm btn-light py-0 px-2" id="btnCloseBudgetAI" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="budgetAIChatMessages">
+      <div class="budget-ai-message budget-ai-assistant">Hello! I can answer questions about the currently loaded Budget Dashboard data and active Smart Filters.</div>
+    </div>
+    <div class="border-top p-2 bg-white">
+      <div class="input-group input-group-sm">
+        <textarea id="budgetAIInput" class="form-control" rows="2" maxlength="2000" placeholder="Ask about budget, actual, variance, utilization, projects..."></textarea>
+        <button type="button" class="btn btn-primary" id="btnSendBudgetAI" title="Send"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+      <div id="budgetAIStatus" class="text-muted mt-1" style="font-size:0.65rem;">Ready</div>
+    </div>
+  </div>
+
   <!-- JavaScript Dependencies -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1017,7 +1113,11 @@
   <!-- Application Logic & Persistence Layer -->
   <script>
     const CONFIG = {
-      GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com'
+      GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com',
+      // Never place an OpenAI API key in this HTML file. The endpoint must be your
+      // authenticated server-side proxy, e.g. https://YOUR-DOMAIN/api/budget-ai
+      AI_ASSISTANT_ENDPOINT: 'https://YOUR-AI-BACKEND-DOMAIN/api/budget-ai',
+      AI_ASSISTANT_TIMEOUT_MS: 45000
     };
 
     // --- INDEXEDDB STORAGE ENGINE (MagicBusFinancialDB) ---
@@ -1330,6 +1430,7 @@
       initializeCharts();
       initializeDataTable();
       attachEventListeners();
+      initializeBudgetAIAssistant();
       initGoogleAuthClient();
 
       const hasRestoredData = await checkAndLoadFromIndexedDB();
@@ -1636,6 +1737,15 @@
         placeholder: 'All Selected',
         allowClear: true
       });
+
+      // Project Name and Project Id remain open while selecting multiple values.
+      $('#filterProjectId, #filterProject').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'All Selected',
+        allowClear: true,
+        closeOnSelect: false
+      });
     }
 
     function initializeDataTable() {
@@ -1724,7 +1834,7 @@
           },
           { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'budget-amount-col' },
           // Hidden technical sort key used only to keep Broad Categories contiguous.
-          { data: 'Broad Category', visible: false, searchable: false, orderable: true }
+          { data: 'Broad Category', visible: false, searchable: true, orderable: true }
         ],
         footerCallback: function () {
           const api = this.api();
@@ -1749,6 +1859,10 @@
           $(api.column(13).footer()).html(formatINR(totalOpenPO));
         },
         dom: '<"budget-report-toolbar"<"d-flex justify-content-between align-items-center mb-2"Bf>>rt<"budget-report-footer"i>',
+        language: {
+          search: '',
+          searchPlaceholder: 'Search any keyword...'
+        },
         buttons: [
           { extend: 'excelHtml5', className: 'btn btn-xs py-1', title: 'Budget Report' },
           { extend: 'csvHtml5', className: 'btn btn-xs py-1', title: 'Budget Report' },
@@ -1912,6 +2026,16 @@
           handleSmartCascadingFilters(field.id);
           processAndRenderDashboard();
         });
+      });
+
+      $('#top10BudgetLineSearch').on('input', function() {
+        renderTop10BudgetLines(getProcessedRows());
+      });
+
+      $('#btnClearTop10Search').on('click', function() {
+        $('#top10BudgetLineSearch').val('');
+        renderTop10BudgetLines(getProcessedRows());
+        $('#top10BudgetLineSearch').trigger('focus');
       });
     }
 
@@ -2672,19 +2796,33 @@
 
         FILTER_FIELDS.filter(f => !f.isDate).forEach(filter => {
           if (filter.id !== target.id) {
+            // Project ID and Project Name are linked selections. Do not let one
+            // selected project remove another selected Project Name from the list.
+            const isProjectPair =
+              (target.id === '#filterProject' && filter.id === '#filterProjectId') ||
+              (target.id === '#filterProjectId' && filter.id === '#filterProject');
+
+            if (isProjectPair) return;
+
             const selectedVal = $(filter.id).val() || [];
             if (selectedVal.length > 0) {
-              subset = subset.filter(d => selectedVal.includes(d[filter.key]));
+              if (filter.id === '#filterProject') {
+                const normalized = selectedVal.map(v => String(v).trim());
+                subset = subset.filter(d => normalized.includes(String(d[filter.key] || '').trim()));
+              } else if (filter.id === '#filterProjectId') {
+                const normalized = selectedVal.map(v => String(v).trim());
+                subset = subset.filter(d => normalized.includes(String(d[filter.key] || '').trim()));
+              } else {
+                subset = subset.filter(d => selectedVal.includes(d[filter.key]));
+              }
             }
           }
         });
 
         const availableOptions = getUniqueValues(subset, target.key);
         const currentSelected = $(target.id).val() || [];
-        // Project Name is a true multi-select: never discard an already selected
-        // project merely because another Project Name is being selected.
-        const retainedSelection = target.id === '#filterProject'
-          ? currentSelected.filter(v => rawDataset.some(r => String(r[target.key] || '') === String(v)))
+        const retainedSelection = (target.id === '#filterProject' || target.id === '#filterProjectId')
+          ? currentSelected.filter(v => rawDataset.some(r => String(r[target.key] || '').trim() === String(v).trim()))
           : currentSelected.filter(v => availableOptions.includes(v));
 
         updateDropdownOptions(target.id, availableOptions, retainedSelection);
@@ -2731,8 +2869,8 @@
       const selRegions = $('#filterRegion').val() || [];
       const selProgramTypes = $('#filterProgramType').val() || [];
       const selFunders = $('#filterFunder').val() || [];
-      const selProjectIds = ($('#filterProjectId').val() || []).map(v => String(v).trim());
-      const selProjects = ($('#filterProject').val() || []).map(String);
+      const selProjectIds = ($('#filterProjectId').val() || []).map(v => String(v).trim()).filter(Boolean);
+      const selProjects = ($('#filterProject').val() || []).map(v => String(v).trim()).filter(Boolean);
       const selBroadCats = $('#filterBroadCategory').val() || [];
       const selCats = $('#filterCategory').val() || [];
       const selLines = $('#filterBudgetLine').val() || [];
@@ -2754,7 +2892,7 @@
         if (selProgramTypes.length && !selProgramTypes.includes(item['Program Type'])) return false;
         if (selFunders.length && !selFunders.includes(item['Funder Name'])) return false;
         if (selProjectIds.length && !selProjectIds.includes(String(item['Project Id'] || '').trim())) return false;
-        if (selProjects.length && !selProjects.includes(String(item['Project Name']))) return false;
+        if (selProjects.length && !selProjects.includes(String(item['Project Name'] || '').trim())) return false;
         if (selBroadCats.length && !selBroadCats.includes(item['Broad Category'])) return false;
         if (selCats.length && !selCats.includes(item['Category Name'])) return false;
         if (selLines.length && !selLines.includes(item['Budget Line'])) return false;
@@ -3061,23 +3199,30 @@
 
       const lineMap = {};
       data.forEach(d => {
-        if (!lineMap[d['Budget Line']]) {
-          lineMap[d['Budget Line']] = { budget: 0, actual: 0 };
+        const lineName = d['Budget Line'] || 'Unassigned Budget Line';
+        const key = `${String(d['Project Id'] || '').trim()}||${lineName}`;
+        if (!lineMap[key]) {
+          lineMap[key] = {
+            name: lineName,
+            budget: 0,
+            actual: 0
+          };
         }
-        lineMap[d['Budget Line']].budget += d.YTDBudgetCalc;
-        lineMap[d['Budget Line']].actual += d.YTDActualCalc;
+        lineMap[key].budget += d.AnnualBudgetCalc;
+        lineMap[key].actual += d.ActualTotalCalc;
       });
 
-      const sortedLines = Object.entries(lineMap)
-        .map(([name, v]) => [name, v.budget > 0 ? (v.actual / v.budget) * 100 : 0])
-        .sort((a, b) => b[1] - a[1])
+      const sortedLines = Object.values(lineMap)
+        .map(v => ({ ...v, underspent: v.budget - v.actual }))
+        .filter(v => v.underspent > 0)
+        .sort((a, b) => b.underspent - a.underspent)
         .slice(0, 10);
 
       chartInstances.topBudgetLines.data = {
-        labels: sortedLines.map(item => item[0]),
+        labels: sortedLines.map(item => item.name),
         datasets: [{
-          label: 'Utilization %',
-          data: sortedLines.map(item => item[1]),
+          label: 'Annual Underspent',
+          data: sortedLines.map(item => item.underspent),
           backgroundColor: '#0a4b9a'
         }]
       };
@@ -3176,25 +3321,86 @@
       $tbody.append(grandTotalRow);
     }
 
+    let top10UnderspentItems = [];
+
     function renderTop10BudgetLines(processedRows) {
       const $tbody = $('#top10BudgetLineBody');
       $tbody.empty();
+      top10UnderspentItems = [];
+
       if (!processedRows || processedRows.length === 0) return;
 
-      const items = processedRows.map(r => {
-        const util = r.YTDBudgetCalc > 0 ? (r.YTDActualCalc / r.YTDBudgetCalc) * 100 : 0;
-        const balance = r.YTDBudgetCalc - r.YTDActualCalc;
-        const rCategory = getRiskCategory(util, balance);
-        const rScore = getRiskScore(util, balance);
-        const action = getSuggestedAction(rCategory, balance);
-        return {...r, utilization: util, balance, riskCategory: rCategory, riskScore: rScore, suggestedAction: action};
+      const lineMap = new Map();
+
+      processedRows.forEach(r => {
+        const budgetLine = r['Budget Line'] || 'Unassigned Budget Line';
+        const key = `${String(r['Project Id'] || '').trim()}||${budgetLine}`;
+        const annualBudget = parseFloat(r.AnnualBudgetCalc) || 0;
+        const annualActual = parseFloat(r.ActualTotalCalc) || 0;
+
+        if (!lineMap.has(key)) {
+          lineMap.set(key, {
+            ...r,
+            AnnualBudgetCalc: 0,
+            ActualTotalCalc: 0
+          });
+        }
+
+        const item = lineMap.get(key);
+        item.AnnualBudgetCalc += annualBudget;
+        item.ActualTotalCalc += annualActual;
       });
 
-      // Requested ranking: Utilization % from Largest to Smallest.
-      items.sort((a, b) => b.utilization - a.utilization);
-      const top10 = items.slice(0, 10);
+      top10UnderspentItems = Array.from(lineMap.values())
+        .map(r => {
+          const annualBudget = r.AnnualBudgetCalc;
+          const annualActual = r.ActualTotalCalc;
+          const underspent = annualBudget - annualActual;
+          const utilization = annualBudget > 0 ? (annualActual / annualBudget) * 100 : 0;
+          const riskCategory = getRiskCategory(utilization, underspent);
+          const riskScore = getRiskScore(utilization, underspent);
+          return {
+            ...r,
+            annualBudget,
+            annualActual,
+            underspent,
+            utilization,
+            riskCategory,
+            riskScore,
+            suggestedAction: getSuggestedAction(riskCategory, underspent)
+          };
+        })
+        .filter(item => item.annualBudget > item.annualActual)
+        .sort((a, b) => b.underspent - a.underspent)
+        .slice(0, 10);
 
-      top10.forEach((item, index) => {
+      const searchTerm = String($('#top10BudgetLineSearch').val() || '').trim().toLowerCase();
+
+      const filteredItems = searchTerm
+        ? top10UnderspentItems.filter(item => {
+            const searchable = [
+              item['Funder Name'],
+              item['Project Id'],
+              item['Project Name'],
+              item['Category Id'],
+              item['Budget Line'],
+              item['Risk Category'],
+              item.suggestedAction,
+              item.annualBudget,
+              item.annualActual,
+              item.underspent,
+              item.utilization
+            ].join(' ').toLowerCase();
+            return searchable.includes(searchTerm);
+          })
+        : top10UnderspentItems;
+
+      if (!filteredItems.length) {
+        $tbody.html('<tr><td colspan="13" class="text-center text-muted py-3">No matching underspent budget line found.</td></tr>');
+        return;
+      }
+
+      filteredItems.forEach((item, index) => {
         let badgeClass = 'bg-secondary';
         if (item.riskCategory === 'High Overspend Risk') badgeClass = 'bg-danger';
         else if (item.riskCategory === 'Medium Risk') badgeClass = 'bg-warning text-dark';
@@ -3203,19 +3409,185 @@
 
         $tbody.append(`<tr>
           <td class="text-center fw-bold">${index + 1}</td>
-          <td>${item['Funder Name']}</td>
-          <td>${item['Project Id']}</td>
-          <td>${item['Project Name']}</td>
+          <td>${item['Funder Name'] || ''}</td>
+          <td>${item['Project Id'] || ''}</td>
+          <td>${item['Project Name'] || ''}</td>
           <td>${normalizeCategoryId(item['Category Id'])}</td>
-          <td class="col-budget-line">${item['Budget Line']}</td>
-          <td class="text-end">${money(item.YTDBudgetCalc)}</td>
-          <td class="text-end">${money(item.YTDActualCalc)}</td>
-          <td class="text-end ${item.balance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${money(item.balance)}</td>
+          <td class="col-budget-line">${item['Budget Line'] || ''}</td>
+          <td class="text-end">${money(item.annualBudget)}</td>
+          <td class="text-end">${money(item.annualActual)}</td>
+          <td class="text-end status-green fw-bold">${money(item.underspent)}</td>
           <td class="text-center"><span class="badge ${item.utilization > 100 ? 'bg-status-red' : 'bg-status-green'}">${pct(item.utilization)}</span></td>
           <td class="text-center"><span class="badge ${badgeClass}">${item.riskCategory}</span></td>
           <td class="text-end fw-bold">${item.riskScore}</td>
           <td class="small">${item.suggestedAction}</td>
         </tr>`);
+      });
+    }
+
+    function escapeHtmlForAI(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getCurrentDashboardFilterContext() {
+      const get = id => ($(id).val() || []);
+      return {
+        monthFrom: $('#filterMonthFrom').val() || '',
+        monthTo: $('#filterMonthTo').val() || '',
+        region: get('#filterRegion'),
+        programType: get('#filterProgramType'),
+        funderName: get('#filterFunder'),
+        projectId: get('#filterProjectId'),
+        projectName: get('#filterProject'),
+        broadCategory: get('#filterBroadCategory'),
+        categoryName: get('#filterCategory'),
+        budgetLine: get('#filterBudgetLine'),
+        showingAllProjects,
+        selectedProjectBanner: $('#selectedProjectBannerTitle').text() || ''
+      };
+    }
+
+    function buildBudgetAIContext(userMessage) {
+      const keyword = String(userMessage || '').toLowerCase().trim();
+      const rows = Array.isArray(filteredDataset) ? filteredDataset : [];
+      const searchableRows = keyword
+        ? rows.filter(row => [
+            row['Region'], row['Funder Name'], row['Project Id'], row['Project Name'],
+            row['Category Id'], row['Category Name'], row['Broad Category'], row['Budget Line']
+          ].join(' ').toLowerCase().includes(keyword))
+        : [];
+
+      const sourceRows = searchableRows.length ? searchableRows : rows;
+      const processed = getProcessedRows();
+
+      const summary = {
+        rowCount: rows.length,
+        projectCount: new Set(rows.map(r => String(r['Project Id'] || '').trim()).filter(Boolean)).size,
+        annualBudget: processed.reduce((a, r) => a + (r.AnnualBudgetCalc || 0), 0),
+        annualActual: processed.reduce((a, r) => a + (r.ActualTotalCalc || 0), 0),
+        annualVariance: processed.reduce((a, r) => a + (r.VarianceAnnual || 0), 0),
+        ytdBudget: processed.reduce((a, r) => a + (r.YTDBudgetCalc || 0), 0),
+        ytdActual: processed.reduce((a, r) => a + (r.YTDActualCalc || 0), 0)
+      };
+
+      summary.annualUtilization = summary.annualBudget > 0
+        ? (summary.annualActual / summary.annualBudget) * 100 : 0;
+
+      const compactRows = sourceRows.slice(0, 500).map(r => ({
+        region: r['Region'],
+        funder: r['Funder Name'],
+        projectId: r['Project Id'],
+        projectName: r['Project Name'],
+        categoryId: normalizeCategoryId(r['Category Id']),
+        categoryName: r['Category Name'],
+        broadCategory: r['Broad Category'],
+        budgetLine: r['Budget Line'],
+        annualBudget: parseFloat(r['Annual Budget']) || 0,
+        annualActual: parseFloat(r['Actual Total']) || 0
+      }));
+
+      return {
+        filters: getCurrentDashboardFilterContext(),
+        summary,
+        top10Underspent: top10UnderspentItems.map(r => ({
+          projectId: r['Project Id'],
+          projectName: r['Project Name'],
+          categoryId: normalizeCategoryId(r['Category Id']),
+          budgetLine: r['Budget Line'],
+          annualBudget: r.annualBudget,
+          annualActual: r.annualActual,
+          underspent: r.underspent,
+          utilization: r.utilization
+        })),
+        matchingRowsReturned: compactRows.length,
+        matchingRowsLimitedTo500: compactRows
+      };
+    }
+
+    function appendBudgetAIMessage(role, text) {
+      const cls = role === 'user' ? 'budget-ai-user' : 'budget-ai-assistant';
+      $('#budgetAIChatMessages').append(
+        `<div class="budget-ai-message ${cls}">${escapeHtmlForAI(text)}</div>`
+      );
+      const el = document.getElementById('budgetAIChatMessages');
+      if (el) el.scrollTop = el.scrollHeight;
+    }
+
+    async function sendBudgetAIMessage() {
+      const $input = $('#budgetAIInput');
+      const message = String($input.val() || '').trim();
+      if (!message) return;
+
+      if (!CONFIG.AI_ASSISTANT_ENDPOINT ||
+          CONFIG.AI_ASSISTANT_ENDPOINT.includes('YOUR-AI-BACKEND-DOMAIN')) {
+        appendBudgetAIMessage('assistant',
+          'AI Assistant is not configured yet. Set CONFIG.AI_ASSISTANT_ENDPOINT to your secure backend endpoint.');
+        return;
+      }
+
+      appendBudgetAIMessage('user', message);
+      $input.val('');
+      $('#btnSendBudgetAI').prop('disabled', true);
+      $('#budgetAIStatus').text('Analyzing dashboard data...');
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), CONFIG.AI_ASSISTANT_TIMEOUT_MS);
+
+      try {
+        const response = await fetch(CONFIG.AI_ASSISTANT_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            message,
+            context: buildBudgetAIContext(message)
+          })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.error || `AI backend returned HTTP ${response.status}`);
+        }
+
+        appendBudgetAIMessage('assistant',
+          payload.answer || payload.output_text || 'No answer was returned by the AI backend.');
+        $('#budgetAIStatus').text('Ready');
+      } catch (error) {
+        console.error('Budget AI error:', error);
+        const msg = error.name === 'AbortError'
+          ? 'The AI request timed out. Please try again.'
+          : `AI Assistant error: ${error.message}`;
+        appendBudgetAIMessage('assistant', msg);
+        $('#budgetAIStatus').text('Connection error');
+      } finally {
+        clearTimeout(timeout);
+        $('#btnSendBudgetAI').prop('disabled', false);
+        $input.trigger('focus');
+      }
+    }
+
+    function initializeBudgetAIAssistant() {
+      $('#budgetAIAssistantButton').on('click', function() {
+        $('#budgetAIChatPanel').toggle();
+        if ($('#budgetAIChatPanel').is(':visible')) $('#budgetAIInput').trigger('focus');
+      });
+
+      $('#btnCloseBudgetAI').on('click', function() {
+        $('#budgetAIChatPanel').hide();
+      });
+
+      $('#btnSendBudgetAI').on('click', sendBudgetAIMessage);
+
+      $('#budgetAIInput').on('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendBudgetAIMessage();
+        }
       });
     }
 
