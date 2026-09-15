@@ -525,16 +525,16 @@
       color: #0a4b9a;
     }
 
+    #managementAnalysisTable th, #managementAnalysisTable td { vertical-align: middle !important; }
+    #budgetAIWindow .card-header { cursor: default; }
+    @media print {
+      #budgetAIWindow, #btnBudgetAI, .navbar-custom, .data-source-panel { display:none !important; }
+    }
+
     .smart-filter-developer {
       line-height: 1.2;
       width: 100%;
       text-align: center;
-    }
-
-    #managementAnalysisTable th, #managementAnalysisTable td { white-space: nowrap; }
-    #budgetAIModal .modal-dialog-end { margin-top: auto; }
-    @media print {
-      #btnBudgetAIAssistant, #budgetAIModal, .navbar-custom, .data-source-panel, #filterSidebarCol, .btn-close { display:none !important; }
     }
   </style>
 </head>
@@ -578,7 +578,7 @@
         <div id="gdriveGroup" class="d-flex align-items-center gap-1 d-none">
           <div class="input-group input-group-sm shadow-sm">
             <span class="input-group-text bg-light"><i class="fa-brands fa-google-drive text-success"></i></span>
-            <input type="text" class="form-control form-control-sm" id="gdriveFolderId" aria-label="Google Drive Folder ID" placeholder="Enter Google Drive Folder ID" style="min-width: 160px; font-size: 0.75rem;">
+            <input type="text" class="form-control form-control-sm" id="gdriveFolderId" placeholder="Enter Folder ID" style="min-width: 160px; font-size: 0.75rem;">
             <button class="btn btn-sm btn-primary fw-bold py-1" id="btnLoadGDrive">Load Data</button>
           </div>
         </div>
@@ -644,7 +644,11 @@
           <h6 class="modal-title fw-bold" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-question me-2"></i>Data Source Option</h6>
         </div>
         <div class="modal-body text-center py-3">
-          <p class="mb-0 fw-semibold" style="font-size: 0.85rem;">Data source: Google Drive?</p>
+          <p class="mb-2 fw-semibold" style="font-size: 0.85rem;">Data source: Google Drive?</p>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="fa-brands fa-google-drive text-success"></i></span>
+              <input type="text" id="firstTimeGDriveFolderId" class="form-control" placeholder="Enter Google Drive Folder ID">
+            </div>
         </div>
         <div class="modal-footer py-2 justify-content-center">
           <button type="button" class="btn btn-sm btn-success px-3 fw-bold" id="btnFlashModalYes">Yes</button>
@@ -748,7 +752,7 @@
               <i class="fa-solid fa-chart-line me-1 text-success"></i> Budget PIP statement
             </button>
             <button id="btnOpenManagementAnalysis" class="btn btn-outline-success btn-sm py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#managementAnalysisModal" style="font-size: 0.75rem;">
-              <i class="fa-solid fa-user-tie me-1"></i> Management analysis
+              <i class="fa-solid fa-briefcase me-1"></i> Management analysis
             </button>
           </div>
           <button id="btnToggleNonFunder" class="btn btn-outline-warning btn-sm py-1 fw-semibold shadow-sm" style="font-size: 0.75rem;">
@@ -889,7 +893,7 @@
                   <th>Budget Line</th>
                   <th class="text-end">Annual Budget</th>
                   <th class="text-end">Annual Actual</th>
-                  <th class="text-end">Underspent</th>
+                  <th class="text-end">Balance</th>
                   <th class="text-center">Utilization %</th>
                   <th class="text-center">Risk Category</th>
                   <th class="text-end">Risk Score</th>
@@ -937,12 +941,6 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-2">
-          <div class="d-flex justify-content-end align-items-center mb-2">
-            <div class="input-group input-group-sm" style="max-width:340px;">
-              <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-              <input type="text" id="budgetBreakdownSmartSearch" class="form-control" placeholder="Search any field, amount or keyword...">
-            </div>
-          </div>
           <div class="table-responsive">
             <table id="budgetDataTable" class="table table-sm table-hover align-middle w-100 style-table">
               <thead>
@@ -989,6 +987,47 @@
     </div>
   </div>
 
+  <!-- Management Analysis Modal -->
+  <div class="modal fade" id="managementAnalysisModal" tabindex="-1" aria-labelledby="managementAnalysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header py-2 px-3">
+          <h6 class="modal-title fw-bold text-success" id="managementAnalysisModalLabel">
+            <i class="fa-solid fa-briefcase me-2"></i>Management Analysis
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-2">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div class="btn-group btn-group-sm" role="group" id="managementAnalysisTabs">
+              <button class="btn btn-success active" data-analysis="project">Project-wise analysis</button>
+              <button class="btn btn-outline-success" data-analysis="region">Region-wise analysis</button>
+              <button class="btn btn-outline-success" data-analysis="funder">Funder-wise analysis</button>
+              <button class="btn btn-outline-success" data-analysis="top10">Top 10 Projects</button>
+              <button class="btn btn-outline-success" data-analysis="under">Underutilization analysis</button>
+              <button class="btn btn-outline-danger" data-analysis="over">Overspend analysis</button>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button class="btn btn-success" id="btnManagementExcel"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+              <button class="btn btn-primary" id="btnManagementCsv"><i class="fa-solid fa-file-csv me-1"></i>CSV</button>
+              <button class="btn btn-danger" id="btnManagementPdf"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+              <button class="btn btn-secondary" id="btnManagementPrint"><i class="fa-solid fa-print me-1"></i>Print</button>
+            </div>
+          </div>
+          <div class="input-group input-group-sm mb-2" style="max-width:360px;">
+            <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+            <input type="text" id="managementAnalysisSearch" class="form-control" placeholder="Search any keyword or field...">
+          </div>
+          <div class="table-responsive">
+            <table id="managementAnalysisTable" class="table table-sm table-striped table-hover align-middle w-100">
+              <thead class="table-light"></thead><tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Budget PIP Statement Modal -->
   <div class="modal fade" id="pipStatementModal" tabindex="-1" aria-labelledby="pipStatementModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-90-width modal-dialog-scrollable">
@@ -1018,70 +1057,23 @@
     </div>
   </div>
 
-  <!-- Management Analysis Modal -->
-  <div class="modal fade" id="managementAnalysisModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-90-width modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header py-2 px-3">
-          <h6 class="modal-title fw-bold text-success"><i class="fa-solid fa-user-tie me-2"></i>Management analysis</h6>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-2">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <ul class="nav nav-pills nav-sm" id="managementAnalysisTabs" role="tablist">
-              <li class="nav-item"><button class="nav-link active py-1 px-2" data-analysis="project">Project-wise analysis</button></li>
-              <li class="nav-item"><button class="nav-link py-1 px-2" data-analysis="region">Region-wise analysis</button></li>
-              <li class="nav-item"><button class="nav-link py-1 px-2" data-analysis="funder">Funder-wise analysis</button></li>
-              <li class="nav-item"><button class="nav-link py-1 px-2" data-analysis="top10">Top 10 Projects</button></li>
-              <li class="nav-item"><button class="nav-link py-1 px-2" data-analysis="underutilization">Underutilization analysis</button></li>
-              <li class="nav-item"><button class="nav-link py-1 px-2" data-analysis="overspend">Overspend analysis</button></li>
-            </ul>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Management export options">
-              <button class="btn btn-success" id="managementExcel"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
-              <button class="btn btn-primary" id="managementCsv"><i class="fa-solid fa-file-csv me-1"></i>CSV</button>
-              <button class="btn btn-danger" id="managementPdf"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
-              <button class="btn btn-secondary" id="managementPrint"><i class="fa-solid fa-print me-1"></i>Print</button>
-            </div>
-          </div>
-          <div class="d-flex justify-content-end mb-2">
-            <div class="input-group input-group-sm" style="max-width:320px;">
-              <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-              <input id="managementAnalysisSearch" class="form-control" placeholder="Search analysis...">
-            </div>
-          </div>
-          <div class="table-responsive">
-            <table id="managementAnalysisTable" class="table table-sm table-striped table-hover align-middle w-100">
-              <thead class="table-light"></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Budget AI Assistant -->
-  <button id="btnBudgetAIAssistant" type="button" class="btn btn-primary shadow-lg" title="Budget AI Assistant" style="position:fixed;right:22px;bottom:22px;z-index:1080;width:52px;height:52px;border-radius:50%;font-size:1.15rem;">
+  <!-- AI Budget Assistant -->
+  <button id="btnBudgetAI" class="btn btn-primary shadow" title="Budget AI Assistant"
+          style="position:fixed;right:20px;bottom:20px;z-index:1080;border-radius:50%;width:52px;height:52px;">
     <i class="fa-solid fa-robot"></i>
   </button>
-  <div class="modal fade" id="budgetAIModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-end" style="max-width:460px;margin-right:22px;margin-bottom:82px;">
-      <div class="modal-content shadow-lg">
-        <div class="modal-header py-2 px-3 bg-primary text-white">
-          <h6 class="modal-title fw-bold"><i class="fa-solid fa-robot me-2"></i>Budget AI Assistant</h6>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div id="budgetAIChatMessages" class="modal-body p-2" style="height:420px;overflow:auto;background:#f8f9fa;">
-          <div class="alert alert-info py-2 px-2 small mb-2">Ask about the current Dashboard data, filters, budget, actual, variance, utilization, projects, funders, categories or budget lines.</div>
-        </div>
-        <div class="modal-footer p-2">
-          <div class="input-group input-group-sm">
-            <input id="budgetAIInput" class="form-control" placeholder="Ask a budget question...">
-            <button id="budgetAISend" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
-          </div>
-          <div class="w-100 small text-muted" id="budgetAIStatus"></div>
-        </div>
+  <div id="budgetAIWindow" class="card shadow-lg d-none" style="position:fixed;right:20px;bottom:82px;width:min(420px,calc(100vw - 30px));z-index:1081;">
+    <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+      <strong><i class="fa-solid fa-robot me-1"></i>Budget AI Assistant</strong>
+      <button id="btnCloseBudgetAI" class="btn btn-sm text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="budgetAIChat" class="card-body p-2" style="height:360px;overflow:auto;background:#f8f9fa;"></div>
+    <div class="card-footer p-2">
+      <div class="input-group input-group-sm">
+        <input id="budgetAIInput" class="form-control" placeholder="Ask about budget, actual, variance, utilization...">
+        <button id="budgetAISend" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i></button>
       </div>
+      <div id="budgetAIStatus" class="small text-muted mt-1"></div>
     </div>
   </div>
 
@@ -1106,10 +1098,9 @@
   <script>
     const CONFIG = {
       GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com',
-      // Secure backend endpoints. Never place an OpenAI API key in this HTML file.
-      AI_ASSISTANT_ENDPOINT: '/api/budget-ai',
-      BACKEND_SYNC_ENDPOINT: '/api/budget-sync',
-      AUTO_SYNC_HOURS: 12
+      AI_ASSISTANT_ENDPOINT: 'http://localhost:8787/api/budget-ai',
+      AI_ASSISTANT_ENABLED: true,
+      AUTO_SYNC_INTERVAL_MS: 120000
     };
 
     // --- INDEXEDDB STORAGE ENGINE (MagicBusFinancialDB) ---
@@ -1321,15 +1312,6 @@
       });
     }
 
-    function safeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
     const formatINR = (value) => {
       return new Intl.NumberFormat('en-IN', {
         style: 'currency',
@@ -1432,7 +1414,6 @@
       initializeDataTable();
       attachEventListeners();
       initGoogleAuthClient();
-      startAutoSyncScheduler();
 
       const hasRestoredData = await checkAndLoadFromIndexedDB();
 
@@ -1505,13 +1486,18 @@
       flashModal.show();
 
       $('#btnFlashModalYes').off('click').on('click', function() {
-        flashModal.hide();
-        $('#dataSourceSelect').val('gdrive').trigger('change');
-        if (!$('#gdriveFolderId').val().trim()) {
-          $('#gdriveFolderId').focus().addClass('highlight-blink');
-          setTimeout(() => $('#gdriveFolderId').removeClass('highlight-blink'), 4000);
+        const folderId = $('#firstTimeGDriveFolderId').val().trim();
+        if (!folderId) {
+          alert('Please enter your Google Drive Folder ID.');
+          $('#firstTimeGDriveFolderId').focus();
           return;
         }
+        $('#gdriveFolderId').val(folderId);
+        currentGDriveId = folderId;
+        localStorage.setItem('mb_budget_gdrive_id', folderId);
+        saveFolderForCurrentGoogleUser(folderId);
+        flashModal.hide();
+        $('#dataSourceSelect').val('gdrive').trigger('change');
         $('#btnLoadGDrive').click();
       });
 
@@ -1542,7 +1528,7 @@
         if (!CONFIG.GOOGLE_CLIENT_ID || CONFIG.GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) return;
         tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: CONFIG.GOOGLE_CLIENT_ID,
-          scope: 'https://www.googleapis.com/auth/drive.readonly',
+          scope: 'https://www.googleapis.com/auth/drive.readonly openid email',
           callback: (response) => {
             if (response.error) {
               updateStatusArea('Google Drive', 'Auth Failed', 'Disconnected', true);
@@ -1550,6 +1536,8 @@
               return;
             }
             accessToken = response.access_token;
+            rememberGoogleUser(accessToken);
+            startAutoSync();
             if (pendingFolderId) {
               const fId = pendingFolderId;
               pendingFolderId = null;
@@ -1631,6 +1619,7 @@
       }
 
       localStorage.setItem('mb_budget_gdrive_id', folderId);
+      saveFolderForCurrentGoogleUser(folderId);
       updateStatusArea('Google Drive', `ID: ${folderId.substring(0,6)}...`, 'Connecting...');
 
       if (!tokenClient) initGoogleAuthClient();
@@ -1660,7 +1649,7 @@
 
       try {
         const query = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
-        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&pageSize=100&fields=files(id,name,mimeType,modifiedTime,size,md5Checksum)`, {
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&pageSize=100&fields=files(id,name,mimeType)`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
 
@@ -1679,8 +1668,6 @@
           alert('No Excel files were found in the selected Google Drive folder.');
           return;
         }
-        localStorage.setItem('mb_budget_gdrive_signature', getDriveSignature(excelFilesMeta));
-        syncBackendMetadata('manual-or-initial-load');
 
         $bar.css('width', '30%').text('30%');
         let downloadedCount = 0;
@@ -1744,8 +1731,9 @@
         width: '100%',
         placeholder: 'All Selected',
         allowClear: true,
-        closeOnSelect: false
+        closeOnSelect: true
       });
+      $('#filterProjectId, #filterProject').select2({ closeOnSelect: false });
     }
 
     function initializeDataTable() {
@@ -1757,7 +1745,7 @@
         pageLength: -1,
         data: [],
         // Keep each Broad Category contiguous so RowGroup renders it only once.
-        order: [[15, 'asc'], [2, 'asc'], [0, 'asc'], [5, 'asc']],
+        order: [[14, 'asc'], [2, 'asc'], [0, 'asc'], [5, 'asc']],
         rowGroup: {
           dataSrc: function(row) {
             return row['Broad Category'] || 'Unassigned Category';
@@ -1835,7 +1823,8 @@
           { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'budget-amount-col' },
           // Hidden technical sort key used only to keep Broad Categories contiguous.
           { data: 'Broad Category', visible: false, searchable: true, orderable: true },
-          { data: 'Category Name', visible: false, searchable: true, orderable: true }
+          { data: 'Category Name', visible: false, searchable: true, orderable: false },
+          { data: 'Funder Name', visible: false, searchable: true, orderable: false }
         ],
         footerCallback: function () {
           const api = this.api();
@@ -2024,37 +2013,6 @@
           processAndRenderDashboard();
         });
       });
-
-      $('#top10BudgetLineSearch').on('input', function() {
-        renderTop10BudgetLines(getProcessedRows(), this.value);
-      });
-
-      $('#budgetBreakdownSmartSearch').on('input', function() {
-        if (dataTableInstance) dataTableInstance.search(this.value).draw();
-      });
-
-      $(document).on('click', '#btnOpenManagementAnalysis', function() {
-        renderManagementAnalysis('project');
-      });
-      $(document).on('click', '#managementAnalysisTabs [data-analysis]', function() {
-        $('#managementAnalysisTabs .nav-link').removeClass('active');
-        $(this).addClass('active');
-        renderManagementAnalysis($(this).data('analysis'));
-      });
-      $('#managementAnalysisSearch').on('input', function() {
-        filterManagementAnalysisTable(this.value);
-      });
-      $('#managementExcel').on('click', () => exportManagementAnalysis('excel'));
-      $('#managementCsv').on('click', () => exportManagementAnalysis('csv'));
-      $('#managementPdf').on('click', () => exportManagementAnalysis('pdf'));
-      $('#managementPrint').on('click', () => exportManagementAnalysis('print'));
-
-      $('#btnBudgetAIAssistant').on('click', function() {
-        new bootstrap.Modal(document.getElementById('budgetAIModal')).show();
-        setTimeout(() => $('#budgetAIInput').trigger('focus'), 300);
-      });
-      $('#budgetAISend').on('click', sendBudgetAIQuestion);
-      $('#budgetAIInput').on('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBudgetAIQuestion(); } });
     }
 
     function toggleFilterSidebar() {
@@ -2374,6 +2332,7 @@
               setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 5000);
 
               processAndRenderDashboard();
+              startAutoSync();
               highlightFilterSection();
             }, 400);
           };
@@ -2698,22 +2657,16 @@
       isCascading = false;
     }
 
-    function normalizeTextForSearch(value) {
-      return String(value ?? '').replace(/[\u00A0\u200B-\u200D\uFEFF]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
-    }
-
     function getUniqueValues(dataset, key) {
-      const values = dataset.map(item => item[key]).filter(v => v !== null && v !== undefined && String(v).trim() !== '');
-      return Array.from(new Map(values.map(v => [normalizeTextForSearch(v), String(v).trim()])).values()).sort((a,b) => a.localeCompare(b));
+      return Array.from(new Set(dataset.map(item => item[key]))).filter(Boolean).sort();
     }
 
     function updateDropdownOptions(elementId, optionsArray, selectedValues = null) {
       const $el = $(elementId);
       const currentValues = selectedValues !== null ? selectedValues : ($el.val() || []);
-      const currentNorm = new Set((Array.isArray(currentValues) ? currentValues : [currentValues]).map(normalizeTextForSearch));
       $el.empty();
       optionsArray.forEach(opt => {
-        const isSelected = currentNorm.has(normalizeTextForSearch(opt));
+        const isSelected = Array.isArray(currentValues) ? currentValues.includes(opt) : currentValues === opt;
         $el.append(new Option(opt, opt, isSelected, isSelected));
       });
       $el.trigger('change.select2');
@@ -2820,12 +2773,9 @@
 
         FILTER_FIELDS.filter(f => !f.isDate).forEach(filter => {
           if (filter.id !== target.id) {
-            const projectPair = (target.id === '#filterProject' && filter.id === '#filterProjectId') || (target.id === '#filterProjectId' && filter.id === '#filterProject');
-            if (projectPair) return;
             const selectedVal = $(filter.id).val() || [];
             if (selectedVal.length > 0) {
-              const selectedNorm = selectedVal.map(normalizeTextForSearch);
-              subset = subset.filter(d => selectedNorm.includes(normalizeTextForSearch(d[filter.key])));
+              subset = subset.filter(d => selectedVal.includes(d[filter.key]));
             }
           }
         });
@@ -2834,9 +2784,9 @@
         const currentSelected = $(target.id).val() || [];
         // Project Name is a true multi-select: never discard an already selected
         // project merely because another Project Name is being selected.
-        const retainedSelection = (target.id === '#filterProject' || target.id === '#filterProjectId')
-          ? currentSelected.filter(v => rawDataset.some(r => normalizeTextForSearch(r[target.key]) === normalizeTextForSearch(v)))
-          : currentSelected.filter(v => availableOptions.some(a => normalizeTextForSearch(a) === normalizeTextForSearch(v)));
+        const retainedSelection = target.id === '#filterProject'
+          ? currentSelected.filter(v => rawDataset.some(r => String(r[target.key] || '') === String(v)))
+          : currentSelected.filter(v => availableOptions.includes(v));
 
         updateDropdownOptions(target.id, availableOptions, retainedSelection);
       });
@@ -2916,7 +2866,7 @@
       renderKPIs(processedRows);
       renderCharts(processedRows, activeMonths);
       renderQuoterReport(processedRows, activeMonths);
-      renderTop10BudgetLines(processedRows, $('#top10BudgetLineSearch').val() || '');
+      renderTop10BudgetLines(processedRows);
       renderModalBreakdownTable();
       renderPipStatementTable();
       updateBudgetProjectPagination();
@@ -3212,23 +3162,24 @@
 
       const lineMap = {};
       data.forEach(d => {
-        const key = `${String(d['Project Id']||'').trim()}||${String(d['Budget Line']||'').trim().toLowerCase()}`;
-        if (!lineMap[key]) lineMap[key] = { name: d['Budget Line'] || 'Unassigned', budget: 0, actual: 0 };
-        lineMap[key].budget += d.AnnualBudgetCalc;
-        lineMap[key].actual += d.ActualTotalCalc;
+        if (!lineMap[d['Budget Line']]) {
+          lineMap[d['Budget Line']] = { budget: 0, actual: 0 };
+        }
+        lineMap[d['Budget Line']].budget += d.AnnualBudgetCalc;
+        lineMap[d['Budget Line']].actual += d.ActualTotalCalc;
       });
 
-      const sortedLines = Object.values(lineMap)
-        .map(v => ({...v, underspent:v.budget-v.actual}))
-        .filter(v => v.underspent > 0)
-        .sort((a,b) => b.underspent-a.underspent)
+      const sortedLines = Object.entries(lineMap)
+        .map(([name, v]) => ({name, underspend: v.budget - v.actual}))
+        .filter(v => v.underspend > 0)
+        .sort((a, b) => b.underspend - a.underspend)
         .slice(0, 10);
 
       chartInstances.topBudgetLines.data = {
-        labels: sortedLines.map(item => item.name),
+        labels: sortedLines.map(item => item[0]),
         datasets: [{
-          label: 'Annual Underspent',
-          data: sortedLines.map(item => item.underspent),
+          label: 'Utilization %',
+          data: sortedLines.map(item => item[1]),
           backgroundColor: '#0a4b9a'
         }]
       };
@@ -3327,58 +3278,78 @@
       $tbody.append(grandTotalRow);
     }
 
-    function renderTop10BudgetLines(processedRows, searchQuery = '') {
+    function renderTop10BudgetLines(processedRows) {
       const $tbody = $('#top10BudgetLineBody');
       $tbody.empty();
       if (!processedRows || processedRows.length === 0) return;
 
-      const items = processedRows.map(r => {
-        const annualBudget = parseFloat(r.AnnualBudgetCalc) || 0;
-        const annualActual = parseFloat(r.ActualTotalCalc) || 0;
-        const underspent = annualBudget - annualActual;
-        const util = annualBudget > 0 ? (annualActual / annualBudget) * 100 : 0;
-        const rCategory = getRiskCategory(util, underspent);
-        const rScore = getRiskScore(util, underspent);
-        const action = getSuggestedAction(rCategory, underspent);
-        return {...r, utilization: util, underspent, riskCategory: rCategory, riskScore: rScore, suggestedAction: action};
-      }).filter(item => item.underspent > 0);
+      const lineMap = new Map();
+      processedRows.forEach(r => {
+        const key = `${String(r['Project Id'] || '').trim()}||${String(r['Budget Line'] || 'Unassigned').trim()}`;
+        if (!lineMap.has(key)) {
+          lineMap.set(key, {
+            ...r,
+            annualBudget: 0,
+            annualActual: 0,
+            categoryIds: new Set()
+          });
+        }
+        const item = lineMap.get(key);
+        item.annualBudget += parseFloat(r.AnnualBudgetCalc) || 0;
+        item.annualActual += parseFloat(r.ActualTotalCalc) || 0;
+        const cat = normalizeCategoryId(r['Category Id']);
+        if (cat) item.categoryIds.add(cat);
+      });
 
-      const q = String(searchQuery || '').trim().toLowerCase();
-      let matching = items;
-      if (q) {
-        matching = items.filter(item => Object.values({
-          'Funder Name': item['Funder Name'], 'Project Id': item['Project Id'], 'Project Name': item['Project Name'],
-          'Category Id': item['Category Id'], 'Category Name': item['Category Name'], 'Broad Category': item['Broad Category'],
-          'Budget Line': item['Budget Line'], 'Annual Budget': item.AnnualBudgetCalc, 'Annual Actual': item.ActualTotalCalc,
-          'Underspent': item.underspent, 'Utilization': item.utilization, 'Risk Category': item.riskCategory
-        }).some(v => String(v ?? '').toLowerCase().includes(q)));
-      }
+      const items = Array.from(lineMap.values()).map(item => {
+        const balance = item.annualBudget - item.annualActual;
+        const util = item.annualBudget > 0 ? (item.annualActual / item.annualBudget) * 100 : 0;
+        const rCategory = getRiskCategory(util, balance);
+        const rScore = getRiskScore(util, balance);
+        return {
+          ...item,
+          balance,
+          utilization: util,
+          riskCategory: rCategory,
+          riskScore: rScore,
+          suggestedAction: getSuggestedAction(rCategory, balance),
+          categoryIdDisplay: Array.from(item.categoryIds).join(', ')
+        };
+      }).filter(item => item.balance > 0);
 
-      matching.sort((a, b) => b.underspent - a.underspent);
-      const rowsToShow = q ? matching : matching.slice(0, 10);
+      items.sort((a, b) => b.balance - a.balance);
+      const top10 = items.slice(0, 10);
 
-      rowsToShow.forEach((item, index) => {
-        let badgeClass = 'bg-secondary';
+      top10.forEach((item, index) => {
+        let badgeClass = 'bg-info text-dark';
         if (item.riskCategory === 'High Overspend Risk') badgeClass = 'bg-danger';
         else if (item.riskCategory === 'Medium Risk') badgeClass = 'bg-warning text-dark';
         else if (item.riskCategory === 'Underutilization Risk') badgeClass = 'bg-info text-dark';
-        else badgeClass = 'bg-success';
 
         $tbody.append(`<tr>
           <td class="text-center fw-bold">${index + 1}</td>
-          <td>${safeHtml(item['Funder Name'])}</td>
-          <td>${safeHtml(item['Project Id'])}</td>
-          <td>${safeHtml(item['Project Name'])}</td>
-          <td>${safeHtml(normalizeCategoryId(item['Category Id']))}</td>
-          <td class="col-budget-line">${safeHtml(item['Budget Line'])}</td>
-          <td class="text-end">${money(item.AnnualBudgetCalc)}</td>
-          <td class="text-end">${money(item.ActualTotalCalc)}</td>
-          <td class="text-end status-green fw-bold">${money(item.underspent)}</td>
-          <td class="text-center"><span class="badge ${item.utilization > 100 ? 'bg-status-red' : 'bg-status-green'}">${pct(item.utilization)}</span></td>
-          <td class="text-center"><span class="badge ${badgeClass}">${safeHtml(item.riskCategory)}}</span></td>
+          <td>${item['Funder Name'] || ''}</td>
+          <td>${item['Project Id'] || ''}</td>
+          <td>${item['Project Name'] || ''}</td>
+          <td>${item.categoryIdDisplay}</td>
+          <td class="col-budget-line">${item['Budget Line'] || ''}</td>
+          <td class="text-end">${money(item.annualBudget)}</td>
+          <td class="text-end">${money(item.annualActual)}</td>
+          <td class="text-end status-green fw-bold">${money(item.balance)}</td>
+          <td class="text-center"><span class="badge bg-status-green">${pct(item.utilization)}</span></td>
+          <td class="text-center"><span class="badge ${badgeClass}">${item.riskCategory}</span></td>
           <td class="text-end fw-bold">${item.riskScore}</td>
-          <td class="small">${safeHtml(item.suggestedAction)}}</td>
+          <td class="small">${item.suggestedAction}</td>
         </tr>`);
+      });
+
+      applyTop10Search();
+    }
+
+    function applyTop10Search() {
+      const q = String($('#top10BudgetLineSearch').val() || '').trim().toLowerCase();
+      $('#top10BudgetLineBody tr').each(function() {
+        $(this).toggle(!q || $(this).text().toLowerCase().includes(q));
       });
     }
 
@@ -3440,7 +3411,6 @@
         'Project Id': r['Project Id'],
         'Project Name': r['Project Name'],
         'Category Id': normalizeCategoryId(r['Category Id']),
-        'Category Name': r['Category Name'],
         'Budget Line': r['Budget Line'],
         'YTD Budget': r.YTDBudgetCalc,
         'YTD Actual': r.YTDActualCalc,
@@ -3450,161 +3420,15 @@
         'Annual Variance': r.VarianceAnnual,
         'Utilization': r.UtilizationAnnual,
         'Total Open PO Value': r.OpenPOVal,
-        'Broad Category': r['Broad Category']
+        'Broad Category': r['Broad Category'],
+        'Category Name': r['Category Name'],
+        'Funder Name': r['Funder Name']
       }));
 
       dataTableInstance.clear();
       dataTableInstance.rows.add(formattedData);
       dataTableInstance.draw(false);
       updateBudgetProjectPagination();
-    }
-
-
-    // --- MANAGEMENT ANALYSIS ---
-    let currentManagementAnalysisType = 'project';
-    let currentManagementRows = [];
-
-    function managementAggregate(rows, key) {
-      const map = new Map();
-      rows.forEach(r => {
-        const id = String(r[key] || 'Unassigned').trim() || 'Unassigned';
-        if (!map.has(id)) map.set(id, { key:id, budget:0, actual:0, openPO:0, region:r['Region'] || '', funder:r['Funder Name'] || '' });
-        const o = map.get(id);
-        o.budget += parseFloat(r.AnnualBudgetCalc) || 0;
-        o.actual += parseFloat(r.ActualTotalCalc) || 0;
-        o.openPO += parseFloat(r.OpenPOVal) || 0;
-      });
-      return Array.from(map.values()).map(o => ({
-        Name:o.key, 'Annual Budget':o.budget, 'Annual Actual':o.actual,
-        'Variance':o.budget-o.actual, 'Utilization %':o.budget>0?(o.actual/o.budget)*100:0, 'Open PO':o.openPO
-      }));
-    }
-
-    function managementProjectRows(rows) {
-      const map = new Map();
-      rows.forEach(r => {
-        const id = String(r['Project Id'] || 'Unassigned').trim() || 'Unassigned';
-        if (!map.has(id)) map.set(id, {id, name:r['Project Name']||'', region:r['Region']||'', funder:r['Funder Name']||'', budget:0, actual:0, openPO:0});
-        const o=map.get(id); o.budget += parseFloat(r.AnnualBudgetCalc)||0; o.actual += parseFloat(r.ActualTotalCalc)||0; o.openPO += parseFloat(r.OpenPOVal)||0;
-      });
-      return Array.from(map.values()).map(o=>({
-        'Project Id':o.id,'Project Name':o.name,'Region':o.region,'Funder Name':o.funder,
-        'Annual Budget':o.budget,'Annual Actual':o.actual,'Variance':o.budget-o.actual,
-        'Utilization %':o.budget>0?(o.actual/o.budget)*100:0,'Open PO':o.openPO
-      }));
-    }
-
-    function managementLineAnalysis(rows, mode) {
-      const map = new Map();
-      rows.forEach(r => {
-        const budgetLine = String(r['Budget Line'] || 'Unassigned').trim() || 'Unassigned';
-        const projectId = String(r['Project Id'] || 'Unassigned').trim() || 'Unassigned';
-        const key = projectId + '||' + normalizeTextForSearch(budgetLine);
-        if (!map.has(key)) map.set(key, {projectId, projectName:r['Project Name']||'', budgetLine, codes:new Set(), budget:0, actual:0, region:r['Region']||'', funder:r['Funder Name']||''});
-        const o=map.get(key); o.codes.add(normalizeCategoryId(r['Category Id'])); o.budget += parseFloat(r.AnnualBudgetCalc)||0; o.actual += parseFloat(r.ActualTotalCalc)||0;
-      });
-      return Array.from(map.values()).map(o=>({
-        'Project Id':o.projectId,'Project Name':o.projectName,'Region':o.region,'Funder Name':o.funder,
-        'Budget Line':o.budgetLine,'Category Code':Array.from(o.codes).filter(Boolean).join(', '),
-        'Annual Budget':o.budget,'Annual Actual':o.actual,'Variance':o.budget-o.actual,
-        'Amount': mode==='underutilization' ? Math.max(0,o.budget-o.actual) : Math.max(0,o.actual-o.budget),
-        'Utilization %':o.budget>0?(o.actual/o.budget)*100:0
-      })).filter(o => mode==='underutilization' ? o.Variance>0 : o.Variance<0).sort((a,b)=>b.Amount-a.Amount);
-    }
-
-    function renderManagementAnalysis(type='project') {
-      currentManagementAnalysisType = type;
-      const rows = getProcessedRows();
-      let data;
-      let headers;
-      if (type === 'project') { data=managementProjectRows(rows); headers=['Project Id','Project Name','Region','Funder Name','Annual Budget','Annual Actual','Variance','Utilization %','Open PO']; }
-      else if (type === 'region') { data=managementAggregate(rows,'Region'); headers=['Name','Annual Budget','Annual Actual','Variance','Utilization %','Open PO']; }
-      else if (type === 'funder') { data=managementAggregate(rows,'Funder Name'); headers=['Name','Annual Budget','Annual Actual','Variance','Utilization %','Open PO']; }
-      else if (type === 'top10') { data=managementProjectRows(rows).sort((a,b)=>b['Annual Budget']-a['Annual Budget']).slice(0,10); headers=['Project Id','Project Name','Region','Funder Name','Annual Budget','Annual Actual','Variance','Utilization %','Open PO']; }
-      else { data=managementLineAnalysis(rows,type); headers=['Project Id','Project Name','Region','Funder Name','Budget Line','Category Code','Annual Budget','Annual Actual','Variance','Amount','Utilization %']; }
-      currentManagementRows=data;
-      const $thead=$('#managementAnalysisTable thead').empty();
-      $thead.append('<tr>'+headers.map(h=>`<th class="${h.includes('Budget')||h.includes('Actual')||h==='Variance'||h==='Amount'||h==='Open PO'||h.includes('Utilization')?'text-end':'"'}>${safeHtml(h)}</th>`).join('')+'</tr>');
-      const $tbody=$('#managementAnalysisTable tbody').empty();
-      data.forEach(r=>{
-        $tbody.append('<tr>'+headers.map(h=>{ const v=r[h]; if (h.includes('Budget')||h.includes('Actual')||h==='Variance'||h==='Amount'||h==='Open PO') return `<td class="text-end">${money(v)}</td>`; if(h.includes('Utilization')) return `<td class="text-end">${pct(Number(v)||0)}</td>`; return `<td>${safeHtml(v)}</td>`; }).join('')+'</tr>');
-      });
-      filterManagementAnalysisTable($('#managementAnalysisSearch').val() || '');
-    }
-
-    function filterManagementAnalysisTable(q) {
-      const needle=normalizeTextForSearch(q);
-      $('#managementAnalysisTable tbody tr').each(function(){ $(this).toggle(!needle || normalizeTextForSearch($(this).text()).includes(needle)); });
-    }
-
-    function exportManagementAnalysis(type) {
-      const table=document.getElementById('managementAnalysisTable');
-      if(!table || !currentManagementRows.length) return;
-      const title='Management Analysis - '+currentManagementAnalysisType;
-      if(type==='print'){ window.print(); return; }
-      if(type==='pdf'){
-        if(window.pdfMake){
-          const headers=Object.keys(currentManagementRows[0] || {});
-          const body=[headers, ...currentManagementRows.map(r=>headers.map(h=>{ const v=r[h]; return (typeof v==='number' && (h.includes('Budget')||h.includes('Actual')||h==='Variance'||h==='Amount'||h==='Open PO')) ? formatINR(v) : (h.includes('Utilization') && typeof v==='number' ? pct(v) : String(v ?? '')); }))];
-          pdfMake.createPdf({pageOrientation:'landscape',pageSize:'A4',content:[{text:title,bold:true,fontSize:12,margin:[0,0,0,8]},{table:{headerRows:1,body},fontSize:7,layout:'lightHorizontalLines'}]}).download('Management_Analysis.pdf');
-        } else { window.print(); }
-        return;
-      }
-      const ws=XLSX.utils.json_to_sheet(currentManagementRows);
-      if(type==='excel') { const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Management Analysis'); XLSX.writeFile(wb,'Management_Analysis.xlsx'); }
-      if(type==='csv') { const csv=XLSX.utils.sheet_to_csv(ws); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Management_Analysis.csv'; a.click(); URL.revokeObjectURL(a.href); }
-    }
-
-    // --- BUDGET AI ASSISTANT ---
-    function getCurrentFilterContext() {
-      const context={};
-      FILTER_FIELDS.forEach(f=>context[f.key]=$(f.id).val() || []);
-      return context;
-    }
-    function getAIDataContext() {
-      return getProcessedRows().map(r=>({
-        Region:r['Region'],FunderName:r['Funder Name'],ProjectId:r['Project Id'],ProjectName:r['Project Name'],
-        BroadCategory:r['Broad Category'],CategoryId:r['Category Id'],CategoryName:r['Category Name'],BudgetLine:r['Budget Line'],
-        AnnualBudget:r.AnnualBudgetCalc,AnnualActual:r.ActualTotalCalc,AnnualVariance:r.VarianceAnnual,Utilization:r.UtilizationAnnual,OpenPO:r.OpenPOVal
-      }));
-    }
-    function appendAIMessage(role,text){ const cls=role==='user'?'text-end':'text-start'; const bubble=role==='user'?'bg-primary text-white':'bg-white border'; $('#budgetAIChatMessages').append(`<div class="mb-2 ${cls}"><div class="d-inline-block p-2 rounded ${bubble}" style="max-width:92%;white-space:pre-wrap;font-size:.78rem;">${safeHtml(text)}</div></div>`).scrollTop($('#budgetAIChatMessages')[0].scrollHeight); }
-    async function sendBudgetAIQuestion(){
-      const input=$('#budgetAIInput'); const question=String(input.val()||'').trim(); if(!question) return;
-      appendAIMessage('user',question); input.val(''); $('#budgetAIStatus').text('AI is analyzing the current Dashboard data...'); $('#budgetAISend').prop('disabled',true);
-      try{
-        if(!CONFIG.AI_ASSISTANT_ENDPOINT) throw new Error('CONFIG.AI_ASSISTANT_ENDPOINT is not configured.');
-        const payload={question, filters:getCurrentFilterContext(), rows:getAIDataContext(), dashboard:'Magic Bus Budget Monitoring Dashboard', instructions:'Answer only from supplied dashboard data. Do calculations from supplied values when needed. If data is insufficient, say so.'};
-        const res=await fetch(CONFIG.AI_ASSISTANT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-        if(!res.ok) throw new Error(`AI backend returned HTTP ${res.status}`);
-        const body=await res.json(); const answer=body.answer || body.output || body.message || 'No answer returned by the AI backend.'; appendAIMessage('assistant',String(answer)); $('#budgetAIStatus').text('');
-      }catch(err){ appendAIMessage('assistant','AI Assistant is unavailable. Please make sure the backend is running and CONFIG.AI_ASSISTANT_ENDPOINT is correct.'); $('#budgetAIStatus').text(err.message||'Backend error'); }
-      finally{$('#budgetAISend').prop('disabled',false);}
-    }
-
-    // --- GOOGLE DRIVE CHANGE DETECTION / 12-HOUR AUTO SYNC ---
-    function getDriveSignature(files){ return (files||[]).map(f=>`${f.id}|${f.name}|${f.modifiedTime||''}|${f.size||''}|${f.md5Checksum||''}`).sort().join(';;'); }
-    async function syncBackendMetadata(reason='scheduled'){
-      if(currentDataSource!=='gdrive' || !currentGDriveId || !CONFIG.BACKEND_SYNC_ENDPOINT) return;
-      try{
-        await fetch(CONFIG.BACKEND_SYNC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({folderId:currentGDriveId,reason,source:'Budget Monitoring Dashboard',timestamp:new Date().toISOString()})});
-      }catch(e){ console.warn('Backend sync notification failed:',e); }
-    }
-    async function checkDriveForChangesAndAutoSync(){
-      if(currentDataSource!=='gdrive' || !currentGDriveId || !accessToken) return;
-      try{
-        const q=encodeURIComponent(`'${currentGDriveId}' in parents and trashed = false`);
-        const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&pageSize=100&fields=files(id,name,mimeType,modifiedTime,size,md5Checksum)`,{headers:{Authorization:`Bearer ${accessToken}`}});
-        if(!res.ok) return;
-        const data=await res.json(); const excel=(data.files||[]).filter(f=>/\.(xlsx|xls|xlsm)$/i.test(f.name));
-        const sig=getDriveSignature(excel); const old=localStorage.getItem('mb_budget_gdrive_signature');
-        if(!old){ localStorage.setItem('mb_budget_gdrive_signature',sig); await syncBackendMetadata('initial'); return; }
-        if(sig!==old){ localStorage.setItem('mb_budget_gdrive_signature',sig); await syncBackendMetadata('database-change-detected'); executeGoogleDriveFetch(currentGDriveId); }
-      }catch(e){ console.warn('Auto sync check failed:',e); }
-    }
-    function startAutoSyncScheduler(){
-      const interval=Math.max(1,Number(CONFIG.AUTO_SYNC_HOURS)||12)*60*60*1000;
-      setTimeout(()=>{ checkDriveForChangesAndAutoSync(); setInterval(checkDriveForChangesAndAutoSync,interval); },15000);
     }
 
   
@@ -3637,7 +3461,209 @@ $(document).on('click','#btnPipCsv',()=>pipExport('csv'));
 $(document).on('click','#btnPipPdf',()=>pipExport('pdf'));
 $(document).on('click','#btnPipPrint',()=>pipExport('print'));
 
+
+    // --- Management Analysis ---
+    let currentManagementAnalysis = 'project';
+    function getManagementRows(type) {
+      const rows = getProcessedRows();
+      const moneyNum = v => parseFloat(v) || 0;
+      const grouped = new Map();
+      const keyField = type === 'region' ? 'Region' : type === 'funder' ? 'Funder Name' : 'Project Id';
+
+      if (type === 'under' || type === 'over') {
+        const map = new Map();
+        rows.forEach(r => {
+          const key = `${String(r['Project Id'] || '').trim()}||${String(r['Budget Line'] || 'Unassigned').trim()}`;
+          if (!map.has(key)) map.set(key, { projectId:r['Project Id'], projectName:r['Project Name'], funderName:r['Funder Name'], region:r['Region'], budgetLine:r['Budget Line'], budget:0, actual:0, cats:new Set() });
+          const x = map.get(key);
+          x.budget += moneyNum(r.AnnualBudgetCalc);
+          x.actual += moneyNum(r.ActualTotalCalc);
+          const c = normalizeCategoryId(r['Category Id']); if (c) x.cats.add(c);
+        });
+        return Array.from(map.values()).map(x => ({
+          'Project Id':x.projectId, 'Project Name':x.projectName, 'Funder Name':x.funderName, 'Region':x.region,
+          'Budget Line':x.budgetLine, 'Category Code':Array.from(x.cats).join(', '),
+          'Annual Budget':x.budget, 'Annual Actual':x.actual, 'Variance':x.budget-x.actual,
+          'Utilization %':x.budget>0?(x.actual/x.budget)*100:0
+        })).filter(x => type === 'under' ? x.Variance > 0 : x.Variance < 0)
+          .sort((a,b) => type === 'under' ? b.Variance-a.Variance : a.Variance-b.Variance);
+      }
+
+      rows.forEach(r => {
+        const key = String(r[keyField] || 'Unassigned').trim() || 'Unassigned';
+        if (!grouped.has(key)) grouped.set(key, {name:key, projects:new Set(), budget:0, actual:0});
+        const x=grouped.get(key);
+        x.projects.add(String(r['Project Id']||'').trim());
+        x.budget += moneyNum(r.AnnualBudgetCalc);
+        x.actual += moneyNum(r.ActualTotalCalc);
+      });
+
+      let result = Array.from(grouped.values()).map(x => ({
+        [type === 'region' ? 'Region' : type === 'funder' ? 'Funder Name' : 'Project Name']: x.name,
+        'Projects': x.projects.size,
+        'Annual Budget': x.budget,
+        'Annual Actual': x.actual,
+        'Variance': x.budget-x.actual,
+        'Utilization %': x.budget>0?(x.actual/x.budget)*100:0
+      }));
+
+      if (type === 'top10') {
+        result.sort((a,b) => b['Annual Budget']-a['Annual Budget']);
+        result = result.slice(0,10).map((x,i)=>({'Rank':i+1,...x}));
+      }
+      return result;
+    }
+
+    function renderManagementAnalysis(type = currentManagementAnalysis) {
+      currentManagementAnalysis = type;
+      const rows = getManagementRows(type);
+      const $thead = $('#managementAnalysisTable thead').empty();
+      const $tbody = $('#managementAnalysisTable tbody').empty();
+      if (!rows.length) {
+        $tbody.html('<tr><td class="text-center text-muted">No data available for this analysis.</td></tr>');
+        return;
+      }
+      const cols = Object.keys(rows[0]);
+      $thead.append('<tr>' + cols.map(c => `<th class="${/Budget|Actual|Variance|%/.test(c)?'text-end':''}">${c}</th>`).join('') + '</tr>');
+      rows.forEach(r => {
+        $tbody.append('<tr>' + cols.map(c => {
+          const v=r[c];
+          if (typeof v === 'number' && /Budget|Actual|Variance/.test(c)) return `<td class="text-end">${money(v)}</td>`;
+          if (typeof v === 'number' && /%/.test(c)) return `<td class="text-end">${v.toFixed(1)}%</td>`;
+          return `<td>${String(v ?? '')}</td>`;
+        }).join('') + '</tr>');
+      });
+      applyManagementSearch();
+    }
+
+    function applyManagementSearch() {
+      const q=String($('#managementAnalysisSearch').val()||'').trim().toLowerCase();
+      $('#managementAnalysisTable tbody tr').each(function(){ $(this).toggle(!q || $(this).text().toLowerCase().includes(q)); });
+    }
+
+    function managementExport(type) {
+      const table=document.getElementById('managementAnalysisTable');
+      if(!table) return;
+      if(type==='print'){ window.print(); return; }
+      if(type==='excel'){
+        const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(table),'Management Analysis');
+        XLSX.writeFile(wb,'Management_Analysis.xlsx'); return;
+      }
+      if(type==='csv'){
+        const ws=XLSX.utils.table_to_sheet(table); const blob=new Blob([XLSX.utils.sheet_to_csv(ws)],{type:'text/csv'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Management_Analysis.csv'; a.click(); return;
+      }
+      if(type==='pdf'){ window.print(); }
+    }
+
+    // --- Top 10 / Budget Breakdown search ---
+    $(document).on('input','#top10BudgetLineSearch', applyTop10Search);
+    $(document).on('input','#managementAnalysisSearch', applyManagementSearch);
+    $(document).on('click','#managementAnalysisTabs [data-analysis]',function(){
+      $('#managementAnalysisTabs [data-analysis]').each(function(){ $(this).removeClass('active btn-success btn-outline-danger').addClass($(this).data('analysis')==='over'?'btn-outline-danger':'btn-outline-success'); });
+      $(this).addClass($(this).data('analysis')==='over'?'active btn-outline-danger':'active btn-success');
+      renderManagementAnalysis($(this).data('analysis'));
+    });
+    $(document).on('shown.bs.modal','#managementAnalysisModal',()=>renderManagementAnalysis(currentManagementAnalysis));
+    $(document).on('click','#btnManagementExcel',()=>managementExport('excel'));
+    $(document).on('click','#btnManagementCsv',()=>managementExport('csv'));
+    $(document).on('click','#btnManagementPdf',()=>managementExport('pdf'));
+    $(document).on('click','#btnManagementPrint',()=>managementExport('print'));
+
+    // Budget Breakdown: DataTables' native search scans every visible/searchable field.
+    $(document).on('shown.bs.modal','#budgetBreakdownModal',function(){
+      const input=$('#budgetDataTable_wrapper .dataTables_filter input');
+      input.attr('placeholder','Search any keyword or field...').attr('aria-label','Search Budget Breakdown');
+      if(!$('#budgetBreakdownSearchHelp').length) {
+        $('#budgetDataTable_wrapper .dataTables_filter').prepend('<span id="budgetBreakdownSearchHelp" class="small text-muted me-2">Search:</span>');
+      }
+    });
+
+    // --- Google Drive folder persistence for first-time/new users ---
+    async function rememberGoogleUser(accessTokenValue) {
+      try {
+        const res=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:`Bearer ${accessTokenValue}`}});
+        if(!res.ok) return;
+        const profile=await res.json();
+        const email=String(profile.email||'').trim().toLowerCase();
+        if(!email) return;
+        localStorage.setItem('mb_budget_google_email',email);
+        const key='mb_budget_gdrive_folder_'+email;
+        let saved=localStorage.getItem(key)||'';
+        // If this is the first time this Google account is seen, do not inherit
+        // another account's folder. Use the currently entered folder once, then
+        // persist it under this Google account.
+        if(!saved && currentGDriveId) {
+          saved=currentGDriveId;
+          localStorage.setItem(key,saved);
+        }
+        if(saved) {
+          $('#gdriveFolderId').val(saved);
+          currentGDriveId=saved;
+        } else {
+          $('#gdriveFolderId').val('');
+          $('#gdriveFolderId').focus();
+          $('#gdriveGroup').removeClass('d-none');
+        }
+      } catch(e){ console.warn('Unable to read Google account email',e); }
+    }
+
+    // Override the existing Google token callback after auth is initialized.
+    // The original callback remains responsible for accessToken and pendingFolderId.
+    async function saveFolderForCurrentGoogleUser(folderId) {
+      const email=localStorage.getItem('mb_budget_google_email')||'';
+      if(email) localStorage.setItem('mb_budget_gdrive_folder_'+email,folderId);
+    }
+
+    // Auto-sync Google Drive every 2 minutes while the dashboard is open.
+    let autoSyncTimer = null;
+    function startAutoSync() {
+      if(autoSyncTimer) clearInterval(autoSyncTimer);
+      if(currentDataSource !== 'gdrive') return;
+      autoSyncTimer=setInterval(()=>{
+        if(currentDataSource==='gdrive' && accessToken && $('#gdriveFolderId').val().trim()) {
+          executeGoogleDriveFetch($('#gdriveFolderId').val().trim());
+        }
+      }, CONFIG.AUTO_SYNC_INTERVAL_MS);
+    }
+    $(document).on('change','#dataSourceSelect',startAutoSync);
+
+    // --- Secure AI Budget Assistant ---
+    function appendAIMessage(role,text){
+      const cls=role==='user'?'text-end':'text-start';
+      const bubble=role==='user'?'bg-primary text-white':'bg-white border';
+      $('#budgetAIChat').append(`<div class="mb-2 ${cls}"><span class="d-inline-block p-2 rounded ${bubble}" style="max-width:90%;white-space:pre-wrap;">${String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span></div>`);
+      const el=document.getElementById('budgetAIChat'); el.scrollTop=el.scrollHeight;
+    }
+    function buildAIContext(){
+      const rows=getProcessedRows();
+      const summary={
+        filters:{region:$('#filterRegion').val()||[],programType:$('#filterProgramType').val()||[],funder:$('#filterFunder').val()||[],projectId:$('#filterProjectId').val()||[],projectName:$('#filterProject').val()||[],broadCategory:$('#filterBroadCategory').val()||[],categoryName:$('#filterCategory').val()||[],budgetLine:$('#filterBudgetLine').val()||[]},
+        period:{from:$('#filterMonthFrom').val(),to:$('#filterMonthTo').val()},
+        totals:{annualBudget:aggregate(rows,'AnnualBudgetCalc'),annualActual:aggregate(rows,'ActualTotalCalc'),annualVariance:aggregate(rows,'VarianceAnnual')},
+        rows:rows.slice(0,1000).map(r=>({region:r.Region,funder:r['Funder Name'],projectId:r['Project Id'],projectName:r['Project Name'],categoryId:r['Category Id'],categoryName:r['Category Name'],budgetLine:r['Budget Line'],annualBudget:r.AnnualBudgetCalc,annualActual:r.ActualTotalCalc,annualVariance:r.VarianceAnnual,utilization:r.UtilizationAnnual}))
+      };
+      return summary;
+    }
+    async function sendBudgetAI(){
+      const input=$('#budgetAIInput').val().trim(); if(!input) return;
+      appendAIMessage('user',input); $('#budgetAIInput').val('');
+      if(!CONFIG.AI_ASSISTANT_ENABLED || !CONFIG.AI_ASSISTANT_ENDPOINT){appendAIMessage('assistant','AI Assistant is not configured.');return;}
+      $('#budgetAIStatus').text('Thinking...');
+      try{
+        const res=await fetch(CONFIG.AI_ASSISTANT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:input,context:buildAIContext()})});
+        if(!res.ok) throw new Error(`Backend returned ${res.status}`);
+        const data=await res.json();
+        appendAIMessage('assistant',data.answer||'No answer returned by AI backend.');
+      }catch(e){appendAIMessage('assistant','AI backend is not reachable. Please make sure CONFIG.AI_ASSISTANT_ENDPOINT is correct and the backend is running.');console.error(e);}
+      finally{$('#budgetAIStatus').text('');}
+    }
+    $(document).on('click','#btnBudgetAI',()=>$('#budgetAIWindow').toggleClass('d-none'));
+    $(document).on('click','#btnCloseBudgetAI',()=>$('#budgetAIWindow').addClass('d-none'));
+    $(document).on('click','#budgetAISend',sendBudgetAI);
+    $(document).on('keydown','#budgetAIInput',e=>{if(e.key==='Enter')sendBudgetAI();});
+    appendAIMessage('assistant','Hello. Ask me about budget, actual, variance, utilization, projects, funders, regions or budget lines.');
+
 </script>
 </body>
 </html>
-```[cite: 1]
