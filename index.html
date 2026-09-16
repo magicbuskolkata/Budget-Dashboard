@@ -552,6 +552,134 @@
     .ai-status-dot.online { background: #198754; }
     .ai-status-dot.offline { background: #dc3545; }
 
+  
+    /* Dashboard developer information */
+    .smart-filter-developer {
+      width: 100%;
+      text-align: center;
+    }
+    .developer-pill {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: min(100%, 300px);
+      padding: 6px 16px;
+      border: 1px solid #8ea5bd;
+      border-radius: 999px;
+      background: #eef5fc;
+      color: #0a4b9a;
+      line-height: 1.25;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-sizing: border-box;
+    }
+    .developer-pill .developer-name {
+      font-weight: 700;
+      letter-spacing: .1px;
+    }
+    .developer-pill .developer-version {
+      font-size: .62rem;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Budget Breakdown Details: clearly separate YTD and Annual column groups. */
+    #budgetDataTable th.budget-ytd-col,
+    #budgetDataTable td.budget-ytd-col {
+      border-left: 1px solid #8ea5bd !important;
+      border-right: 1px solid #c5d1dd !important;
+    }
+    #budgetDataTable th.budget-ytd-last,
+    #budgetDataTable td.budget-ytd-last {
+      border-right: 3px solid #6f879f !important;
+    }
+    #budgetDataTable th.budget-annual-col,
+    #budgetDataTable td.budget-annual-col {
+      border-left: 1px solid #c5d1dd !important;
+      border-right: 1px solid #c5d1dd !important;
+    }
+    #budgetDataTable th.budget-annual-last,
+    #budgetDataTable td.budget-annual-last {
+      border-right: 3px solid #6f879f !important;
+    }
+    #budgetDataTable thead th.budget-ytd-group {
+      border-left: 2px solid #6f879f !important;
+      border-right: 3px solid #6f879f !important;
+    }
+    #budgetDataTable thead th.budget-annual-group {
+      border-left: 2px solid #6f879f !important;
+      border-right: 3px solid #6f879f !important;
+    }
+
+    /* Budget Breakdown Details: sticky toolbar, project name and two-level header. */
+    #budgetBreakdownModal .modal-body {
+      --budget-toolbar-height: 0px;
+      --budget-project-title-height: 0px;
+      --budget-head-row1-height: 0px;
+      position: relative;
+    }
+    #budgetDataTable_wrapper .budget-report-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 45;
+      background: #ffffff;
+    }
+    #budgetProjectTitle {
+      position: sticky;
+      top: var(--budget-toolbar-height);
+      z-index: 44;
+      background: #eef5fc;
+    }
+    #budgetDataTable thead tr:first-child th {
+      position: sticky;
+      top: calc(var(--budget-toolbar-height) + var(--budget-project-title-height));
+      z-index: 40;
+      background-color: #E7F1FF !important;
+    }
+    #budgetDataTable thead tr:nth-child(2) th {
+      position: sticky;
+      top: calc(var(--budget-toolbar-height) + var(--budget-project-title-height) + var(--budget-head-row1-height));
+      z-index: 41;
+      background-color: #E7F1FF !important;
+    }
+
+    /* Budget PIP Statement: Broad Category group label remains visible during horizontal scrolling. */
+    #pipStatementModal .pip-group-sticky-content {
+      position: sticky;
+      left: 0;
+      z-index: 9;
+      display: block;
+      width: 100%;
+      min-width: 505px;
+      box-sizing: border-box;
+      background: #e2e8f0;
+      padding: 2px 4px;
+    }
+    #pipStatementModal .pip-project-heading {
+      position: sticky;
+      left: 0;
+      z-index: 30;
+      background: #eef5fc;
+    }
+    #pipReportFooter {
+      position: sticky;
+      bottom: 0;
+      z-index: 35;
+      background: #ffffff;
+    }
+
+    @media (max-width: 768px) {
+      .developer-pill {
+        min-width: 240px;
+        max-width: 100%;
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+      #budgetBreakdownModal .modal-body {
+        font-size: .72rem;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -572,58 +700,45 @@
   <!-- Data Source Control Panel -->
   <div class="data-source-panel py-2 px-3 mb-2" id="dataSourceSection">
     <div class="row align-items-center gy-2">
-      <!-- Input Controls -->
+      <!-- Primary Controls -->
       <div class="col-lg-7 d-flex flex-wrap align-items-center gap-2">
-        <div class="input-group input-group-sm w-auto shadow-sm">
-          <span class="input-group-text fw-bold bg-light" style="font-size: 0.75rem;"><i class="fa-solid fa-database me-1 text-primary"></i> Data Source</span>
-          <select class="form-select form-select-sm fw-semibold" id="dataSourceSelect" style="min-width: 120px; font-size: 0.75rem;">
-            <option value="local">Local Drive</option>
-            <option value="gdrive">Google Drive</option>
-          </select>
-        </div>
-
-        <!-- Local Drive Input Group -->
-        <div id="localDriveGroup" class="d-flex align-items-center gap-1">
-          <button class="btn btn-xs btn-sm btn-outline-primary fw-bold shadow-sm py-1" id="btnSelectLocalFolder">
-            <i class="fa-solid fa-folder-open me-1"></i> Select Folder
-          </button>
-          <input type="file" id="localFolderInput" webkitdirectory directory multiple class="d-none">
-        </div>
-
-        <!-- Google Drive Input Group -->
-        <div id="gdriveGroup" class="d-flex align-items-center gap-1 d-none">
-          <div class="input-group input-group-sm shadow-sm">
-            <span class="input-group-text bg-light"><i class="fa-brands fa-google-drive text-success"></i></span>
-            <input type="text" class="form-control form-control-sm" id="gdriveFolderId" placeholder="Enter Folder ID" style="min-width: 160px; font-size: 0.75rem;">
-            <button class="btn btn-sm btn-primary fw-bold py-1" id="btnLoadGDrive">Load Data</button>
-          </div>
-        </div>
-
-        <!-- Refresh Button -->
         <button class="btn btn-sm btn-success fw-bold shadow-sm py-1" id="btnRefreshData">
           <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Data
         </button>
+        <!-- Local Drive input is intentionally hidden. It is available only from More Options. -->
+        <input type="file" id="localFolderInput" webkitdirectory directory multiple class="d-none">
       </div>
 
       <!-- Status Dashboard -->
       <div class="col-lg-5">
         <div class="status-area d-flex justify-content-between align-items-center shadow-sm">
           <div>
-            <div><strong class="text-secondary">Source:</strong> <span id="statusSourceLabel">Local Drive</span></div>
-            <div><strong class="text-secondary">Folder:</strong> <span id="statusFolderName" class="fw-bold">Not Selected</span></div>
-          </div>
-          <div class="border-start border-end px-2">
+            <div><strong class="text-secondary">Folder:</strong> <span id="statusFolderName" class="fw-bold">Google Drive</span></div>
             <div><strong class="text-secondary">Files Loaded:</strong> <span id="statusFilesLoaded" class="fw-bold">0</span></div>
+          </div>
+          <div class="border-start px-2">
             <div><strong class="text-secondary">Last Refresh:</strong> <span id="statusLastRefresh" class="fst-italic">N/A</span></div>
+            <div><strong class="text-secondary">Status:</strong> <span id="statusConnection" class="fw-bold text-danger">Disconnected</span></div>
           </div>
           <div class="text-end ps-1">
-            <div><strong class="text-secondary">Status:</strong> <span id="statusConnection" class="fw-bold text-danger">Disconnected</span></div>
-            <!-- Manual Upload Fallback -->
             <div class="dropdown">
-              <a href="#" class="text-decoration-none small text-muted dropdown-toggle" data-bs-toggle="dropdown" style="font-size: 0.7rem;">More Options</a>
+              <a href="#" class="text-decoration-none small text-muted dropdown-toggle fw-semibold"
+                 data-bs-toggle="dropdown" style="font-size: 0.7rem;">More Options</a>
               <ul class="dropdown-menu dropdown-menu-end shadow">
                 <li>
-                  <label for="fallbackFileInput" class="dropdown-item mb-0 py-1" style="cursor:pointer; font-size: 0.75rem;">
+                  <span class="dropdown-item-text py-1" style="font-size:0.75rem;">
+                    <i class="fa-solid fa-database me-1 text-primary"></i>
+                    <strong>Data Source:</strong> <span id="statusSourceLabel">Google Drive</span>
+                  </span>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  <button type="button" class="dropdown-item py-1" id="btnUseLocalDrive" style="font-size:0.75rem;">
+                    <i class="fa-solid fa-folder-open me-1 text-primary"></i> Local Drive
+                  </button>
+                </li>
+                <li>
+                  <label for="fallbackFileInput" class="dropdown-item mb-0 py-1" style="cursor:pointer; font-size:0.75rem;">
                     <i class="fa-solid fa-upload me-1 text-primary"></i> Manual Upload Fallback
                   </label>
                   <input type="file" id="fallbackFileInput" class="d-none" multiple accept=".xlsx, .xls, .xlsm">
@@ -652,23 +767,7 @@
     </div>
   </div>
 
-  <!-- First Time Flash Message Modal -->
-  <div class="modal fade" id="firstTimeFlashModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content shadow border-primary">
-        <div class="modal-header py-2 bg-primary text-white">
-          <h6 class="modal-title fw-bold" style="font-size: 0.85rem;"><i class="fa-solid fa-circle-question me-2"></i>Data Source Option</h6>
-        </div>
-        <div class="modal-body text-center py-3">
-          <p class="mb-0 fw-semibold" style="font-size: 0.85rem;">Data source: Google Drive?</p>
-        </div>
-        <div class="modal-footer py-2 justify-content-center">
-          <button type="button" class="btn btn-sm btn-success px-3 fw-bold" id="btnFlashModalYes">Yes</button>
-          <button type="button" class="btn btn-sm btn-secondary px-3" id="btnFlashModalNo">No</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Main Container -->
 
   <!-- Main Container -->
   <div class="container-fluid px-3 py-2">
@@ -743,8 +842,11 @@
             </div>
           </form>
         </div>
-        <div class="smart-filter-developer text-center mt-2 mb-1 text-muted" style="font-size:0.65rem;">
-          © 2026 | Developer: Sanju Kumar Mallik | Version: 3.08
+        <div class="smart-filter-developer mt-2 mb-1">
+          <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
+            <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
+            <div class="developer-version">© 2026 | Version: 3.10</div>
+          </div>
         </div>
       </div>
 
@@ -856,7 +958,7 @@
           </div>
           <div class="col-md-6">
             <div class="card dashboard-card p-2">
-              <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-chart-line me-1 text-primary"></i>Cumulative Trend</h6>
+              <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.8rem;"><i class="fa-solid fa-chart-line me-1 text-primary"></i>Cumulative Trend (Monthly Budget &amp; Actual)</h6>
               <div class="chart-container">
                 <canvas id="chartCumulativeTrend"></canvas>
               </div>
@@ -963,17 +1065,17 @@
                   <th rowspan="2">Project Name</th>
                   <th rowspan="2">Category Id</th>
                   <th rowspan="2">Budget Line</th>
-                  <th colspan="3" class="text-center">YTD Details</th>
-                  <th colspan="4" class="text-center">Annual Details</th>
+                  <th colspan="3" class="text-center budget-ytd-group">YTD Details</th>
+                  <th colspan="4" class="text-center budget-annual-group">Annual Details</th>
                   <th rowspan="2">Total Open PO Value (Pipeline expenses)</th>
                 </tr>
                 <tr>
-                  <th>YTD Budget</th>
-                  <th>YTD Actual</th>
-                  <th>YTD Variance</th>
-                  <th>Annual Budget</th>
-                  <th>Annual Actual</th>
-                  <th>Annual Variance</th>
+                  <th class="budget-ytd-col">YTD Budget</th>
+                  <th class="budget-ytd-col">YTD Actual</th>
+                  <th class="budget-ytd-col budget-ytd-last">YTD Variance</th>
+                  <th class="budget-annual-col">Annual Budget</th>
+                  <th class="budget-annual-col">Annual Actual</th>
+                  <th class="budget-annual-col budget-annual-last">Annual Variance</th>
                   <th>Annual Utilization %</th>
                 </tr>
               </thead>
@@ -1023,6 +1125,17 @@
             </div>
           </div>
           <div id="pipTablesContainer" class="pip-tables-container" style="max-height: 70vh; overflow:auto;"></div>
+          <div id="pipReportFooter" class="budget-report-footer">
+            <div class="project-pagination-bar mb-0 w-100" id="pipProjectPagination">
+              <button type="button" class="btn btn-sm btn-outline-primary py-0" id="btnPipProjectPrev">
+                <i class="fa-solid fa-chevron-left me-1"></i>Previous Project
+              </button>
+              <span class="project-page-label" id="pipProjectPageLabel">Project 0 of 0</span>
+              <button type="button" class="btn btn-sm btn-outline-primary py-0" id="btnPipProjectNext">
+                Next Project<i class="fa-solid fa-chevron-right ms-1"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1094,6 +1207,7 @@
   <script>
     const CONFIG = {
       GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com',
+      DEFAULT_GDRIVE_FOLDER_ID: '112eWkpJaq_W3FOxvDN_pWYEkBVRW-KID',
       // Secure backend endpoint. Keep API keys out of this HTML file.
       AI_ASSISTANT_ENDPOINT: '/api/budget-assistant',
       AI_ASSISTANT_HEALTH_ENDPOINT: '/api/health'
@@ -1160,8 +1274,8 @@
     let isFilterVisible = true;
     let isModalAllExpanded = false;
 
-    let currentDataSource = localStorage.getItem('mb_budget_datasource') || 'local';
-    let currentGDriveId = localStorage.getItem('mb_budget_gdrive_id') || '';
+    let currentDataSource = 'gdrive';
+    let currentGDriveId = CONFIG.DEFAULT_GDRIVE_FOLDER_ID;
 
     let tokenClient = null;
     let accessToken = null;
@@ -1414,20 +1528,44 @@
       const hasRestoredData = await checkAndLoadFromIndexedDB();
 
       if (!hasRestoredData) {
-        showFirstTimeFlashModal();
+        // Google Drive is the default data source and loads automatically.
+        setTimeout(() => handleGDriveLoad(), 250);
       }
 
       $('#budgetBreakdownModal').on('shown.bs.modal', function () {
         if (dataTableInstance) {
           dataTableInstance.columns.adjust();
           $('#budgetBreakdownSearch').val(dataTableInstance.search());
+          requestAnimationFrame(updateBudgetBreakdownStickyOffsets);
         }
       });
+      $('#budgetBreakdownModal').on('shown.bs.modal', function () {
+        setTimeout(updateBudgetBreakdownStickyOffsets, 50);
+      });
+      $(window).on('resize', updateBudgetBreakdownStickyOffsets);
 
       $('#pipStatementModal').on('shown.bs.modal', function () {
+        window._pipProjectPage = 1;
         renderPipStatementTable();
       });
     });
+
+    function updateBudgetBreakdownStickyOffsets() {
+      const $modalBody = $('#budgetBreakdownModal .modal-body');
+      const $toolbar = $('#budgetDataTable_wrapper .budget-report-toolbar');
+      const $title = $('#budgetProjectTitle');
+      const $headRow = $('#budgetDataTable thead tr:first-child');
+
+      if (!$modalBody.length || !$toolbar.length || !$title.length || !$headRow.length) return;
+
+      const toolbarH = $toolbar.outerHeight() || 0;
+      const titleH = $title.outerHeight() || 0;
+      const headRowH = $headRow.outerHeight() || 0;
+
+      $modalBody.css('--budget-toolbar-height', toolbarH + 'px');
+      $modalBody.css('--budget-project-title-height', titleH + 'px');
+      $modalBody.css('--budget-head-row1-height', headRowH + 'px');
+    }
 
     async function checkAndLoadFromIndexedDB() {
       const storedPayload = await loadDatasetFromIDB();
@@ -1478,22 +1616,6 @@
       return false;
     }
 
-    function showFirstTimeFlashModal() {
-      const flashModal = new bootstrap.Modal(document.getElementById('firstTimeFlashModal'));
-      flashModal.show();
-
-      $('#btnFlashModalYes').off('click').on('click', function() {
-        flashModal.hide();
-        $('#dataSourceSelect').val('gdrive').trigger('change');
-        $('#btnLoadGDrive').click();
-      });
-
-      $('#btnFlashModalNo').off('click').on('click', function() {
-        flashModal.hide();
-        highlightDataSourceSection();
-      });
-    }
-
     function highlightDataSourceSection() {
       const $ds = $('#dataSourceSection');
       $ds.addClass('highlight-blink');
@@ -1534,43 +1656,35 @@
     }
 
     function initializeDataSourceUI() {
-      $('#dataSourceSelect').val(currentDataSource);
-      $('#gdriveFolderId').val(currentGDriveId);
-      toggleDataSourceView(currentDataSource);
+      currentDataSource = 'gdrive';
+      currentGDriveId = CONFIG.DEFAULT_GDRIVE_FOLDER_ID;
+      localStorage.setItem('mb_budget_datasource', 'gdrive');
+      localStorage.setItem('mb_budget_gdrive_id', CONFIG.DEFAULT_GDRIVE_FOLDER_ID);
+      $('#statusSourceLabel').text('Google Drive');
+      $('#statusFolderName').text(`Google Drive | ${CONFIG.DEFAULT_GDRIVE_FOLDER_ID.substring(0, 8)}...`);
 
-      $('#dataSourceSelect').on('change', function() {
-        currentDataSource = $(this).val();
-        localStorage.setItem('mb_budget_datasource', currentDataSource);
-        toggleDataSourceView(currentDataSource);
+      $('#btnUseLocalDrive').on('click', function() {
+        currentDataSource = 'local';
+        $('#statusSourceLabel').text('Local Drive');
+        $('#statusFolderName').text('Select a local folder');
+        $('#localFolderInput').val('').click();
       });
 
-      $('#btnSelectLocalFolder').on('click', () => $('#localFolderInput').click());
       $('#localFolderInput').on('change', handleLocalFolderSelect);
-      $('#btnLoadGDrive').on('click', handleGDriveLoad);
       $('#btnRefreshData').on('click', handleRefreshData);
 
       $('#fallbackFileInput').on('change', function(e) {
         const files = Array.from(e.target.files).filter(isValidExcelFile);
         if(files.length > 0) {
+          currentDataSource = 'local';
           updateStatusArea('Local Drive Fallback', 'Manual Upload', 'Loading...');
           processExcelFiles(files);
         }
       });
     }
 
-    function toggleDataSourceView(type) {
-      if (type === 'local') {
-        $('#localDriveGroup').removeClass('d-none');
-        $('#gdriveGroup').addClass('d-none');
-        $('#statusSourceLabel').text('Local Drive');
-      } else {
-        $('#localDriveGroup').addClass('d-none');
-        $('#gdriveGroup').removeClass('d-none');
-        $('#statusSourceLabel').text('Google Drive');
-      }
-    }
-
     function isValidExcelFile(file) {
+
       const name = file.name.toLowerCase();
       return name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.xlsm');
     }
@@ -1593,22 +1707,25 @@
     }
 
     function handleGDriveLoad() {
-      const folderId = $('#gdriveFolderId').val().trim();
-      if (!folderId) {
-        alert('Please enter a valid Google Drive Folder ID.');
-        return;
-      }
+      const folderId = CONFIG.DEFAULT_GDRIVE_FOLDER_ID;
+      currentDataSource = 'gdrive';
+      currentGDriveId = folderId;
+      localStorage.setItem('mb_budget_datasource', 'gdrive');
+      localStorage.setItem('mb_budget_gdrive_id', folderId);
+
       if (!CONFIG.GOOGLE_CLIENT_ID || CONFIG.GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
         alert('Please configure your Google OAuth Client ID in the CONFIG object.');
         return;
       }
 
-      localStorage.setItem('mb_budget_gdrive_id', folderId);
-      updateStatusArea('Google Drive', `ID: ${folderId.substring(0,6)}...`, 'Connecting...');
+      updateStatusArea('Google Drive', `ID: ${folderId.substring(0,8)}...`, 'Connecting...');
 
       if (!tokenClient) initGoogleAuthClient();
       if (!tokenClient) {
-        alert('Please connect your Google Drive account.');
+        setTimeout(() => {
+          if (!tokenClient) initGoogleAuthClient();
+          if (tokenClient) handleGDriveLoad();
+        }, 500);
         return;
       }
 
@@ -1683,14 +1800,9 @@
 
     function handleRefreshData() {
       if (currentDataSource === 'gdrive') {
-        if (!$('#gdriveFolderId').val().trim()) {
-           alert("Please provide a Google Drive Folder ID first.");
-           return;
-        }
         handleGDriveLoad();
       } else {
-        alert('To refresh Local Drive data securely, please re-select your local folder.');
-        $('#localFolderInput').click();
+        $('#localFolderInput').val('').click();
       }
     }
 
@@ -1760,12 +1872,12 @@
                   '</button>' +
                   '<span>' + safeGroup + '</span>' +
                 '</td>' +
-                '<td class="group-subtotal-cell budget-amount-col">' + formatINR(sumYtdBudget) + '</td>' +
-                '<td class="group-subtotal-cell budget-amount-col">' + formatINR(sumYtdActual) + '</td>' +
-                '<td class="group-subtotal-cell budget-amount-col"><span class="' + clsYtd + '">' + formatINR(sumYtdVariance) + '</span></td>' +
-                '<td class="group-subtotal-cell budget-amount-col">' + formatINR(sumBudget) + '</td>' +
-                '<td class="group-subtotal-cell budget-amount-col">' + formatINR(sumActual) + '</td>' +
-                '<td class="group-subtotal-cell budget-amount-col"><span class="' + clsAnnual + '">' + formatINR(sumVariance) + '</span></td>' +
+                '<td class="group-subtotal-cell budget-amount-col budget-ytd-col">' + formatINR(sumYtdBudget) + '</td>' +
+                '<td class="group-subtotal-cell budget-amount-col budget-ytd-col">' + formatINR(sumYtdActual) + '</td>' +
+                '<td class="group-subtotal-cell budget-amount-col budget-ytd-col budget-ytd-last"><span class="' + clsYtd + '">' + formatINR(sumYtdVariance) + '</span></td>' +
+                '<td class="group-subtotal-cell budget-amount-col budget-annual-col">' + formatINR(sumBudget) + '</td>' +
+                '<td class="group-subtotal-cell budget-amount-col budget-annual-col">' + formatINR(sumActual) + '</td>' +
+                '<td class="group-subtotal-cell budget-amount-col budget-annual-col budget-annual-last"><span class="' + clsAnnual + '">' + formatINR(sumVariance) + '</span></td>' +
                 '<td class="group-subtotal-cell budget-util-col"><span class="badge ' + badgeClass + '">' + sumUtil.toFixed(1) + '%</span></td>' +
                 '<td class="group-subtotal-cell budget-amount-col">' + formatINR(sumOpenPO) + '</td>'
               );
@@ -1784,19 +1896,19 @@
           { data: 'Project Name', className: 'budget-text-col' },
           { data: 'Category Id', className: 'budget-text-col' },
           { data: 'Budget Line', className: 'col-budget-line budget-text-col' },
-          { data: 'YTD Budget', render: (data) => formatINR(data), className: 'budget-amount-col' },
-          { data: 'YTD Actual', render: (data) => formatINR(data), className: 'budget-amount-col' },
+          { data: 'YTD Budget', render: (data) => formatINR(data), className: 'budget-amount-col budget-ytd-col' },
+          { data: 'YTD Actual', render: (data) => formatINR(data), className: 'budget-amount-col budget-ytd-col' },
           {
             data: 'YTD Budget Variance',
             render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`,
-            className: 'col-ytd-variance budget-amount-col'
+            className: 'col-ytd-variance budget-amount-col budget-ytd-col budget-ytd-last'
           },
-          { data: 'Annual Budget', render: (data) => formatINR(data), className: 'budget-amount-col' },
-          { data: 'Annual Actual', render: (data) => formatINR(data), className: 'budget-amount-col' },
+          { data: 'Annual Budget', render: (data) => formatINR(data), className: 'budget-amount-col budget-annual-col' },
+          { data: 'Annual Actual', render: (data) => formatINR(data), className: 'budget-amount-col budget-annual-col' },
           {
             data: 'Annual Variance',
             render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`,
-            className: 'col-annual-variance budget-amount-col'
+            className: 'col-annual-variance budget-amount-col budget-annual-col budget-annual-last'
           },
           {
             data: 'Utilization',
@@ -1805,7 +1917,7 @@
           },
           { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'budget-amount-col' },
           // Hidden technical sort key used only to keep Broad Categories contiguous.
-          { data: 'Broad Category', visible: false, searchable: false, orderable: true }
+          { data: 'Broad Category', visible: false, searchable: true, orderable: true }
         ],
         footerCallback: function () {
           const api = this.api();
@@ -1823,13 +1935,19 @@
           $(api.column(6).footer()).html(formatINR(totalYtdBudget));
           $(api.column(7).footer()).html(formatINR(totalYtdActual));
           $(api.column(8).footer()).html(`<span class="${totalYtdVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalYtdVariance)}</span>`);
+          $(api.column(6).footer()).addClass('budget-ytd-col');
+          $(api.column(7).footer()).addClass('budget-ytd-col');
+          $(api.column(8).footer()).addClass('budget-ytd-col budget-ytd-last');
           $(api.column(9).footer()).html(formatINR(totalAnnualBudget));
           $(api.column(10).footer()).html(formatINR(totalAnnualActual));
           $(api.column(11).footer()).html(`<span class="${totalAnnualVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalAnnualVariance)}</span>`);
+          $(api.column(9).footer()).addClass('budget-annual-col');
+          $(api.column(10).footer()).addClass('budget-annual-col');
+          $(api.column(11).footer()).addClass('budget-annual-col budget-annual-last');
           $(api.column(12).footer()).html(`<span class="badge ${totalAnnualUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalAnnualUtil.toFixed(1)}%</span>`);
           $(api.column(13).footer()).html(formatINR(totalOpenPO));
         },
-        dom: '<"budget-report-toolbar"<"d-flex justify-content-between align-items-center mb-2"Bf>>rt<"budget-report-footer"i>',
+        dom: '<"budget-report-toolbar"<"d-flex justify-content-between align-items-center mb-2"B>>rt<"budget-report-footer"i>',
         buttons: [
           { extend: 'excelHtml5', className: 'btn btn-xs py-1', title: 'Budget Report' },
           { extend: 'csvHtml5', className: 'btn btn-xs py-1', title: 'Budget Report' },
@@ -1869,7 +1987,7 @@
       const breakdownSearchHtml = `
         <div class="input-group input-group-sm ms-1" style="width:240px;">
           <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-          <input type="text" id="budgetBreakdownSearch" class="form-control" placeholder="Search any keyword...">
+          <input type="text" id="budgetBreakdownSearch" class="form-control" placeholder="Global Search: any field...">
         </div>`;
       $dtButtons.append(expandBtnHtml + modalFilterHtml + breakdownSearchHtml);
       $(document).off('input.budgetBreakdownSearch', '#budgetBreakdownSearch')
@@ -1963,6 +2081,21 @@
         data: { labels: [], datasets: [] },
         options: {
           ...chartOptionsBase,
+          plugins: {
+            ...chartOptionsBase.plugins,
+            tooltip: {
+              callbacks: {
+                afterBody: function(items) {
+                  if (!items || !items.length) return '';
+                  const idx = items[0].dataIndex;
+                  const labels = chartInstances.monthlyBar?.data?.datasets || [];
+                  const b = labels[0]?.data?.[idx] ?? 0;
+                  const a = labels[1]?.data?.[idx] ?? 0;
+                  return `Monthly Budget: ${money(b)}\nMonthly Actual: ${money(a)}`;
+                }
+              }
+            }
+          },
           scales: {
             y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Cumulative (₹)', font: { size: 10 } }, beginAtZero: true }
           }
@@ -2876,17 +3009,25 @@
       const selectedProjectIds = ($('#filterProjectId').val() || [])
         .map(v => String(v).trim()).filter(Boolean);
 
-      // If Project Name is selected but Project Id has not been populated for
-      // any reason, derive the IDs from the current filtered rows.
       const projectIds = selectedProjectIds.length
         ? selectedProjectIds
         : Array.from(new Set(filteredDataset.map(r => String(r['Project Id'] || '').trim()).filter(Boolean)));
 
+      window._pipProjectIds = projectIds;
+
       if (projectIds.length === 0) {
+        window._pipProjectPage = 1;
         $container.html('<div class="text-center text-muted py-4">No projects match the current Smart Filter selections.</div>');
+        $('#pipProjectPageLabel').text('Project 0 of 0');
+        $('#btnPipProjectPrev, #btnPipProjectNext').prop('disabled', true);
         return;
       }
 
+      if (!window._pipProjectPage || window._pipProjectPage < 1 || window._pipProjectPage > projectIds.length) {
+        window._pipProjectPage = 1;
+      }
+
+      const projectId = projectIds[window._pipProjectPage - 1];
       const escapeHtml = value => String(value ?? '')
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -2896,147 +3037,167 @@
         return d.getTime() && d.getFullYear() === year && d.getMonth() === month;
       }) || null;
 
-      projectIds.forEach(projectId => {
-        const projectRows = filteredDataset.filter(row =>
-          String(row['Project Id'] || '').trim() === projectId
+      const projectRows = filteredDataset.filter(row =>
+        String(row['Project Id'] || '').trim() === projectId
+      );
+      const dateInfo = getProjectDateInfo(projectId, projectRows[0]);
+      const startDate = dateInfo.startDate;
+      const endDate = dateInfo.endDate;
+      const projectName = projectRows[0]?.['Project Name'] ||
+        funderProjectMapping.get(projectId)?.name || 'Project Name Not Available';
+
+      const section = $('<div class="pip-project-section"></div>');
+      const heading = $('<div class="pip-project-heading"></div>');
+
+      heading.html(`
+        <i class="fa-solid fa-folder-open me-1 text-primary"></i>
+        Project Id: <strong>${escapeHtml(projectId)}</strong>
+        <span class="mx-1">|</span> ${escapeHtml(projectName)}
+        ${startDate.getTime() && endDate.getTime() ? `<span class="mx-1">|</span> ${formatMonthYear(startDate)} to ${formatMonthYear(endDate)}` : ''}
+      `);
+      section.append(heading);
+
+      if (!startDate.getTime() || !endDate.getTime() || startDate > endDate) {
+        section.append(
+          `<div class="text-center text-danger border p-3 small">Projected Start Date / Projected End Date could not be found or is invalid in a <strong>Budget Vs Actual</strong> file for Project Id <strong>${escapeHtml(projectId)}</strong>.</div>`
         );
-        const dateInfo = getProjectDateInfo(projectId, projectRows[0]);
-        const startDate = dateInfo.startDate;
-        const endDate = dateInfo.endDate;
-        const projectName = projectRows[0]?.['Project Name'] ||
-          funderProjectMapping.get(projectId)?.name || 'Project Name Not Available';
-
-        const section = $('<div class="pip-project-section"></div>');
-        const heading = $('<div class="pip-project-heading"></div>');
-
-        if (!startDate.getTime() || !endDate.getTime() || startDate > endDate) {
-          heading.html(`Project Id: <strong>${escapeHtml(projectId)}</strong> | ${escapeHtml(projectName)}`);
-          section.append(heading).append(
-            `<div class="text-center text-danger border p-3 small">Projected Start Date / Projected End Date could not be found or is invalid in a <strong>Budget Vs Actual</strong> file for Project Id <strong>${escapeHtml(projectId)}</strong>.</div>`
-          );
-          $container.append(section);
-          return;
-        }
-
-        const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-        const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-        const relevantMonths = [];
-        for (let d = new Date(startMonth); d <= endMonth; d.setMonth(d.getMonth() + 1)) {
-          relevantMonths.push({
-            year: d.getFullYear(),
-            month: d.getMonth(),
-            key: monthKeyForPeriod(d.getFullYear(), d.getMonth()),
-            label: formatMonthYear(new Date(d.getFullYear(), d.getMonth(), 1))
-          });
-        }
-
-        heading.html(`
-          <i class="fa-solid fa-folder-open me-1 text-primary"></i>
-          Project Id: <strong>${escapeHtml(projectId)}</strong>
-          <span class="mx-1">|</span> ${escapeHtml(projectName)}
-          <span class="mx-1">|</span> ${formatMonthYear(startDate)} to ${formatMonthYear(endDate)}
-        `);
-        section.append(heading);
-
-        if (projectRows.length === 0) {
-          section.append(`<div class="text-center text-muted border p-3 small">No matching records found for Project Id <strong>${escapeHtml(projectId)}</strong> under the current Smart Filter selections.</div>`);
-          $container.append(section);
-          return;
-        }
-
-        const table = $('<table class="table table-sm table-bordered table-striped align-middle pip-project-table"></table>');
-        const colgroup = $('<colgroup></colgroup>');
-        colgroup.append('<col class="pip-category-id-col">');
-        colgroup.append('<col class="pip-budget-line-col">');
-        colgroup.append('<col class="pip-annual-budget-col">');
-        relevantMonths.forEach(() => {
-          colgroup.append('<col class="pip-month-col"><col class="pip-month-col">');
-        });
-        colgroup.append('<col class="pip-annual-col">');
-        table.append(colgroup);
-
-        let headRow1 = `<tr>
-          <th rowspan="2" class="align-middle pip-category-id-col">Category Id</th>
-          <th rowspan="2" class="align-middle pip-budget-line-col">Budget Line</th>
-          <th rowspan="2" class="align-middle text-end pip-annual-budget-col">Annual Budget</th>`;
-        let headRow2 = '<tr>';
-
-        relevantMonths.forEach(({ label }) => {
-          headRow1 += `<th colspan="2" class="pip-month-head">${escapeHtml(label)}</th>`;
-          headRow2 += '<th class="pip-month-col pip-month-budget text-end">Budget</th>';
-          headRow2 += '<th class="pip-month-col pip-month-actual text-end">Actual</th>';
-        });
-        headRow1 += '<th rowspan="2" class="align-middle text-end pip-annual-col bg-light">Annual Balance</th></tr>';
-        headRow2 += '</tr>';
-        table.append(`<thead class="table-light">${headRow1}${headRow2}</thead>`);
-
-        const tbody = $('<tbody></tbody>');
-        const groupedByCategory = {};
-        projectRows.forEach(row => {
-          const broadCat = row['Broad Category'] || 'Unassigned Category';
-          if (!groupedByCategory[broadCat]) groupedByCategory[broadCat] = [];
-          groupedByCategory[broadCat].push(row);
-        });
-
-        const monthlyTotalsBudget = {};
-        const monthlyTotalsActual = {};
-        relevantMonths.forEach(({year, month}) => {
-          const period = `${year}-${month}`;
-          monthlyTotalsBudget[period] = 0;
-          monthlyTotalsActual[period] = 0;
-        });
-
-        let totalAnnualBudget = 0;
-        let totalAnnualProjectBalance = 0;
-
-        Object.keys(groupedByCategory).forEach(broadCat => {
-          const groupColSpan = (relevantMonths.length * 2) + 4;
-          tbody.append(`<tr class="pip-group-row"><td colspan="${groupColSpan}"><i class="fa-solid fa-folder-open me-2 text-primary"></i><strong>${escapeHtml(broadCat)}</strong></td></tr>`);
-
-          groupedByCategory[broadCat].forEach(row => {
-            const rowAnnualBudget = parseFloat(row['Annual Budget']) || 0;
-            totalAnnualBudget += rowAnnualBudget;
-            let rowPeriodActual = 0;
-            let tr = `<tr>
-              <td class="pip-category-id-col">${escapeHtml(normalizeCategoryId(row['Category Id']))}</td>
-              <td class="col-budget-line ps-3 pip-budget-line-col">${escapeHtml(row['Budget Line'])}</td>
-              <td class="text-end pip-annual-budget-col">${rowAnnualBudget === 0 ? '' : money(rowAnnualBudget)}</td>`;
-
-            relevantMonths.forEach(({key, year, month}) => {
-              const period = `${year}-${month}`;
-              const bVal = key ? (parseFloat(row[`Budget ${key}`]) || 0) : 0;
-              const aVal = key ? (parseFloat(row[`Actual ${key}`]) || 0) : 0;
-              monthlyTotalsBudget[period] += bVal;
-              monthlyTotalsActual[period] += aVal;
-              rowPeriodActual += aVal;
-              tr += `<td class="pip-month-col pip-month-budget text-end ${bVal < 0 ? 'status-red' : ''}">${bVal === 0 ? '' : money(bVal)}</td>`;
-              tr += `<td class="pip-month-col pip-month-actual text-end ${aVal < 0 ? 'status-red' : ''}">${aVal === 0 ? '' : money(aVal)}</td>`;
-            });
-
-            const annualBalance = rowAnnualBudget - rowPeriodActual;
-            totalAnnualProjectBalance += annualBalance;
-            tr += `<td class="${annualBalance < 0 ? 'status-red' : 'status-green'} text-end fw-bold pip-annual-col">${money(annualBalance)}</td></tr>`;
-            tbody.append(tr);
-          });
-        });
-
-        table.append(tbody);
-
-        let footTr = `<tr>
-          <td class="fw-bold pip-category-id-col"></td>
-          <td class="fw-bold pip-budget-line-col">Total</td>
-          <td class="fw-bold text-end pip-annual-budget-col">${money(totalAnnualBudget)}</td>`;
-        relevantMonths.forEach(({year, month}) => {
-          const period = `${year}-${month}`;
-          footTr += `<td class="pip-month-col pip-month-budget text-end">${monthlyTotalsBudget[period] === 0 ? '' : money(monthlyTotalsBudget[period])}</td>`;
-          footTr += `<td class="pip-month-col pip-month-actual text-end">${monthlyTotalsActual[period] === 0 ? '' : money(monthlyTotalsActual[period])}</td>`;
-        });
-        footTr += `<td class="${totalAnnualProjectBalance < 0 ? 'status-red' : 'status-green'} text-end pip-annual-col">${money(totalAnnualProjectBalance)}</td></tr>`;
-        table.append(`<tfoot class="table-light fw-bold">${footTr}</tfoot>`);
-
-        section.append(table);
         $container.append(section);
+        updatePipProjectPagination();
+        return;
+      }
+
+      const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+      const relevantMonths = [];
+      for (let d = new Date(startMonth); d <= endMonth; d.setMonth(d.getMonth() + 1)) {
+        relevantMonths.push({
+          year: d.getFullYear(),
+          month: d.getMonth(),
+          key: monthKeyForPeriod(d.getFullYear(), d.getMonth()),
+          label: formatMonthYear(new Date(d.getFullYear(), d.getMonth(), 1))
+        });
+      }
+
+      if (projectRows.length === 0) {
+        section.append(`<div class="text-center text-muted border p-3 small">No matching records found for Project Id <strong>${escapeHtml(projectId)}</strong> under the current Smart Filter selections.</div>`);
+        $container.append(section);
+        updatePipProjectPagination();
+        return;
+      }
+
+      const table = $('<table class="table table-sm table-bordered table-striped align-middle pip-project-table"></table>');
+      const colgroup = $('<colgroup></colgroup>');
+      colgroup.append('<col class="pip-category-id-col">');
+      colgroup.append('<col class="pip-budget-line-col">');
+      colgroup.append('<col class="pip-annual-budget-col">');
+      relevantMonths.forEach(() => {
+        colgroup.append('<col class="pip-month-col"><col class="pip-month-col">');
       });
+      colgroup.append('<col class="pip-annual-col">');
+      table.append(colgroup);
+
+      let headRow1 = `<tr>
+        <th rowspan="2" class="align-middle pip-category-id-col">Category Id</th>
+        <th rowspan="2" class="align-middle pip-budget-line-col">Budget Line</th>
+        <th rowspan="2" class="align-middle text-end pip-annual-budget-col">Annual Budget</th>`;
+      let headRow2 = '<tr>';
+
+      relevantMonths.forEach(({ label }) => {
+        headRow1 += `<th colspan="2" class="pip-month-head">${escapeHtml(label)}</th>`;
+        headRow2 += '<th class="pip-month-col pip-month-budget text-end">Budget</th>';
+        headRow2 += '<th class="pip-month-col pip-month-actual text-end">Actual</th>';
+      });
+      headRow1 += '<th rowspan="2" class="align-middle text-end pip-annual-col bg-light">Annual Balance</th></tr>';
+      headRow2 += '</tr>';
+      table.append(`<thead class="table-light">${headRow1}${headRow2}</thead>`);
+
+      const tbody = $('<tbody></tbody>');
+      const groupedByCategory = {};
+      projectRows.forEach(row => {
+        const broadCat = row['Broad Category'] || 'Unassigned Category';
+        if (!groupedByCategory[broadCat]) groupedByCategory[broadCat] = [];
+        groupedByCategory[broadCat].push(row);
+      });
+
+      const monthlyTotalsBudget = {};
+      const monthlyTotalsActual = {};
+      relevantMonths.forEach(({year, month}) => {
+        const period = `${year}-${month}`;
+        monthlyTotalsBudget[period] = 0;
+        monthlyTotalsActual[period] = 0;
+      });
+
+      let totalAnnualBudget = 0;
+      let totalAnnualProjectBalance = 0;
+
+      Object.keys(groupedByCategory).forEach(broadCat => {
+        const groupColSpan = (relevantMonths.length * 2) + 4;
+        tbody.append(`<tr class="pip-group-row"><td colspan="${groupColSpan}"><div class="pip-group-sticky-content"><i class="fa-solid fa-folder-open me-2 text-primary"></i><strong>${escapeHtml(broadCat)}</strong></div></td></tr>`);
+
+        groupedByCategory[broadCat].forEach(row => {
+          const rowAnnualBudget = parseFloat(row['Annual Budget']) || 0;
+          totalAnnualBudget += rowAnnualBudget;
+          let rowPeriodActual = 0;
+          let tr = `<tr>
+            <td class="pip-category-id-col">${escapeHtml(normalizeCategoryId(row['Category Id']))}</td>
+            <td class="col-budget-line ps-3 pip-budget-line-col">${escapeHtml(row['Budget Line'])}</td>
+            <td class="text-end pip-annual-budget-col">${rowAnnualBudget === 0 ? '' : money(rowAnnualBudget)}</td>`;
+
+          relevantMonths.forEach(({key, year, month}) => {
+            const period = `${year}-${month}`;
+            const bVal = key ? (parseFloat(row[`Budget ${key}`]) || 0) : 0;
+            const aVal = key ? (parseFloat(row[`Actual ${key}`]) || 0) : 0;
+            monthlyTotalsBudget[period] += bVal;
+            monthlyTotalsActual[period] += aVal;
+            rowPeriodActual += aVal;
+            tr += `<td class="pip-month-col pip-month-budget text-end ${bVal < 0 ? 'status-red' : ''}">${bVal === 0 ? '' : money(bVal)}</td>`;
+            tr += `<td class="pip-month-col pip-month-actual text-end ${aVal < 0 ? 'status-red' : ''}">${aVal === 0 ? '' : money(aVal)}</td>`;
+          });
+
+          const annualBalance = rowAnnualBudget - rowPeriodActual;
+          totalAnnualProjectBalance += annualBalance;
+          tr += `<td class="${annualBalance < 0 ? 'status-red' : 'status-green'} text-end fw-bold pip-annual-col">${money(annualBalance)}</td></tr>`;
+          tbody.append(tr);
+        });
+      });
+
+      table.append(tbody);
+
+      let footTr = `<tr>
+        <td class="fw-bold pip-category-id-col"></td>
+        <td class="fw-bold pip-budget-line-col">Total</td>
+        <td class="fw-bold text-end pip-annual-budget-col">${money(totalAnnualBudget)}</td>`;
+      relevantMonths.forEach(({year, month}) => {
+        const period = `${year}-${month}`;
+        footTr += `<td class="pip-month-col pip-month-budget text-end">${monthlyTotalsBudget[period] === 0 ? '' : money(monthlyTotalsBudget[period])}</td>`;
+        footTr += `<td class="pip-month-col pip-month-actual text-end">${monthlyTotalsActual[period] === 0 ? '' : money(monthlyTotalsActual[period])}</td>`;
+      });
+      footTr += `<td class="${totalAnnualProjectBalance < 0 ? 'status-red' : 'status-green'} text-end pip-annual-col">${money(totalAnnualProjectBalance)}</td></tr>`;
+      table.append(`<tfoot class="table-light fw-bold">${footTr}</tfoot>`);
+
+      section.append(table);
+      $container.append(section);
+      updatePipProjectPagination();
+    }
+
+    function updatePipProjectPagination() {
+      const ids = window._pipProjectIds || [];
+      const current = ids.length ? Math.min(Math.max(window._pipProjectPage || 1, 1), ids.length) : 1;
+      window._pipProjectPage = current;
+      $('#pipProjectPageLabel').text(ids.length ? `Project ${current} of ${ids.length}: ${ids[current - 1]}` : 'Project 0 of 0');
+      $('#btnPipProjectPrev').prop('disabled', !ids.length || current <= 1);
+      $('#btnPipProjectNext').prop('disabled', !ids.length || current >= ids.length);
+    }
+
+    function changePipProjectPage(delta) {
+      const ids = window._pipProjectIds || [];
+      if (!ids.length) return;
+      const current = window._pipProjectPage || 1;
+      const next = Math.max(1, Math.min(ids.length, current + delta));
+      if (next === current) return;
+      window._pipProjectPage = next;
+      renderPipStatementTable();
+      $('#pipTablesContainer').scrollTop(0);
     }
 
     function renderKPIs(data) {
@@ -3305,7 +3466,12 @@
         else if (item.riskCategory === 'Medium Risk') badgeClass = 'bg-warning text-dark';
 
         const esc = v => $('<div>').text(v ?? '').html();
-        $tbody.append(`<tr>
+        const globalSearchText = Object.keys(item)
+          .map(key => `${key} ${item[key] ?? ''}`)
+          .join(' ')
+          .toLowerCase();
+        const searchAttr = $('<div>').text(globalSearchText).html();
+        $tbody.append(`<tr data-global-search="${searchAttr}">
           <td class="text-center fw-bold">${index + 1}</td>
           <td>${esc(item['Funder Name'])}</td>
           <td>${esc(item['Project Id'])}</td>
@@ -3397,6 +3563,7 @@
       dataTableInstance.rows.add(formattedData);
       dataTableInstance.draw(false);
       updateBudgetProjectPagination();
+      requestAnimationFrame(updateBudgetBreakdownStickyOffsets);
     }
 
   
@@ -3428,23 +3595,40 @@
 
     function buildDuplicateBudgetLineAnalysis(rows, overspend) {
       const map = new Map();
+
       rows.forEach(r => {
         const project = String(r['Project Id'] || '').trim();
         const line = String(r['Budget Line'] || '').trim();
-        const category = normalizeCategoryId(r['Category Id']);
         if (!project || !line) return;
+
         const key = project + '||' + line;
-        if (!map.has(key)) map.set(key, { project, projectName: r['Project Name'] || '', line, categories: new Set(), budget: 0, actual: 0 });
+        if (!map.has(key)) {
+          map.set(key, {
+            project,
+            projectName: r['Project Name'] || '',
+            line,
+            categories: new Set(),
+            broadCategories: new Set(),
+            categoryNames: new Set(),
+            budget: 0,
+            actual: 0
+          });
+        }
+
         const x = map.get(key);
-        if (category) x.categories.add(category);
+        if (r['Category Id']) x.categories.add(normalizeCategoryId(r['Category Id']));
+        if (r['Broad Category']) x.broadCategories.add(String(r['Broad Category']).trim());
+        if (r['Category Name']) x.categoryNames.add(String(r['Category Name']).trim());
         x.budget += Number(r.AnnualBudgetCalc) || 0;
         x.actual += Number(r.ActualTotalCalc) || 0;
       });
+
       return Array.from(map.values())
-        .filter(x => x.categories.size > 1)
         .map(x => ({
           'Project Id': x.project,
           'Project Name': x.projectName,
+          'Broad Category': Array.from(x.broadCategories).join(', '),
+          'Category Name': Array.from(x.categoryNames).join(', '),
           'Budget Line': x.line,
           'Category Code': Array.from(x.categories).join(', '),
           'Annual Budget': x.budget,
@@ -3452,7 +3636,7 @@
           'Variance': x.budget - x.actual,
           'Utilization %': x.budget > 0 ? x.actual / x.budget * 100 : 0
         }))
-        .filter(x => overspend ? x.Variance < 0 : x.Variance > 0)
+        .filter(x => overspend ? x['Annual Budget'] < x['Annual Actual'] : x['Annual Budget'] > x['Annual Actual'])
         .sort((a,b) => overspend ? a.Variance - b.Variance : b.Variance - a.Variance);
     }
 
@@ -3475,8 +3659,13 @@
         {title:'Utilization %', data:'utilization', render:(d)=>`${Number(d).toFixed(1)}%`}
       ];
       return [
-        {title:'Project Id', data:'Project Id'}, {title:'Project Name', data:'Project Name'}, {title:'Budget Line', data:'Budget Line'},
-        {title:'Category Code', data:'Category Code'}, {title:'Annual Budget', data:'Annual Budget', render:money},
+        {title:'Project Id', data:'Project Id'},
+        {title:'Project Name', data:'Project Name'},
+        {title:'Broad Category', data:'Broad Category'},
+        {title:'Category Name', data:'Category Name'},
+        {title:'Budget Line', data:'Budget Line'},
+        {title:'Category Code', data:'Category Code'},
+        {title:'Annual Budget', data:'Annual Budget', render:money},
         {title:'Annual Actual', data:'Annual Actual', render:money},
         {title:'Variance', data:'Variance', render:(d)=>`<span class="${d<0?'status-red':'status-green'} fw-bold">${money(d)}</span>`},
         {title:'Utilization %', data:'Utilization %', render:(d)=>`${Number(d).toFixed(1)}%`}
@@ -3579,7 +3768,10 @@
     $(document).on('click','.management-submenu .btn',function(){renderManagementAnalysis($(this).data('management-report'));});
     $(document).on('input','#top10BudgetLineSearch',function(){
       const q=this.value.toLowerCase().trim();
-      $('#top10BudgetLineBody tr').each(function(){ $(this).toggle(!q || $(this).text().toLowerCase().includes(q)); });
+      $('#top10BudgetLineBody tr').each(function(){
+        const haystack = String($(this).attr('data-global-search') || $(this).text()).toLowerCase();
+        $(this).toggle(!q || haystack.includes(q));
+      });
     });
     $(document).on('click','#aiAssistantFab',function(){ $('#aiAssistantPanel').toggle(); if($('#aiAssistantPanel').is(':visible')) { checkAIAssistantHealth(); $('#aiAssistantInput').focus(); } });
     $(document).on('click','#aiAssistantClose',()=>$('#aiAssistantPanel').hide());
@@ -3614,6 +3806,8 @@ function pipExport(type){
    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Budget_PIP_Statement.csv';a.click();
  } else if(type==='pdf'){window.print();}
 }
+$(document).on('click','#btnPipProjectPrev',()=>changePipProjectPage(-1));
+$(document).on('click','#btnPipProjectNext',()=>changePipProjectPage(1));
 $(document).on('click','#btnPipExcel',()=>pipExport('excel'));
 $(document).on('click','#btnPipCsv',()=>pipExport('csv'));
 $(document).on('click','#btnPipPdf',()=>pipExport('pdf'));
