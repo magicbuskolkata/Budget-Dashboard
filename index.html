@@ -531,26 +531,43 @@
       text-align: center;
     }
 
-    /* Management Analysis and AI Assistant */
+    /* Management Analysis and Budget AI Assistant */
     #managementAnalysisModal .management-submenu .btn { font-size: 0.72rem; font-weight: 600; }
     #managementAnalysisModal .management-analysis-table th { white-space: nowrap; }
     #managementAnalysisModal .management-analysis-table td { vertical-align: middle; }
+
     #aiAssistantFab {
-      position: fixed; right: 20px; bottom: 20px; z-index: 1080; width: 52px; height: 52px;
+      position: fixed; right: 20px; bottom: 20px; z-index: 1080; width: 54px; height: 54px;
       border-radius: 50%; box-shadow: 0 4px 14px rgba(0,0,0,.22);
+      display: inline-flex; align-items: center; justify-content: center;
     }
     #aiAssistantPanel {
-      position: fixed; right: 20px; bottom: 82px; width: min(430px, calc(100vw - 30px));
-      height: min(620px, calc(100vh - 110px)); z-index: 1080; display: none;
-      box-shadow: 0 10px 35px rgba(0,0,0,.22);
+      position: fixed; right: 20px; bottom: 84px; width: min(450px, calc(100vw - 24px));
+      height: min(650px, calc(100vh - 105px)); z-index: 1080; display: none;
+      box-shadow: 0 10px 35px rgba(0,0,0,.22); overflow: hidden;
+      border-radius: 12px;
     }
     #aiAssistantMessages { overflow-y: auto; flex: 1; background: #f8f9fa; }
-    .ai-msg { max-width: 88%; padding: 8px 10px; border-radius: 10px; margin-bottom: 8px; white-space: pre-wrap; font-size: .78rem; }
-    .ai-msg-user { margin-left: auto; background: #0d6efd; color: #fff; }
+    .ai-msg {
+      max-width: 94%; padding: 8px 10px; border-radius: 10px; margin-bottom: 8px;
+      font-size: .78rem; line-height: 1.4; overflow-wrap: anywhere;
+    }
+    .ai-msg-user { margin-left: auto; background: #0d6efd; color: #fff; white-space: pre-wrap; }
     .ai-msg-bot { margin-right: auto; background: #fff; border: 1px solid #dee2e6; color: #212529; }
-    .ai-status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; background: #6c757d; }
-    .ai-status-dot.online { background: #198754; }
-    .ai-status-dot.offline { background: #dc3545; }
+    .ai-msg-bot h6 { font-size: .78rem; margin: 0 0 5px; color: #0a4b9a; }
+    .ai-msg-bot ul { padding-left: 18px; margin: 4px 0; }
+    .ai-msg-bot li { margin-bottom: 2px; }
+    .ai-result-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: .68rem; }
+    .ai-result-table th, .ai-result-table td { border: 1px solid #dee2e6; padding: 3px 4px; vertical-align: top; }
+    .ai-result-table th { background: #e7f1ff; color: #0a4b9a; font-weight: 700; }
+    .ai-suggestion { text-align: left; white-space: normal; }
+    .ai-suggestions-label { font-size: .65rem; font-weight: 700; color: #6c757d; }
+    .ai-status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; background: #198754; }
+    .ai-processing { opacity: .75; font-style: italic; }
+    @media (max-width: 576px) {
+      #aiAssistantFab { right: 12px; bottom: 12px; width: 50px; height: 50px; }
+      #aiAssistantPanel { right: 8px; bottom: 70px; width: calc(100vw - 16px); height: min(610px, calc(100vh - 82px)); }
+    }
 
   
     /* Dashboard developer information */
@@ -678,6 +695,228 @@
       #budgetBreakdownModal .modal-body {
         font-size: .72rem;
       }
+    }
+
+
+    /* ============================================================
+       2026-09-21 Updates
+       PIP: freeze Broad Category through Annual Budget + sticky rows
+       Budget Breakdown: stronger sticky headers + wider Budget Line
+       ============================================================ */
+    #btnRefreshData.daily-refresh-hidden { display: none !important; }
+
+    #budgetDataTable th:nth-child(6),
+    #budgetDataTable td:nth-child(6) {
+      width: 22% !important;
+      min-width: 240px !important;
+      max-width: 340px !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+
+    #budgetBreakdownModal .modal-body {
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+
+    /* Keep Budget Breakdown project title and both header rows visible while
+       scrolling, regardless of expanded/collapsed detail rows. */
+    #budgetDataTable_wrapper .budget-report-toolbar {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 70 !important;
+      background: #fff !important;
+    }
+    #budgetProjectTitle {
+      position: sticky !important;
+      top: var(--budget-toolbar-height) !important;
+      z-index: 69 !important;
+      background: #eef5fc !important;
+    }
+    #budgetDataTable thead tr:first-child th {
+      position: sticky !important;
+      top: calc(var(--budget-toolbar-height) + var(--budget-project-title-height)) !important;
+      z-index: 65 !important;
+      background-color: #E7F1FF !important;
+    }
+    #budgetDataTable thead tr:nth-child(2) th {
+      position: sticky !important;
+      top: calc(var(--budget-toolbar-height) + var(--budget-project-title-height) + var(--budget-head-row1-height)) !important;
+      z-index: 66 !important;
+      background-color: #E7F1FF !important;
+    }
+    #budgetDataTable thead tr:first-child th[rowspan="2"] {
+      z-index: 68 !important;
+    }
+
+    /* PIP Statement: freeze Broad Category, Category Id, Budget Line and
+       Annual Budget. Month row and column-heading row remain sticky. */
+    #pipTablesContainer {
+      --pip-project-heading-height: 0px;
+      --pip-head-row1-height: 0px;
+      position: relative;
+      overflow: auto !important;
+      isolation: isolate;
+    }
+    #pipTablesContainer .pip-project-heading {
+      position: sticky !important;
+      top: 0 !important;
+      left: 0 !important;
+      z-index: 80 !important;
+      background: #eef5fc !important;
+    }
+    .pip-project-table .pip-broad-category-col {
+      width: 170px !important;
+      min-width: 170px !important;
+      max-width: 170px !important;
+      position: sticky !important;
+      left: 0 !important;
+      z-index: 35 !important;
+      background: #ffffff !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+    }
+    .pip-project-table .pip-category-id-col {
+      width: 110px !important;
+      min-width: 110px !important;
+      max-width: 110px !important;
+      position: sticky !important;
+      left: 170px !important;
+      z-index: 35 !important;
+      background: #ffffff !important;
+    }
+    .pip-project-table .pip-budget-line-col {
+      width: 280px !important;
+      min-width: 280px !important;
+      max-width: 280px !important;
+      position: sticky !important;
+      left: 280px !important;
+      z-index: 35 !important;
+      background: #ffffff !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+    .pip-project-table .pip-annual-budget-col {
+      width: 115px !important;
+      min-width: 115px !important;
+      max-width: 115px !important;
+      position: sticky !important;
+      left: 560px !important;
+      z-index: 35 !important;
+      background: #ffffff !important;
+      border-right: 2px solid #8ea5bd !important;
+    }
+    .pip-project-table thead .pip-broad-category-col,
+    .pip-project-table thead .pip-category-id-col,
+    .pip-project-table thead .pip-budget-line-col,
+    .pip-project-table thead .pip-annual-budget-col {
+      background-color: #E7F1FF !important;
+      z-index: 95 !important;
+    }
+    .pip-project-table tbody .pip-broad-category-col,
+    .pip-project-table tbody .pip-category-id-col,
+    .pip-project-table tbody .pip-budget-line-col,
+    .pip-project-table tbody .pip-annual-budget-col {
+      z-index: 35 !important;
+    }
+    .pip-project-table tfoot .pip-broad-category-col,
+    .pip-project-table tfoot .pip-category-id-col,
+    .pip-project-table tfoot .pip-budget-line-col,
+    .pip-project-table tfoot .pip-annual-budget-col {
+      background-color: #f8f9fa !important;
+      z-index: 55 !important;
+    }
+    .pip-project-table thead tr:first-child th {
+      position: sticky !important;
+      top: var(--pip-project-heading-height) !important;
+      z-index: 75 !important;
+      background-color: #E7F1FF !important;
+    }
+    .pip-project-table thead tr:nth-child(2) th {
+      position: sticky !important;
+      top: calc(var(--pip-project-heading-height) + var(--pip-head-row1-height)) !important;
+      z-index: 74 !important;
+      background-color: #E7F1FF !important;
+    }
+    .pip-project-table thead tr:first-child .pip-broad-category-col,
+    .pip-project-table thead tr:first-child .pip-category-id-col,
+    .pip-project-table thead tr:first-child .pip-budget-line-col,
+    .pip-project-table thead tr:first-child .pip-annual-budget-col {
+      z-index: 100 !important;
+    }
+    .pip-project-table thead tr:nth-child(2) .pip-month-col {
+      z-index: 74 !important;
+    }
+
+    /* Budget vs Actual report download area */
+    #budgetVsActualDownloadSection {
+      border-top: 1px solid #dee2e6;
+      padding-top: 7px;
+      margin-top: 7px;
+    }
+    #budgetVsActualDownloadSection .form-select,
+    #budgetVsActualDownloadSection .btn {
+      font-size: .72rem;
+    }
+
+    /* Printable Budget vs Actual Report */
+    .bva-report-print-area {
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #111;
+      background: #fff;
+      font-size: 9px;
+    }
+    .bva-report-print-area h2 {
+      margin: 0 0 6px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .bva-report-meta {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 7px;
+    }
+    .bva-report-meta td {
+      padding: 3px 5px;
+      border: 1px solid #d9e2f3;
+    }
+    .bva-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+    .bva-report-table th,
+    .bva-report-table td {
+      border: 1px solid #aeb8c2;
+      padding: 3px 4px;
+      vertical-align: middle;
+    }
+    .bva-report-table th {
+      background: #E2E8D7;
+      font-weight: 700;
+      text-align: center;
+    }
+    .bva-report-table .bva-ytd {
+      background: #00FFFF;
+    }
+    .bva-report-table .bva-annual-var {
+      background: #FFFF00;
+    }
+    .bva-report-table .bva-summary {
+      background: #BCE2E8;
+      font-weight: 700;
+    }
+    .bva-report-table .num {
+      text-align: right;
+      white-space: nowrap;
+    }
+    @media print {
+      body.bva-print-mode > *:not(#bvaPrintHost) { display: none !important; }
+      #bvaPrintHost { display: block !important; }
+      @page { size: landscape; margin: 8mm; }
     }
 
   </style>
@@ -841,11 +1080,29 @@
               <select id="filterBudgetLine" class="form-select select2" multiple></select>
             </div>
           </form>
+
+          <!-- Budget vs. Actual Report Download -->
+          <div id="budgetVsActualDownloadSection">
+            <div class="fw-bold text-secondary mb-1" style="font-size:0.72rem;">
+              <i class="fa-solid fa-file-arrow-down me-1 text-primary"></i>Budget vs. Actual Report
+            </div>
+            <div class="d-flex align-items-center gap-1">
+              <select id="budgetVsActualFormat" class="form-select form-select-sm">
+                <option value="excel">Excel</option>
+                <option value="csv">CSV</option>
+                <option value="pdf">PDF</option>
+                <option value="print">Print</option>
+              </select>
+              <button type="button" id="btnDownloadBudgetVsActual" class="btn btn-primary btn-sm text-nowrap">
+                <i class="fa-solid fa-download me-1"></i>Download
+              </button>
+            </div>
+          </div>
         </div>
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.10</div>
+            <div class="developer-version">© 2026 | Version: 3.12</div>
           </div>
         </div>
       </div>
@@ -1164,25 +1421,46 @@
     </div>
   </div>
 
-  <!-- Production-ready AI Assistant -->
+  <!-- Budget vs. Actual Report print host. Populated only when the report is printed. -->
+  <div id="bvaPrintHost" style="display:none;"></div>
+
+  <!-- Zero-cost, client-side Budget AI Assistant -->
   <button id="aiAssistantFab" type="button" class="btn btn-primary" title="Budget AI Assistant" aria-label="Open Budget AI Assistant">
     <i class="fa-solid fa-robot"></i>
   </button>
-  <div id="aiAssistantPanel" class="card border-0">
+  <div id="aiAssistantPanel" class="card border-0" role="dialog" aria-modal="false" aria-labelledby="aiAssistantTitle">
     <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
-      <div class="fw-bold"><i class="fa-solid fa-robot me-1"></i>Budget AI Assistant</div>
-      <div class="d-flex align-items-center gap-2">
-        <span id="aiAssistantStatus" class="small"><span class="ai-status-dot"></span>Checking...</span>
-        <button type="button" id="aiAssistantClose" class="btn btn-sm btn-link text-white p-0" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="fw-bold" id="aiAssistantTitle"><i class="fa-solid fa-robot me-1"></i>Budget AI Assistant</div>
+      <button type="button" id="aiAssistantClose" class="btn btn-sm btn-link text-white p-0" aria-label="Close Budget AI Assistant" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="aiAssistantMessages" class="card-body p-2" aria-live="polite" aria-label="Budget AI conversation"></div>
+    <div id="aiAssistantSuggestions" class="px-2 pb-1">
+      <div class="ai-suggestions-label mb-1">Suggested Questions</div>
+      <div class="d-flex flex-wrap gap-1">
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="What is the total annual budget?">Annual budget</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="What is the total annual actual?">Annual actual</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="What is the annual utilization?">Utilization</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Show top 10 underspent budget lines.">Top 10 underspent</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Show top 10 overspent budget lines.">Top 10 overspent</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Which project has the highest underspending?">Highest underspending project</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Which project has the highest overspending?">Highest overspending project</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="What is the total Open PO?">Open PO</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Show projects below 50% utilization.">Projects below 50%</button>
       </div>
     </div>
-    <div id="aiAssistantMessages" class="card-body p-2"></div>
     <div class="card-footer p-2">
       <div class="input-group input-group-sm">
-        <input id="aiAssistantInput" type="text" class="form-control" placeholder="Ask about budget, actual, variance, projects..." autocomplete="off">
-        <button id="aiAssistantSend" class="btn btn-primary" type="button"><i class="fa-solid fa-paper-plane"></i></button>
+        <input id="aiAssistantInput" type="text" class="form-control" placeholder="Ask about budget, actual, variance, projects..." autocomplete="off" aria-label="Ask Budget AI Assistant">
+        <button id="aiAssistantSend" class="btn btn-primary" type="button" aria-label="Send question" title="Send">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
       </div>
-      <div class="text-muted mt-1" style="font-size:.62rem;">AI answers use the currently loaded and filtered dashboard data.</div>
+      <div class="d-flex justify-content-between align-items-center mt-1">
+        <span class="text-muted" style="font-size:.61rem;">Client-side analysis of loaded dashboard data</span>
+        <button type="button" id="aiAssistantClear" class="btn btn-link btn-sm p-0 text-danger" style="font-size:.65rem;" aria-label="Clear chat">Clear Chat</button>
+      </div>
     </div>
   </div>
 
@@ -1208,9 +1486,6 @@
     const CONFIG = {
       GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com',
       DEFAULT_GDRIVE_FOLDER_ID: '112eWkpJaq_W3FOxvDN_pWYEkBVRW-KID',
-      // Secure backend endpoint. Keep API keys out of this HTML file.
-      AI_ASSISTANT_ENDPOINT: '/api/budget-assistant',
-      AI_ASSISTANT_HEALTH_ENDPOINT: '/api/health'
     };
 
     // --- INDEXEDDB STORAGE ENGINE (MagicBusFinancialDB) ---
@@ -1280,6 +1555,32 @@
     let tokenClient = null;
     let accessToken = null;
     let pendingFolderId = null;
+    let refreshButtonWasClicked = false;
+
+    function getCalendarDateKey(date = new Date()) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function initializeDailyRefreshButton() {
+      const today = getCalendarDateKey();
+      const hiddenDate = localStorage.getItem('mb_budget_refresh_hidden_date');
+      // The button is available on the first opening of every calendar date.
+      // Once the user successfully refreshes, it is hidden until the next date.
+      if (hiddenDate === today) {
+        $('#btnRefreshData').addClass('daily-refresh-hidden');
+      } else {
+        $('#btnRefreshData').removeClass('daily-refresh-hidden');
+      }
+    }
+
+    function markDailyRefreshCompleted() {
+      localStorage.setItem('mb_budget_refresh_hidden_date', getCalendarDateKey());
+      $('#btnRefreshData').addClass('daily-refresh-hidden');
+      refreshButtonWasClicked = false;
+    }
 
     let activeProjectIdsSet = new Set();
     let funderProjectMapping = new Map();
@@ -1519,6 +1820,7 @@
 
     $(document).ready(async function() {
       initializeDataSourceUI();
+      initializeDailyRefreshButton();
       initializeSelect2();
       initializeCharts();
       initializeDataTable();
@@ -1542,11 +1844,12 @@
       $('#budgetBreakdownModal').on('shown.bs.modal', function () {
         setTimeout(updateBudgetBreakdownStickyOffsets, 50);
       });
-      $(window).on('resize', updateBudgetBreakdownStickyOffsets);
+      $(window).on('resize', function(){ updateBudgetBreakdownStickyOffsets(); updatePipStickyOffsets(); });
 
       $('#pipStatementModal').on('shown.bs.modal', function () {
         window._pipProjectPage = 1;
         renderPipStatementTable();
+        requestAnimationFrame(updatePipStickyOffsets);
       });
     });
 
@@ -1799,6 +2102,7 @@
     }
 
     function handleRefreshData() {
+      refreshButtonWasClicked = true;
       if (currentDataSource === 'gdrive') {
         handleGDriveLoad();
       } else {
@@ -2444,6 +2748,7 @@
               $('#statusFilesLoaded').text(filesArray.length);
               $('#statusLastRefresh').text(dateTimeStr);
               $('#statusConnection').text(currentDataSource === 'local' ? 'Loaded' : 'Connected').removeClass('text-danger text-secondary').addClass('text-success');
+              if (refreshButtonWasClicked) markDailyRefreshCompleted();
               
               const flashHtml = `
                 <div class="alert alert-success alert-dismissible fade show shadow-sm py-1 px-2" role="alert" style="font-size:0.75rem;">
@@ -2614,6 +2919,9 @@
               'Category Id': categoryId,
               'Category Name': canonicalCategory['Category Name'],
               'Budget Line': budgetLine,
+              'Unit': row['Unit'] ?? row['UOM'] ?? '',
+              'Rate': parseFloat(row['Rate']) || 0,
+              'Remarks': row['Remarks'] ?? row['Remark'] ?? '',
               'Open PO Value': openPO,
               'Sheet Annual Budget': sheetAnnualBudget,
               'Projected Start Date': sheetStartDate,
@@ -2638,6 +2946,15 @@
           if ((!lineObj['Budget Line'] || lineObj['Budget Line'] === 'Unassigned') &&
               budgetLine && budgetLine !== 'Unassigned') {
             lineObj['Budget Line'] = budgetLine;
+          }
+          if ((!lineObj['Unit'] || lineObj['Unit'] === 'Unassigned') && (row['Unit'] ?? row['UOM'])) {
+            lineObj['Unit'] = row['Unit'] ?? row['UOM'];
+          }
+          if (!lineObj['Rate'] && parseFloat(row['Rate'])) {
+            lineObj['Rate'] = parseFloat(row['Rate']) || 0;
+          }
+          if ((!lineObj['Remarks'] || lineObj['Remarks'] === 'Unassigned') && (row['Remarks'] ?? row['Remark'])) {
+            lineObj['Remarks'] = row['Remarks'] ?? row['Remark'];
           }
 
           monthColumns.forEach(m => {
@@ -2671,6 +2988,9 @@
           'Category Key': getCategoryKey(lineObj['Project Id'], lineObj['Category Id']),
           'Category Name': lineObj['Category Name'],
           'Budget Line': lineObj['Budget Line'],
+          'Unit': lineObj['Unit'] || '',
+          'Rate': lineObj['Rate'] || 0,
+          'Remarks': lineObj['Remarks'] || '',
           'Open PO Value': lineObj['Open PO Value'],
           'Projected Start Date': lineObj['Projected Start Date'],
           'Projected End Date': lineObj['Projected End Date']
@@ -3097,6 +3417,7 @@
       table.append(colgroup);
 
       let headRow1 = `<tr>
+        <th rowspan="2" class="align-middle pip-broad-category-col">Broad Category</th>
         <th rowspan="2" class="align-middle pip-category-id-col">Category Id</th>
         <th rowspan="2" class="align-middle pip-budget-line-col">Budget Line</th>
         <th rowspan="2" class="align-middle text-end pip-annual-budget-col">Annual Budget</th>`;
@@ -3131,14 +3452,17 @@
       let totalAnnualProjectBalance = 0;
 
       Object.keys(groupedByCategory).forEach(broadCat => {
-        const groupColSpan = (relevantMonths.length * 2) + 4;
+        const groupColSpan = (relevantMonths.length * 2) + 5;
         tbody.append(`<tr class="pip-group-row"><td colspan="${groupColSpan}"><div class="pip-group-sticky-content"><i class="fa-solid fa-folder-open me-2 text-primary"></i><strong>${escapeHtml(broadCat)}</strong></div></td></tr>`);
 
         groupedByCategory[broadCat].forEach(row => {
           const rowAnnualBudget = parseFloat(row['Annual Budget']) || 0;
           totalAnnualBudget += rowAnnualBudget;
           let rowPeriodActual = 0;
-          let tr = `<tr>
+          const rowGlobalSearch = Object.keys(row).map(k => `${k} ${row[k] ?? ''}`).join(' ').toLowerCase();
+          const rowSearchAttr = escapeHtml(rowGlobalSearch);
+          let tr = `<tr data-global-search="${rowSearchAttr}">
+            <td class="pip-broad-category-col">${escapeHtml(row['Broad Category'] || broadCat)}</td>
             <td class="pip-category-id-col">${escapeHtml(normalizeCategoryId(row['Category Id']))}</td>
             <td class="col-budget-line ps-3 pip-budget-line-col">${escapeHtml(row['Budget Line'])}</td>
             <td class="text-end pip-annual-budget-col">${rowAnnualBudget === 0 ? '' : money(rowAnnualBudget)}</td>`;
@@ -3164,6 +3488,7 @@
       table.append(tbody);
 
       let footTr = `<tr>
+        <td class="fw-bold pip-broad-category-col"></td>
         <td class="fw-bold pip-category-id-col"></td>
         <td class="fw-bold pip-budget-line-col">Total</td>
         <td class="fw-bold text-end pip-annual-budget-col">${money(totalAnnualBudget)}</td>`;
@@ -3177,7 +3502,19 @@
 
       section.append(table);
       $container.append(section);
+      updatePipStickyOffsets();
       updatePipProjectPagination();
+    }
+
+    function updatePipStickyOffsets() {
+      const $container = $('#pipTablesContainer');
+      const $heading = $container.find('.pip-project-heading').first();
+      const $headRow = $container.find('.pip-project-table thead tr:first-child').first();
+      if (!$container.length || !$heading.length || !$headRow.length) return;
+      const headingH = $heading.outerHeight() || 0;
+      const headRowH = $headRow.outerHeight() || 0;
+      $container.css('--pip-project-heading-height', headingH + 'px');
+      $container.css('--pip-head-row1-height', headRowH + 'px');
     }
 
     function updatePipProjectPagination() {
@@ -3567,6 +3904,383 @@
     }
 
   
+
+    // ---------------- Budget vs. Actual Report ----------------
+    function bvaAccounting(value) {
+      const n = Number(value) || 0;
+      if (Math.abs(n) < 0.0000001) return '-';
+      return n < 0 ? `(${Math.abs(n).toLocaleString('en-IN', {maximumFractionDigits:0})})`
+                   : n.toLocaleString('en-IN', {maximumFractionDigits:0});
+    }
+
+    function bvaNumber(value) {
+      const n = Number(value) || 0;
+      return Math.abs(n) < 0.0000001 ? 0 : Math.round(n);
+    }
+
+    function bvaSafeText(value) {
+      return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function bvaMonthList(projectIds, rows) {
+      const dates = [];
+      projectIds.forEach(projectId => {
+        const info = getProjectDateInfo(projectId, rows.find(r => String(r['Project Id'] || '').trim() === projectId));
+        if (!info.startDate.getTime() || !info.endDate.getTime() || info.startDate > info.endDate) return;
+        for (let d = new Date(info.startDate.getFullYear(), info.startDate.getMonth(), 1);
+             d <= new Date(info.endDate.getFullYear(), info.endDate.getMonth(), 1);
+             d.setMonth(d.getMonth() + 1)) {
+          dates.push(`${d.getFullYear()}-${d.getMonth()}`);
+        }
+      });
+      const unique = Array.from(new Set(dates));
+      unique.sort((a,b) => {
+        const [ay,am] = a.split('-').map(Number), [by,bm] = b.split('-').map(Number);
+        return ay*12+am - (by*12+bm);
+      });
+      return unique.map(key => {
+        const [year, month] = key.split('-').map(Number);
+        const sourceKey = monthColumns.find(m => {
+          const d = parseDDMMYY(m);
+          return d.getTime() && d.getFullYear() === year && d.getMonth() === month;
+        });
+        return { key, sourceKey, label: formatMonthYear(new Date(year, month, 1)) };
+      });
+    }
+
+    function bvaSelectedRows() {
+      const selectedProjects = ($('#filterProject').val() || []).map(v => String(v).trim()).filter(Boolean);
+      const selectedIds = ($('#filterProjectId').val() || []).map(v => String(v).trim()).filter(Boolean);
+      let rows = filteredDataset && filteredDataset.length ? filteredDataset.slice() : [];
+      if (selectedProjects.length) rows = rows.filter(r => selectedProjects.includes(String(r['Project Name'] || '').trim()));
+      if (selectedIds.length) rows = rows.filter(r => selectedIds.includes(String(r['Project Id'] || '').trim()));
+      return rows;
+    }
+
+    function buildBudgetVsActualReportModel() {
+      const rows = bvaSelectedRows();
+      if (!rows.length) throw new Error('No records match the current Smart Filters.');
+
+      const projectIds = Array.from(new Set(rows.map(r => String(r['Project Id'] || '').trim()).filter(Boolean)));
+      const months = bvaMonthList(projectIds, rows);
+      const from = $('#filterMonthFrom').val();
+      const to = $('#filterMonthTo').val();
+      const fromIdx = monthColumns.indexOf(from);
+      const toIdx = monthColumns.indexOf(to);
+      const ytdKeys = (fromIdx >= 0 && toIdx >= fromIdx) ? monthColumns.slice(fromIdx, toIdx + 1) : monthColumns.slice();
+
+      const projectNames = Array.from(new Set(rows.map(r => String(r['Project Name'] || '').trim()).filter(Boolean)));
+      const periods = projectIds.map(id => {
+        const info = getProjectDateInfo(id, rows.find(r => String(r['Project Id'] || '').trim() === id));
+        return {
+          projectId: id,
+          start: info.startDate,
+          end: info.endDate
+        };
+      }).filter(x => x.start.getTime() && x.end.getTime());
+
+      const projectPeriodText = periods.length === 1
+        ? `${formatMonthYear(periods[0].start)} to ${formatMonthYear(periods[0].end)}`
+        : periods.map(x => `${x.projectId}: ${formatMonthYear(x.start)} to ${formatMonthYear(x.end)}`).join('; ');
+
+      const reportRows = rows.map(r => {
+        const projectId = String(r['Project Id'] || '').trim();
+        const projectInfo = getProjectDateInfo(projectId, r);
+        const row = {
+          'Funder ID': r['Funder ID'] || '',
+          'Funder Name': r['Funder Name'] || '',
+          'Region': r['Region'] || '',
+          'Project Id': projectId,
+          'Project Name': r['Project Name'] || '',
+          'Category Id': normalizeCategoryId(r['Category Id']),
+          'Category Name': r['Category Name'] || '',
+          'Broad Category-US': r['Broad Category'] || '',
+          'Program Type': r['Program Type'] || '',
+          'Budget Line': r['Budget Line'] || '',
+          'Unit': r['Unit'] || '',
+          'Rate': bvaNumber(r['Rate']),
+          months: {},
+          'YTD Budget': 0,
+          'Annual Budget': bvaNumber(r['Annual Budget']),
+          'Total YTD Actual': 0,
+          'Total Annual Actual': 0,
+          'Total YTD Variance': 0,
+          'Total Annual Variance': 0,
+          'Remarks': r['Remarks'] || ''
+        };
+
+        months.forEach(m => {
+          const b = m.sourceKey ? bvaNumber(r[`Budget ${m.sourceKey}`]) : 0;
+          const a = m.sourceKey ? bvaNumber(r[`Actual ${m.sourceKey}`]) : 0;
+          row.months[m.key] = { budget:b, actual:a };
+        });
+
+        ytdKeys.forEach(m => {
+          const b = bvaNumber(r[`Budget ${m}`]);
+          const a = bvaNumber(r[`Actual ${m}`]);
+          row['YTD Budget'] += b;
+          row['Total YTD Actual'] += a;
+        });
+        row['Total Annual Actual'] = monthColumns.reduce((sum,m) => sum + bvaNumber(r[`Actual ${m}`]), 0);
+        row['Total YTD Variance'] = row['YTD Budget'] - row['Total YTD Actual'];
+        row['Total Annual Variance'] = row['Annual Budget'] - row['Total Annual Actual'];
+        return row;
+      });
+
+      return {
+        rows: reportRows,
+        months,
+        projectNames,
+        projectPeriodText,
+        ytdText: `${from || 'All'} to ${to || 'All'}`
+      };
+    }
+
+    function bvaReportHeaderRows(model) {
+      const rows = [];
+      const staticHeaders = ['Funder ID','Funder Name','Region','Project Id','Project Name','Category Id','Category Name','Broad Category-US','Program Type','Budget Line','Unit','Rate'];
+      const header1 = staticHeaders.slice();
+      const header2 = new Array(staticHeaders.length).fill('');
+      model.months.forEach(m => {
+        header1.push(m.label, '');
+        header2.push('Budget','Actual');
+      });
+      header1.push('YTD Budget','Annual Budget','Total YTD Actual','Total Annual Actual','Total YTD Variance','Total Annual Variance','Remarks');
+      header2.push('','','','','','','');
+      rows.push(header1, header2);
+      return { staticHeaders, header1, header2 };
+    }
+
+    function buildBudgetVsActualMatrix(model) {
+      const {header1, header2} = bvaReportHeaderRows(model);
+      const matrix = [header1, header2];
+      model.rows.forEach(r => {
+        const row = [
+          r['Funder ID'], r['Funder Name'], r['Region'], r['Project Id'], r['Project Name'],
+          r['Category Id'], r['Category Name'], r['Broad Category-US'], r['Program Type'],
+          r['Budget Line'], r['Unit'], r['Rate']
+        ];
+        model.months.forEach(m => {
+          row.push(r.months[m.key]?.budget || 0, r.months[m.key]?.actual || 0);
+        });
+        row.push(r['YTD Budget'], r['Annual Budget'], r['Total YTD Actual'], r['Total Annual Actual'],
+          r['Total YTD Variance'], r['Total Annual Variance'], r['Remarks']);
+        matrix.push(row);
+      });
+
+      const blank = new Array(header1.length).fill('');
+      const total = new Array(header1.length).fill('');
+      const util = new Array(header1.length).fill('');
+      const startSummary = 12 + model.months.length * 2;
+
+      total[0] = 'Grand Total';
+      for (let c = 12; c < startSummary + 7; c++) {
+        let sum = 0;
+        model.rows.forEach(r => {
+          const v = c < startSummary
+            ? (c - 12) % 2 === 0
+              ? (r.months[model.months[Math.floor((c-12)/2)]?.key]?.budget || 0)
+              : (r.months[model.months[Math.floor((c-12)/2)]?.key]?.actual || 0)
+            : 0;
+          sum += Number(v) || 0;
+        });
+        total[c] = sum;
+      }
+      total[startSummary] = model.rows.reduce((a,r)=>a+r['YTD Budget'],0);
+      total[startSummary+1] = model.rows.reduce((a,r)=>a+r['Annual Budget'],0);
+      total[startSummary+2] = model.rows.reduce((a,r)=>a+r['Total YTD Actual'],0);
+      total[startSummary+3] = model.rows.reduce((a,r)=>a+r['Total Annual Actual'],0);
+      total[startSummary+4] = model.rows.reduce((a,r)=>a+r['Total YTD Variance'],0);
+      total[startSummary+5] = model.rows.reduce((a,r)=>a+r['Total Annual Variance'],0);
+
+      util[0] = 'Utilization % :';
+      const ytdBudget = Number(total[startSummary]) || 0;
+      const ytdActual = Number(total[startSummary+2]) || 0;
+      const annualBudget = Number(total[startSummary+1]) || 0;
+      const annualActual = Number(total[startSummary+3]) || 0;
+      util[startSummary+4] = ytdBudget > 0 ? `${(ytdActual/ytdBudget*100).toFixed(1)}%` : '0.0%';
+      util[startSummary+5] = annualBudget > 0 ? `${(annualActual/annualBudget*100).toFixed(1)}%` : '0.0%';
+
+      matrix.push(blank, total, util);
+      return {matrix, header1, header2, summaryStart:startSummary};
+    }
+
+    function bvaHtmlReport(model) {
+      const built = buildBudgetVsActualMatrix(model);
+      const monthStart = 12;
+      let html = `<div class="bva-report-print-area">
+        <h2>PROJECT BUDGET vs ACTUAL REPORT</h2>
+        <table class="bva-report-meta">
+          <tr><td><strong>Project Name :</strong> ${bvaSafeText(model.projectNames.join(', ') || 'All Projects')}</td>
+              <td><strong>Project Period:</strong> ${bvaSafeText(model.projectPeriodText || 'Not available')}</td>
+              <td class="bva-ytd"><strong>Year-to-Date (YTD):</strong> ${bvaSafeText(model.ytdText)}</td></tr>
+        </table>
+        <table class="bva-report-table"><thead><tr>`;
+
+      built.header1.forEach((h,i) => {
+        const isMonth = i >= monthStart && i < monthStart + model.months.length*2;
+        const isYtd = i === built.summaryStart;
+        const isAnnualVar = i === built.summaryStart+5;
+        const isRemarks = i === built.header1.length-1;
+        html += `<th class="${isMonth ? '' : isYtd ? 'bva-ytd' : isAnnualVar ? 'bva-annual-var' : isRemarks ? 'bva-summary' : 'bva-summary'}">${bvaSafeText(h)}</th>`;
+      });
+      html += `</tr><tr>`;
+      built.header2.forEach(h => html += `<th>${bvaSafeText(h)}</th>`);
+      html += `</tr></thead><tbody>`;
+
+      model.rows.forEach(r => {
+        html += '<tr>';
+        html += [r['Funder ID'],r['Funder Name'],r['Region'],r['Project Id'],r['Project Name'],r['Category Id'],r['Category Name'],
+          r['Broad Category-US'],r['Program Type'],r['Budget Line'],r['Unit'],bvaAccounting(r['Rate'])].map(v=>`<td>${bvaSafeText(v)}</td>`).join('');
+        model.months.forEach(m => {
+          html += `<td class="num">${bvaAccounting(r.months[m.key]?.budget)}</td><td class="num">${bvaAccounting(r.months[m.key]?.actual)}</td>`;
+        });
+        html += `<td class="num bva-ytd">${bvaAccounting(r['YTD Budget'])}</td>
+          <td class="num">${bvaAccounting(r['Annual Budget'])}</td>
+          <td class="num">${bvaAccounting(r['Total YTD Actual'])}</td>
+          <td class="num">${bvaAccounting(r['Total Annual Actual'])}</td>
+          <td class="num">${bvaAccounting(r['Total YTD Variance'])}</td>
+          <td class="num bva-annual-var">${bvaAccounting(r['Total Annual Variance'])}</td>
+          <td>${bvaSafeText(r['Remarks'])}</td>`;
+        html += '</tr>';
+      });
+
+      const summary = built.matrix[built.matrix.length-2];
+      const util = built.matrix[built.matrix.length-1];
+      html += '<tr><td colspan="'+built.header1.length+'"></td></tr><tr class="bva-summary">';
+      summary.forEach((v,i)=>html += `<td class="${i>=monthStart ? 'num' : ''}">${i>=monthStart && typeof v==='number' ? bvaAccounting(v) : bvaSafeText(v)}</td>`);
+      html += '</tr><tr class="bva-summary"><td colspan="'+built.summaryStart+4+'"><strong>Utilization % :</strong></td>';
+      html += `<td class="num">${bvaSafeText(util[built.summaryStart+4] || '')}</td><td class="num">${bvaSafeText(util[built.summaryStart+5] || '')}</td><td></td></tr>`;
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    function bvaExcel(model) {
+      const built = buildBudgetVsActualMatrix(model);
+      const titleRows = [
+        ['PROJECT BUDGET vs ACTUAL REPORT'],
+        [`Project Name : ${model.projectNames.join(', ') || 'All Projects'}`],
+        [`Project Period: ${model.projectPeriodText || 'Not available'}`],
+        [`Year-to-Date (YTD): ${model.ytdText}`],
+        new Array(built.header1.length).fill('')
+      ];
+      const sheetMatrix = titleRows.concat(built.matrix);
+      const ws = XLSX.utils.aoa_to_sheet(sheetMatrix);
+      const headerOffset = 5;
+      const merges = [];
+      model.months.forEach((m,i) => {
+        const c = 12 + i*2;
+        merges.push({s:{r:headerOffset,c},e:{r:headerOffset,c:c+1}});
+      });
+      merges.push({s:{r:0,c:0},e:{r:0,c:built.header1.length-1}});
+      ws['!merges'] = merges;
+      ws['!cols'] = built.header1.map((h,i) => ({wch: i < 12 ? (i===9 ? 28 : 15) : 13}));
+
+      for (let c=0;c<built.header1.length;c++) {
+        const cell1 = ws[XLSX.utils.encode_cell({r:headerOffset,c})];
+        const cell2 = ws[XLSX.utils.encode_cell({r:headerOffset+1,c})];
+        if (cell1) cell1.s = {font:{bold:true,color:{rgb:'000000'}},fill:{fgColor:{rgb:'E2E8D7'}},alignment:{horizontal:'center',vertical:'center',wrapText:true}};
+        if (cell2) cell2.s = {font:{bold:true},fill:{fgColor:{rgb:'E2E8D7'}},alignment:{horizontal:'center',vertical:'center',wrapText:true}};
+      }
+      const titleCell = ws['A1'];
+      if (titleCell) titleCell.s = {font:{bold:true,size:16,color:{rgb:'000000'}},alignment:{horizontal:'center'}};
+      for (let r=headerOffset+2;r<sheetMatrix.length;r++) {
+        for (let c=12;c<built.matrix[0].length;c++) {
+          const cell=ws[XLSX.utils.encode_cell({r,c})];
+          if (cell && typeof cell.v==='number') cell.z='#,##0;(#,##0);-';
+        }
+      }
+      const summaryStart = built.summaryStart;
+      for (let r=headerOffset+2;r<sheetMatrix.length;r++) {
+        for (let c=summaryStart;c<summaryStart+6;c++) {
+          const cell=ws[XLSX.utils.encode_cell({r,c})];
+          if (cell && typeof cell.v==='number') cell.z='#,##0;(#,##0);-';
+        }
+      }
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,'Budget vs Actual');
+      XLSX.writeFile(wb,'Project_Budget_vs_Actual_Report.xlsx');
+    }
+
+    function bvaCsv(model) {
+      const built = buildBudgetVsActualMatrix(model);
+      const csvMatrix = [
+        ['PROJECT BUDGET vs ACTUAL REPORT'],
+        [`Project Name : ${model.projectNames.join(', ') || 'All Projects'}`],
+        [`Project Period: ${model.projectPeriodText || 'Not available'}`],
+        [`Year-to-Date (YTD): ${model.ytdText}`],
+        new Array(built.header1.length).fill(''),
+        ...built.matrix
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(csvMatrix);
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Project_Budget_vs_Actual_Report.csv';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }
+
+    function bvaPdf(model) {
+      const built = buildBudgetVsActualMatrix(model);
+      const body = [];
+      body.push([{text:'PROJECT BUDGET vs ACTUAL REPORT',colSpan:built.header1.length,alignment:'center',bold:true}, ...Array(built.header1.length-1).fill({})]);
+      body.push([{text:`Project Name : ${model.projectNames.join(', ') || 'All Projects'}\nProject Period: ${model.projectPeriodText || 'Not available'}\nYear-to-Date (YTD): ${model.ytdText}`,colSpan:built.header1.length}, ...Array(built.header1.length-1).fill({})]);
+      body.push(built.header1.map(x=>({text:String(x||''),bold:true,fillColor:'E2E8D7',alignment:'center',fontSize:6})));
+      body.push(built.header2.map(x=>({text:String(x||''),bold:true,fillColor:'E2E8D7',alignment:'center',fontSize:6})));
+      model.rows.forEach(r=>{
+        const row=[
+          r['Funder ID'],r['Funder Name'],r['Region'],r['Project Id'],r['Project Name'],r['Category Id'],r['Category Name'],
+          r['Broad Category-US'],r['Program Type'],r['Budget Line'],r['Unit'],bvaAccounting(r['Rate'])
+        ];
+        model.months.forEach(m=>{row.push(bvaAccounting(r.months[m.key]?.budget),bvaAccounting(r.months[m.key]?.actual));});
+        row.push(bvaAccounting(r['YTD Budget']),bvaAccounting(r['Annual Budget']),bvaAccounting(r['Total YTD Actual']),
+          bvaAccounting(r['Total Annual Actual']),bvaAccounting(r['Total YTD Variance']),bvaAccounting(r['Total Annual Variance']),r['Remarks']||'');
+        body.push(row.map((x,i)=>({text:String(x??''),fontSize:5,alignment:i>=12?'right':'left'})));
+      });
+      body.push([{text:'',colSpan:built.header1.length}, ...Array(built.header1.length-1).fill({})]);
+      const totalRow = built.matrix[built.matrix.length-2];
+      body.push(totalRow.map((x,i)=>({text:typeof x==='number'?bvaAccounting(x):String(x??''),bold:true,fillColor:'E2E8D7',fontSize:5,alignment:i>=12?'right':'left'})));
+      const utilRow = built.matrix[built.matrix.length-1];
+      body.push(utilRow.map((x,i)=>({text:String(x??''),bold:true,fillColor:'BCE2E8',fontSize:5,alignment:i>=12?'right':'left'})));
+      const widths = built.header1.map((_,i)=> i===9 ? 55 : i>=12 ? 38 : 42);
+      const doc = {
+        pageOrientation:'landscape', pageSize:'A3', pageMargins:[12,18,12,18],
+        content:[{table:{headerRows:2, widths, body}, layout:'lightHorizontalLines'}],
+        defaultStyle:{fontSize:5}
+      };
+      pdfMake.createPdf(doc).download('Project_Budget_vs_Actual_Report.pdf');
+    }
+
+    function bvaPrint(model) {
+      const host = document.getElementById('bvaPrintHost');
+      host.innerHTML = bvaHtmlReport(model);
+      document.body.classList.add('bva-print-mode');
+      const cleanup = () => {
+        document.body.classList.remove('bva-print-mode');
+        host.innerHTML = '';
+        window.removeEventListener('afterprint', cleanup);
+      };
+      window.addEventListener('afterprint', cleanup);
+      window.print();
+    }
+
+    $(document).on('click','#btnDownloadBudgetVsActual',function(){
+      try {
+        const model = buildBudgetVsActualReportModel();
+        const type = $('#budgetVsActualFormat').val();
+        if(type==='excel') bvaExcel(model);
+        else if(type==='csv') bvaCsv(model);
+        else if(type==='pdf') bvaPdf(model);
+        else bvaPrint(model);
+      } catch(err) {
+        console.error('Budget vs Actual Report:',err);
+        alert(err.message || 'Unable to generate the Budget vs. Actual Report.');
+      }
+    });
+
     // ---------------- Management Analysis ----------------
     let managementDataTable = null;
     let currentManagementReport = 'project';
@@ -3687,7 +4401,7 @@
       if (report === 'funder') return aggregateManagement(rows,'Funder Name');
       if (report === 'top10') {
         const items = aggregateManagement(rows,'Project Id').map(x=>({projectId:x.name,projectName:(rows.find(r=>String(r['Project Id']||'').trim()===x.name)||{})['Project Name']||'',budget:x.budget,actual:x.actual,variance:x.variance,utilization:x.utilization}));
-        return items.sort((a,b)=>b.budget-a.budget).slice(0,10).map((x,i)=>({...x,rank:i+1}));
+        return items.sort((a,b)=>b.utilization-a.utilization || b.actual-a.actual || b.budget-a.budget).slice(0,10).map((x,i)=>({...x,rank:i+1}));
       }
       return buildDuplicateBudgetLineAnalysis(rows, report === 'overspend');
     }
@@ -3710,58 +4424,442 @@
       });
     }
 
-    // ---------------- Production AI Assistant ----------------
-    function addAIMessage(text, role='bot') {
-      const $m = $('#aiAssistantMessages');
-      $m.append(`<div class="ai-msg ${role==='user'?'ai-msg-user':'ai-msg-bot'}"></div>`).children().last().text(text);
-      $m.scrollTop($m[0].scrollHeight);
+    // ---------------- Zero-cost Client-side Budget AI Assistant ----------------
+    // This assistant intentionally uses no AI provider, API key, fetch(), server, or external service.
+    // It analyses the same processed rows used by the dashboard and therefore follows current filters/months.
+
+    const AI_SUGGESTED_QUESTIONS = [
+      'What is the total annual budget?',
+      'What is the total annual actual?',
+      'What is the annual utilization?',
+      'Show top 10 underspent budget lines.',
+      'Show top 10 overspent budget lines.',
+      'Which project has the highest underspending?',
+      'Which project has the highest overspending?',
+      'What is the total Open PO?',
+      'Show projects below 50% utilization.'
+    ];
+
+    let aiChatHistory = [];
+
+    function aiEscape(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[ch]));
     }
 
-    function buildAIAssistantContext() {
-      const rows = getProcessedRows();
-      const totals = rows.reduce((a,r)=>{ a.budget+=r.AnnualBudgetCalc||0; a.actual+=r.ActualTotalCalc||0; a.openPO+=r.OpenPOVal||0; return a; },{budget:0,actual:0,openPO:0});
-      totals.variance = totals.budget - totals.actual;
-      totals.utilization = totals.budget ? totals.actual/totals.budget*100 : 0;
-      return {
-        filters: {
-          region: $('#filterRegion').val()||[], programType: $('#filterProgramType').val()||[], funder: $('#filterFunder').val()||[],
-          projectId: $('#filterProjectId').val()||[], projectName: $('#filterProject').val()||[], broadCategory: $('#filterBroadCategory').val()||[],
-          categoryName: $('#filterCategory').val()||[], budgetLine: $('#filterBudgetLine').val()||[], monthFrom: $('#filterMonthFrom').val(), monthTo: $('#filterMonthTo').val()
-        },
-        totals, rowCount: rows.length,
-        rows: rows.slice(0,500).map(r=>({projectId:r['Project Id'],projectName:r['Project Name'],region:r['Region'],funder:r['Funder Name'],categoryId:normalizeCategoryId(r['Category Id']),categoryName:r['Category Name'],budgetLine:r['Budget Line'],annualBudget:r.AnnualBudgetCalc,annualActual:r.ActualTotalCalc,annualVariance:r.VarianceAnnual,annualUtilization:r.UtilizationAnnual,openPO:r.OpenPOVal}))
+    function aiFormatCurrency(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? formatINR(n) : 'N/A';
+    }
+
+    function aiFormatNumber(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? new Intl.NumberFormat('en-IN', {maximumFractionDigits:0}).format(n) : 'N/A';
+    }
+
+    function aiFormatPercentage(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? `${n.toFixed(1)}%` : 'N/A';
+    }
+
+    function aiNormalize(value) {
+      return String(value ?? '').toLowerCase().replace(/\s+/g,' ').trim();
+    }
+
+    function aiRows() {
+      try {
+        return getProcessedRows().filter(r => r && typeof r === 'object');
+      } catch (err) {
+        console.error('Budget AI row processing error:', err);
+        return [];
+      }
+    }
+
+    function aiUniqueProjectCount(rows) {
+      return new Set(rows.map(r => aiNormalize(r['Project Id']) || aiNormalize(r['Project Name'])).filter(Boolean)).size;
+    }
+
+    function aiAggregate(rows) {
+      const result = rows.reduce((a,r) => {
+        a.ytdBudget += Number(r.YTDBudgetCalc) || 0;
+        a.ytdActual += Number(r.YTDActualCalc) || 0;
+        a.annualBudget += Number(r.AnnualBudgetCalc) || 0;
+        a.annualActual += Number(r.ActualTotalCalc) || 0;
+        a.openPO += Number(r.OpenPOVal) || 0;
+        return a;
+      }, {ytdBudget:0,ytdActual:0,annualBudget:0,annualActual:0,openPO:0});
+      result.ytdVariance = result.ytdBudget - result.ytdActual;
+      result.annualVariance = result.annualBudget - result.annualActual;
+      result.ytdUtilization = result.ytdBudget > 0 ? result.ytdActual / result.ytdBudget * 100 : 0;
+      result.annualUtilization = result.annualBudget > 0 ? result.annualActual / result.annualBudget * 100 : 0;
+      return result;
+    }
+
+    function aiGroupByProject(rows) {
+      const map = new Map();
+      rows.forEach(r => {
+        const id = String(r['Project Id'] ?? '').trim();
+        const name = String(r['Project Name'] ?? '').trim();
+        const key = id || name;
+        if (!key) return;
+        if (!map.has(key)) {
+          map.set(key, {
+            projectId:id, projectName:name, region:String(r['Region'] ?? ''),
+            funder:String(r['Funder Name'] ?? ''), budget:0, actual:0, openPO:0
+          });
+        }
+        const x = map.get(key);
+        if (!x.projectName && name) x.projectName = name;
+        x.budget += Number(r.AnnualBudgetCalc) || 0;
+        x.actual += Number(r.ActualTotalCalc) || 0;
+        x.openPO += Number(r.OpenPOVal) || 0;
+      });
+      return Array.from(map.values()).map(x => ({
+        ...x,
+        variance:x.budget-x.actual,
+        utilization:x.budget > 0 ? x.actual/x.budget*100 : 0,
+        underspend:Math.max(x.budget-x.actual,0),
+        overspend:Math.max(x.actual-x.budget,0)
+      }));
+    }
+
+    function aiGroupByBudgetLine(rows) {
+      const map = new Map();
+      rows.forEach(r => {
+        const projectId = String(r['Project Id'] ?? '').trim();
+        const categoryId = normalizeCategoryId(r['Category Id']);
+        const budgetLine = String(r['Budget Line'] ?? '').trim();
+        const key = `${projectId}||${categoryId}||${budgetLine}`;
+        if (!projectId && !categoryId && !budgetLine) return;
+        if (!map.has(key)) {
+          map.set(key, {
+            projectId, projectName:String(r['Project Name'] ?? ''),
+            funder:String(r['Funder Name'] ?? ''), region:String(r['Region'] ?? ''),
+            broadCategory:String(r['Broad Category'] ?? ''),
+            categoryName:String(r['Category Name'] ?? ''), categoryId,
+            budgetLine, budget:0, actual:0
+          });
+        }
+        const x = map.get(key);
+        x.budget += Number(r.AnnualBudgetCalc) || 0;
+        x.actual += Number(r.ActualTotalCalc) || 0;
+      });
+      return Array.from(map.values()).map(x => ({
+        ...x,
+        variance:x.budget-x.actual,
+        utilization:x.budget > 0 ? x.actual/x.budget*100 : 0,
+        underspend:Math.max(x.budget-x.actual,0),
+        overspend:Math.max(x.actual-x.budget,0)
+      }));
+    }
+
+    function aiRowSearchText(r) {
+      return [
+        r['Region'], r['Program Type'], r['Funder Name'], r['Project Id'], r['Project Name'],
+        r['Broad Category'], r['Category Name'], r['Category Id'], r['Budget Line']
+      ].map(aiNormalize).join(' | ');
+    }
+
+    function aiSearchRows(rows, keyword) {
+      const q = aiNormalize(keyword);
+      if (!q) return rows;
+      const terms = q.split(/\s+/).filter(Boolean);
+      return rows.filter(r => {
+        const hay = aiRowSearchText(r);
+        return terms.every(term => hay.includes(term));
+      });
+    }
+
+    function aiProjectSearchText(x) {
+      return aiNormalize([x.projectId,x.projectName,x.region,x.funder].join(' '));
+    }
+
+    function aiRenderTable(headers, dataRows, emptyText='No matching records found.') {
+      if (!dataRows.length) return `<div class="text-muted">${aiEscape(emptyText)}</div>`;
+      const head = headers.map(h => `<th>${aiEscape(h.label)}</th>`).join('');
+      const body = dataRows.map(row => `<tr>${headers.map(h => `<td class="${h.className||''}">${h.html ? h.html(row) : aiEscape(row[h.key])}</td>`).join('')}</tr>`).join('');
+      return `<div class="table-responsive"><table class="ai-result-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+    }
+
+    function aiCurrentFilterSummary() {
+      const labels = [
+        ['Region','#filterRegion'], ['Program Type','#filterProgramType'], ['Funder Name','#filterFunder'],
+        ['Project Id','#filterProjectId'], ['Project Name','#filterProject'], ['Broad Category','#filterBroadCategory'],
+        ['Category Name','#filterCategory'], ['Budget Line','#filterBudgetLine']
+      ];
+      const active = [];
+      labels.forEach(([label,selector]) => {
+        const value = $(selector).val();
+        const vals = Array.isArray(value) ? value.filter(Boolean) : (value ? [value] : []);
+        if (vals.length) active.push(`${label}: ${vals.join(', ')}`);
+      });
+      const from = $('#filterMonthFrom').val();
+      const to = $('#filterMonthTo').val();
+      if (from) active.push(`Month From: ${from}`);
+      if (to) active.push(`Month To: ${to}`);
+      return active;
+    }
+
+    function aiGetIntent(question) {
+      const q = aiNormalize(question);
+      const has = (...terms) => terms.some(t => q.includes(t));
+      const below = q.match(/(?:below|under|less than|<)\s*(\d+(?:\.\d+)?)\s*%/);
+      const above = q.match(/(?:above|over|greater than|more than|>)\s*(\d+(?:\.\d+)?)\s*%/);
+
+      if (has('total number of projects','how many projects','number of projects','total projects')) return {type:'kpi',metric:'projects'};
+      if (has('total annual budget','annual budget','yearly budget')) return {type:'kpi',metric:'annualBudget'};
+      if (has('total annual actual','annual actual','annual actual spend','yearly actual')) return {type:'kpi',metric:'annualActual'};
+      if (has('total annual variance','annual variance','yearly variance')) return {type:'kpi',metric:'annualVariance'};
+      if (has('annual utilization','annual utilisation','yearly utilization','yearly utilisation')) return {type:'kpi',metric:'annualUtilization'};
+      if (has('total ytd budget','ytd budget','period budget')) return {type:'kpi',metric:'ytdBudget'};
+      if (has('total ytd actual','ytd actual','ytd actual spend','period actual')) return {type:'kpi',metric:'ytdActual'};
+      if (has('total ytd variance','ytd variance','period variance')) return {type:'kpi',metric:'ytdVariance'};
+      if (has('ytd utilization','ytd utilisation','period utilization','period utilisation')) return {type:'kpi',metric:'ytdUtilization'};
+      if (has('total open po','open po','open purchase order','pipeline expenses','pipeline expense')) return {type:'kpi',metric:'openPO'};
+
+      if (has('top 10 underspent','top ten underspent','highest underspending budget lines','highest underspend budget lines')) return {type:'lineTop',mode:'underspend',limit:10};
+      if (has('top 10 overspent','top ten overspent','highest overspending budget lines','highest overspend budget lines')) return {type:'lineTop',mode:'overspend',limit:10};
+
+      if (has('project has the highest annual budget','project with the highest annual budget','highest annual budget project','highest budget project')) return {type:'projectExtreme',metric:'budget',direction:'max'};
+      if (has('project has the lowest annual budget','project with the lowest annual budget','lowest annual budget project','lowest budget project')) return {type:'projectExtreme',metric:'budget',direction:'min'};
+      if (has('project has the highest annual actual','project with the highest annual actual','highest annual actual project','highest actual project')) return {type:'projectExtreme',metric:'actual',direction:'max'};
+      if (has('project has the highest underspending','project with the highest underspending','highest underspending project','highest underspend project')) return {type:'projectExtreme',metric:'underspend',direction:'max'};
+      if (has('project has the highest overspending','project with the highest overspending','highest overspending project','highest overspend project')) return {type:'projectExtreme',metric:'overspend',direction:'max'};
+      if (has('project has the lowest utilization','project with the lowest utilization','project with the lowest utilisation','lowest utilization project','lowest utilisation project')) return {type:'projectExtreme',metric:'utilization',direction:'min'};
+      if (has('project has the highest utilization','project with the highest utilization','project with the highest utilisation','highest utilization project','highest utilisation project')) return {type:'projectExtreme',metric:'utilization',direction:'max'};
+      if (below) return {type:'projectUtil',operator:'below',threshold:Number(below[1])};
+      if (above) return {type:'projectUtil',operator:'above',threshold:Number(above[1])};
+
+      if (has('budget line has the highest underspending','budget line with the highest underspending','highest underspending budget line','highest underspend budget line')) return {type:'lineExtreme',metric:'underspend',direction:'max'};
+      if (has('budget line has the highest overspending','budget line with the highest overspending','highest overspending budget line','highest overspend budget line')) return {type:'lineExtreme',metric:'overspend',direction:'max'};
+      if (has('budget line has the lowest utilization','budget line with the lowest utilization','budget line with the lowest utilisation','lowest utilization budget line','lowest utilisation budget line')) return {type:'lineExtreme',metric:'utilization',direction:'min'};
+      if (has('budget line has the highest utilization','budget line with the highest utilization','budget line with the highest utilisation','highest utilization budget line','highest utilisation budget line')) return {type:'lineExtreme',metric:'utilization',direction:'max'};
+
+      if (has('major underutilized budget lines','major underutilised budget lines','underutilized budget lines','underutilised budget lines','show underutilized budget lines','show underutilised budget lines')) return {type:'lineTop',mode:'underspend',limit:10};
+      if (has('budget lines are overspent','which budget lines are overspent','show top overspending budget lines','show overspending budget lines','overspent budget lines')) return {type:'lineTop',mode:'overspend',limit:10};
+
+      if (has('show budget lines related to','find budget lines related to','budget lines related to','budget line related to')) {
+        const match = q.match(/(?:related to|about|for)\s+(.+)$/);
+        return {type:'keyword',scope:'line',keyword:match ? match[1] : ''};
+      }
+      if (has('find projects containing','show projects containing','projects containing','find projects about')) {
+        const match = q.match(/(?:containing|about)\s+(.+)$/);
+        return {type:'keyword',scope:'project',keyword:match ? match[1] : ''};
+      }
+      if (has('procurement-related underspending','underspending related to','underspent related to')) {
+        let match = q.match(/(?:underspending related to|underspent related to)\s+(.+)$/);
+        if (!match && q.includes('procurement-related underspending')) match = ['','procurement'];
+        return {type:'keyword',scope:'line',keyword:match ? match[1] : '', mode:'underspend'};
+      }
+
+      if (has('underutilization','underutilisation','underutilized','underutilised')) return {type:'lineTop',mode:'underspend',limit:10};
+      if (has('overspending','overspend','overspent')) return {type:'lineTop',mode:'overspend',limit:10};
+
+      return {type:'unsupported'};
+    }
+
+    function aiBuildKPIResponse(rows, metric) {
+      if (!rows.length) return 'I could not find sufficient data in the currently loaded dataset to answer this question.';
+      const t = aiAggregate(rows);
+      const values = {
+        projects: `<h6>Total Projects</h6><strong>${aiFormatNumber(aiUniqueProjectCount(rows))}</strong>`,
+        annualBudget: `<h6>Total Annual Budget</h6><strong>${aiFormatCurrency(t.annualBudget)}</strong>`,
+        annualActual: `<h6>Total Annual Actual</h6><strong>${aiFormatCurrency(t.annualActual)}</strong>`,
+        annualVariance: `<h6>Total Annual Variance</h6><strong>${aiFormatCurrency(t.annualVariance)}</strong><div class="text-muted mt-1">Budget − Actual</div>`,
+        annualUtilization: `<h6>Annual Budget Utilization</h6><strong>${aiFormatPercentage(t.annualUtilization)}</strong>`,
+        ytdBudget: `<h6>Total YTD Budget</h6><strong>${aiFormatCurrency(t.ytdBudget)}</strong>`,
+        ytdActual: `<h6>Total YTD Actual</h6><strong>${aiFormatCurrency(t.ytdActual)}</strong>`,
+        ytdVariance: `<h6>Total YTD Variance</h6><strong>${aiFormatCurrency(t.ytdVariance)}</strong><div class="text-muted mt-1">YTD Budget − YTD Actual</div>`,
+        ytdUtilization: `<h6>YTD Budget Utilization</h6><strong>${aiFormatPercentage(t.ytdUtilization)}</strong>`,
+        openPO: `<h6>Total Open PO</h6><strong>${aiFormatCurrency(t.openPO)}</strong>`
       };
+      return values[metric] || 'I could not determine the requested KPI.';
     }
 
-    async function checkAIAssistantHealth() {
-      const $s=$('#aiAssistantStatus');
-      try {
-        const r=await fetch(CONFIG.AI_ASSISTANT_HEALTH_ENDPOINT,{method:'GET',headers:{'Accept':'application/json'},cache:'no-store'});
-        if(!r.ok) throw new Error('Backend unavailable');
-        $s.html('<span class="ai-status-dot online"></span>Online');
-        return true;
-      } catch(e) {
-        $s.html('<span class="ai-status-dot offline"></span>Offline');
-        return false;
+    function aiBuildProjectResponse(rows, intent) {
+      const projects = aiGroupByProject(rows);
+      if (!projects.length) return 'I could not find sufficient project data in the currently loaded dataset.';
+      if (intent.type === 'projectUtil') {
+        const list = projects.filter(p => intent.operator === 'below' ? p.utilization < intent.threshold : p.utilization > intent.threshold)
+          .sort((a,b) => intent.operator === 'below' ? a.utilization-b.utilization : b.utilization-a.utilization);
+        if (!list.length) return `No projects were found ${intent.operator === 'below' ? 'below' : 'above'} ${aiFormatPercentage(intent.threshold)} utilization in the current filtered dataset.`;
+        return `<h6>Projects ${intent.operator === 'below' ? 'Below' : 'Above'} ${aiFormatPercentage(intent.threshold)} Utilization</h6>` +
+          aiRenderTable([
+            {label:'Project',key:'projectName',html:r=>aiEscape(r.projectName||r.projectId)},
+            {label:'Project ID',key:'projectId'},
+            {label:'Annual Budget',key:'budget',html:r=>aiFormatCurrency(r.budget)},
+            {label:'Annual Actual',key:'actual',html:r=>aiFormatCurrency(r.actual)},
+            {label:'Utilization',key:'utilization',html:r=>aiFormatPercentage(r.utilization)}
+          ], list.slice(0,25));
+      }
+
+      const p = [...projects].sort((a,b) => {
+        const av = Number(a[intent.metric]) || 0, bv = Number(b[intent.metric]) || 0;
+        return intent.direction === 'min' ? av-bv : bv-av;
+      })[0];
+      if (!p) return 'I could not find sufficient data in the currently loaded dataset.';
+      const label = {
+        budget:'highest annual budget', actual:'highest annual actual',
+        underspend:'highest annual underspending', overspend:'highest annual overspending',
+        utilization:'highest annual utilization'
+      }[intent.metric] || 'requested project';
+      const metricValue = intent.metric === 'underspend' ? p.underspend :
+        intent.metric === 'overspend' ? p.overspend : p[intent.metric];
+      return `<h6>Project with the ${intent.direction === 'min' ? 'Lowest' : 'Highest'} ${aiEscape(label.replace(/^highest |^lowest /i,''))}</h6>
+        <strong>${aiEscape(p.projectName || p.projectId)}</strong>
+        <ul>
+          <li>Project ID: ${aiEscape(p.projectId || 'N/A')}</li>
+          <li>Annual Budget: ${aiFormatCurrency(p.budget)}</li>
+          <li>Annual Actual: ${aiFormatCurrency(p.actual)}</li>
+          <li>Variance: ${aiFormatCurrency(p.variance)}</li>
+          <li>Utilization: ${aiFormatPercentage(p.utilization)}</li>
+          <li>${intent.metric === 'overspend' ? 'Overspending' : intent.metric === 'underspend' ? 'Underspending' : 'Selected value'}: ${aiFormatCurrency(metricValue)}</li>
+        </ul>`;
+    }
+
+    function aiBuildLineResponse(rows, intent) {
+      const linesData = aiGroupByBudgetLine(rows);
+      if (!linesData.length) return 'I could not find sufficient budget-line data in the currently loaded dataset.';
+      let list = [...linesData];
+      if (intent.type === 'lineTop') {
+        list = list.filter(x => intent.mode === 'underspend' ? x.underspend > 0 : x.overspend > 0)
+          .sort((a,b) => intent.mode === 'underspend' ? b.underspend-a.underspend : b.overspend-a.overspend)
+          .slice(0,intent.limit || 10);
+        if (!list.length) return `No ${intent.mode === 'underspend' ? 'underutilized' : 'overspent'} budget lines were found in the current filtered dataset.`;
+        const title = intent.mode === 'underspend' ? 'Top Underspent Budget Lines' : 'Top Overspent Budget Lines';
+        return `<h6>${title}</h6>` + aiRenderTable([
+          {label:'Project',key:'projectName',html:r=>aiEscape(r.projectName||r.projectId)},
+          {label:'Budget Line',key:'budgetLine'},
+          {label:'Category',key:'categoryName'},
+          {label:'Annual Budget',key:'budget',html:r=>aiFormatCurrency(r.budget)},
+          {label:'Annual Actual',key:'actual',html:r=>aiFormatCurrency(r.actual)},
+          {label:intent.mode === 'underspend' ? 'Underspent' : 'Overspent',html:r=>aiFormatCurrency(intent.mode === 'underspend' ? r.underspend : r.overspend)},
+          {label:'Utilization',key:'utilization',html:r=>aiFormatPercentage(r.utilization)}
+        ], list);
+      }
+
+      list = list.filter(x => intent.metric === 'underspend' ? x.underspend > 0 : intent.metric === 'overspend' ? x.overspend > 0 : x.budget > 0);
+      list.sort((a,b) => {
+        const av = Number(a[intent.metric]) || 0, bv = Number(b[intent.metric]) || 0;
+        return intent.direction === 'min' ? av-bv : bv-av;
+      });
+      const x = list[0];
+      if (!x) return 'I could not find sufficient data to answer this question.';
+      const metricValue = intent.metric === 'underspend' ? x.underspend : intent.metric === 'overspend' ? x.overspend : x[intent.metric];
+      return `<h6>Budget Line Result</h6><strong>${aiEscape(x.budgetLine || 'Unnamed Budget Line')}</strong>
+        <ul>
+          <li>Project: ${aiEscape(x.projectName || x.projectId || 'N/A')}</li>
+          <li>Category ID: ${aiEscape(x.categoryId || 'N/A')}</li>
+          <li>Annual Budget: ${aiFormatCurrency(x.budget)}</li>
+          <li>Annual Actual: ${aiFormatCurrency(x.actual)}</li>
+          <li>Variance: ${aiFormatCurrency(x.variance)}</li>
+          <li>Utilization: ${aiFormatPercentage(x.utilization)}</li>
+          <li>${intent.metric === 'overspend' ? 'Overspending' : intent.metric === 'underspend' ? 'Underspending' : 'Selected value'}: ${aiFormatCurrency(metricValue)}</li>
+        </ul>`;
+    }
+
+    function aiBuildKeywordResponse(rows, intent) {
+      const keyword = String(intent.keyword || '').replace(/[?.,]+$/,'').trim();
+      if (!keyword) return 'Please provide a keyword to search, for example: “Show budget lines related to procurement.”';
+      if (intent.scope === 'project') {
+        const projects = aiGroupByProject(rows).filter(p => aiProjectSearchText(p).includes(aiNormalize(keyword)));
+        return projects.length
+          ? `<h6>Projects matching “${aiEscape(keyword)}”</h6>` + aiRenderTable([
+              {label:'Project',key:'projectName',html:r=>aiEscape(r.projectName||r.projectId)},
+              {label:'Project ID',key:'projectId'},
+              {label:'Annual Budget',key:'budget',html:r=>aiFormatCurrency(r.budget)},
+              {label:'Annual Actual',key:'actual',html:r=>aiFormatCurrency(r.actual)},
+              {label:'Utilization',key:'utilization',html:r=>aiFormatPercentage(r.utilization)}
+            ], projects.slice(0,25))
+          : `No projects containing “${aiEscape(keyword)}” were found in the current filtered dataset.`;
+      }
+      let matches = aiGroupByBudgetLine(aiSearchRows(rows,keyword));
+      if (intent.mode === 'underspend') matches = matches.filter(x=>x.underspend>0).sort((a,b)=>b.underspend-a.underspend);
+      return matches.length
+        ? `<h6>Budget Lines matching “${aiEscape(keyword)}”${intent.mode === 'underspend' ? ' with underspending' : ''}</h6>` + aiRenderTable([
+            {label:'Project',key:'projectName',html:r=>aiEscape(r.projectName||r.projectId)},
+            {label:'Budget Line',key:'budgetLine'},
+            {label:'Category',key:'categoryName'},
+            {label:'Annual Budget',key:'budget',html:r=>aiFormatCurrency(r.budget)},
+            {label:'Annual Actual',key:'actual',html:r=>aiFormatCurrency(r.actual)},
+            {label:'Variance',key:'variance',html:r=>aiFormatCurrency(r.variance)},
+            {label:'Utilization',key:'utilization',html:r=>aiFormatPercentage(r.utilization)}
+          ], matches.slice(0,25))
+        : `No budget lines matching “${aiEscape(keyword)}” were found in the current filtered dataset.`;
+    }
+
+    function aiAnswer(question) {
+      const rows = aiRows();
+      if (!rows.length) return 'I could not find sufficient data in the currently loaded dataset to answer this question. Please load or refresh the dashboard data first.';
+      const intent = aiGetIntent(question);
+      switch (intent.type) {
+        case 'kpi': return aiBuildKPIResponse(rows,intent.metric);
+        case 'projectExtreme':
+        case 'projectUtil': return aiBuildProjectResponse(rows,intent);
+        case 'lineTop':
+        case 'lineExtreme': return aiBuildLineResponse(rows,intent);
+        case 'keyword': return aiBuildKeywordResponse(rows,intent);
+        default:
+          return 'I can currently help with Budget, Actual, Variance, Utilization, Open PO, Projects, Budget Lines, Underutilization and Overspending analysis. Please try a budget-related question.';
       }
     }
 
-    async function sendAIQuestion() {
-      const $input=$('#aiAssistantInput'); const question=$input.val().trim();
-      if(!question) return;
-      addAIMessage(question,'user'); $input.val('').prop('disabled',true); $('#aiAssistantSend').prop('disabled',true);
-      const thinkingId='ai-thinking-'+Date.now();
-      $('#aiAssistantMessages').append(`<div id="${thinkingId}" class="ai-msg ai-msg-bot">Thinking...</div>`);
-      try {
-        const response=await fetch(CONFIG.AI_ASSISTANT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({question,context:buildAIAssistantContext()})});
-        const payload=await response.json().catch(()=>({}));
-        if(!response.ok) throw new Error(payload.error||`HTTP ${response.status}`);
-        $('#'+thinkingId).text(payload.answer||payload.message||'No answer returned by the AI backend.');
-      } catch(err) {
-        $('#'+thinkingId).text(`AI Assistant error: ${err.message}. Check CONFIG.AI_ASSISTANT_ENDPOINT and confirm the backend is running.`);
-      } finally {
-        $input.prop('disabled',false).focus(); $('#aiAssistantSend').prop('disabled',false); $('#aiAssistantMessages').scrollTop($('#aiAssistantMessages')[0].scrollHeight);
-      }
+    function addAIMessage(content, role='bot') {
+      const $m = $('#aiAssistantMessages');
+      const html = role === 'user' ? aiEscape(content) : String(content);
+      $m.append(`<div class="ai-msg ${role==='user'?'ai-msg-user':'ai-msg-bot'}">${html}</div>`);
+      $m.scrollTop($m[0].scrollHeight);
+      aiChatHistory.push({role,content:String(content),timestamp:Date.now()});
+    }
+
+    function aiShowProcessing() {
+      const id = `ai-thinking-${Date.now()}`;
+      $('#aiAssistantMessages').append(`<div id="${id}" class="ai-msg ai-msg-bot ai-processing"><i class="fa-solid fa-circle-notch fa-spin me-1"></i>Analysing...</div>`);
+      $('#aiAssistantMessages').scrollTop($('#aiAssistantMessages')[0].scrollHeight);
+      return id;
+    }
+
+    function sendAIQuestion(questionOverride='') {
+      const $input = $('#aiAssistantInput');
+      const question = String(questionOverride || $input.val() || '').trim();
+      if (!question) return;
+      addAIMessage(question,'user');
+      $input.val('');
+      $('#aiAssistantSuggestions').hide();
+      $input.prop('disabled',true);
+      $('#aiAssistantSend').prop('disabled',true);
+
+      const thinkingId = aiShowProcessing();
+      // Keep UI responsive while performing local calculations on the loaded dataset.
+      window.setTimeout(() => {
+        try {
+          const answer = aiAnswer(question);
+          $(`#${thinkingId}`).removeClass('ai-processing').html(answer);
+          aiChatHistory.push({role:'assistant',content:answer,timestamp:Date.now()});
+        } catch (err) {
+          console.error('Budget AI Assistant error:',err);
+          $(`#${thinkingId}`).removeClass('ai-processing').text('I could not process that question safely. Please try another budget-related question.');
+        } finally {
+          $input.prop('disabled',false).focus();
+          $('#aiAssistantSend').prop('disabled',false);
+          $('#aiAssistantMessages').scrollTop($('#aiAssistantMessages')[0].scrollHeight);
+        }
+      }, 0);
+    }
+
+    function clearAIChat() {
+      aiChatHistory = [];
+      $('#aiAssistantMessages').empty();
+      $('#aiAssistantSuggestions').show();
+      addAIMessage('<h6>🤖 Budget AI Assistant</h6><div>I analyse the currently loaded dashboard data locally in your browser. No AI API, API key, server or external data service is used.</div>');
+    }
+
+    function initializeAIAssistant() {
+      $('#aiAssistantStatus').remove();
+      $('#aiAssistantSuggestions').show();
+      $('#aiAssistantMessages').empty();
+      addAIMessage('<h6>🤖 Budget AI Assistant</h6><div>Ready. Ask a budget question using the current dashboard data and filters.</div>');
     }
 
     $(document).on('click','#btnOpenManagementAnalysis',()=>renderManagementAnalysis('project'));
@@ -3773,20 +4871,37 @@
         $(this).toggle(!q || haystack.includes(q));
       });
     });
-    $(document).on('click','#aiAssistantFab',function(){ $('#aiAssistantPanel').toggle(); if($('#aiAssistantPanel').is(':visible')) { checkAIAssistantHealth(); $('#aiAssistantInput').focus(); } });
-    $(document).on('click','#aiAssistantClose',()=>$('#aiAssistantPanel').hide());
-    $(document).on('click','#aiAssistantSend',sendAIQuestion);
-    $(document).on('keydown','#aiAssistantInput',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAIQuestion();}});
-    $(document).ready(function(){
-      addAIMessage('Hello. I can analyze the currently loaded and filtered budget data. Try: “What is the annual variance?” or “Show the highest underspent budget lines.”');
-      checkAIAssistantHealth();
+    $(document).on('click','#aiAssistantFab',function(){
+      $('#aiAssistantPanel').toggle();
+      if($('#aiAssistantPanel').is(':visible')) $('#aiAssistantInput').focus();
     });
+    $(document).on('click','#aiAssistantClose',()=>$('#aiAssistantPanel').hide());
+    $(document).on('click','#aiAssistantClear',clearAIChat);
+    $(document).on('click','.ai-suggestion',function(){ sendAIQuestion($(this).data('question')); });
+    $(document).on('click','#aiAssistantSend',()=>sendAIQuestion());
+    $(document).on('input','#aiAssistantInput',function(){
+      $('#aiAssistantSuggestions').toggle(!this.value.trim());
+    });
+    $(document).on('keydown','#aiAssistantInput',function(e){
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAIQuestion();}
+      else if(e.key==='Escape') $('#aiAssistantPanel').hide();
+    });
+    $(document).ready(function(){ initializeAIAssistant(); });
 
 // PIP toolbar: Search + Export
 $(document).on('input','#pipSearchInput',function(){
- const q=this.value.toLowerCase();
+ const q=String(this.value || '').toLowerCase().trim();
  $('#pipTablesContainer tbody tr').each(function(){
-   $(this).toggle($(this).text().toLowerCase().includes(q));
+   const $row=$(this);
+   if($row.hasClass('pip-group-row')){
+     const groupText=$row.text().toLowerCase();
+     $row.toggle(!q || groupText.includes(q) || $row.nextUntil('tr.pip-group-row').filter(function(){
+       return String($(this).attr('data-global-search') || $(this).text()).toLowerCase().includes(q);
+     }).length>0);
+   } else {
+     const haystack=String($row.attr('data-global-search') || $row.text()).toLowerCase();
+     $row.toggle(!q || haystack.includes(q));
+   }
  });
 });
 function pipExport(type){
