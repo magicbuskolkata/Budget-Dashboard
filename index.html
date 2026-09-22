@@ -702,23 +702,86 @@
     #btnRefreshData.daily-refresh-due { box-shadow: 0 0 0 2px rgba(255,193,7,.35), 0 0 12px rgba(255,193,7,.45) !important; animation: dailyRefreshPulse 1.4s ease-in-out infinite alternate; }
     @keyframes dailyRefreshPulse { from { transform: translateY(0); } to { transform: translateY(-1px); } }
 
-    /* Budget Breakdown Details: freeze project title and both header rows. */
-    #budgetBreakdownModal .modal-body { overflow: auto !important; }
+    /* Non-blocking visual state while Show All Projects is rebuilding the dashboard. */
+    #btnToggleNonFunder.is-busy { pointer-events: none; opacity: .75; }
+
+    /* Budget Breakdown Details: freeze the toolbar, Project Name row, and both column-heading rows. */
+    #budgetBreakdownModal .modal-body {
+      overflow: auto !important;
+      position: relative;
+      --budget-toolbar-height: 0px;
+      --budget-project-title-height: 0px;
+      --budget-head-row1-height: 0px;
+    }
     #budgetDataTable_wrapper { position: relative; }
-    #budgetProjectTitle { position: sticky !important; top: 0 !important; z-index: 44 !important; background: #eef5fc !important; }
-    #budgetDataTable thead tr:first-child th { position: sticky !important; top: var(--budget-project-title-height, 0px) !important; z-index: 40 !important; background-color: #E7F1FF !important; }
-    #budgetDataTable thead tr:nth-child(2) th { position: sticky !important; top: calc(var(--budget-project-title-height, 0px) + var(--budget-head-row1-height, 0px)) !important; z-index: 41 !important; background-color: #E7F1FF !important; }
+    #budgetDataTable_wrapper .budget-report-toolbar {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 70 !important;
+      background: #ffffff !important;
+    }
+    #budgetProjectTitle {
+      position: sticky !important;
+      top: var(--budget-toolbar-height, 0px) !important;
+      z-index: 69 !important;
+      background: #eef5fc !important;
+    }
+    #budgetDataTable thead tr:first-child th {
+      position: sticky !important;
+      top: calc(var(--budget-toolbar-height, 0px) + var(--budget-project-title-height, 0px)) !important;
+      z-index: 60 !important;
+      background-color: #E7F1FF !important;
+    }
+    #budgetDataTable thead tr:nth-child(2) th {
+      position: sticky !important;
+      top: calc(var(--budget-toolbar-height, 0px) + var(--budget-project-title-height, 0px) + var(--budget-head-row1-height, 0px)) !important;
+      z-index: 61 !important;
+      background-color: #E7F1FF !important;
+    }
     #budgetDataTable th:nth-child(6), #budgetDataTable td:nth-child(6) { width: 20% !important; min-width: 220px !important; }
     #budgetDataTable th:nth-child(4), #budgetDataTable td:nth-child(4) { width: 14% !important; }
 
-    /* Budget PIP Statement: freeze Project Id heading, month row and column heading. */
-    #pipTablesContainer { position: relative; overflow: auto !important; max-height: 70vh; }
-    #pipTablesContainer .pip-project-section { position: relative; }
-    #pipTablesContainer .pip-project-heading { position: sticky !important; top: 0 !important; left: 0 !important; z-index: 60 !important; min-width: max-content; box-sizing: border-box; }
-    #pipTablesContainer .pip-project-table thead tr:first-child th { position: sticky !important; top: 31px !important; z-index: 50 !important; background: #E7F1FF !important; }
-    #pipTablesContainer .pip-project-table thead tr:nth-child(2) th { position: sticky !important; top: 61px !important; z-index: 51 !important; background: #E7F1FF !important; }
-    #pipTablesContainer .pip-project-table thead th.pip-category-id-col, #pipTablesContainer .pip-project-table thead th.pip-budget-line-col, #pipTablesContainer .pip-project-table thead th.pip-annual-budget-col { z-index: 58 !important; }
-    #pipTablesContainer .pip-project-table tbody td.pip-category-id-col, #pipTablesContainer .pip-project-table tbody td.pip-budget-line-col, #pipTablesContainer .pip-project-table tbody td.pip-annual-budget-col { z-index: 12; }
+    /* Budget PIP Statement: freeze Project heading, month row and column-heading row. */
+    #pipTablesContainer {
+      position: relative;
+      overflow: auto !important;
+      max-height: 70vh;
+    }
+    #pipTablesContainer .pip-project-section {
+      position: relative;
+      --pip-project-heading-height: 31px;
+      --pip-head-row1-height: 30px;
+    }
+    #pipTablesContainer .pip-project-heading {
+      position: sticky !important;
+      top: 0 !important;
+      left: 0 !important;
+      z-index: 60 !important;
+      min-width: max-content;
+      box-sizing: border-box;
+    }
+    #pipTablesContainer .pip-project-table thead tr:first-child th {
+      position: sticky !important;
+      top: var(--pip-project-heading-height, 31px) !important;
+      z-index: 50 !important;
+      background: #E7F1FF !important;
+    }
+    #pipTablesContainer .pip-project-table thead tr:nth-child(2) th {
+      position: sticky !important;
+      top: calc(var(--pip-project-heading-height, 31px) + var(--pip-head-row1-height, 30px)) !important;
+      z-index: 51 !important;
+      background: #E7F1FF !important;
+    }
+    #pipTablesContainer .pip-project-table thead th.pip-category-id-col,
+    #pipTablesContainer .pip-project-table thead th.pip-budget-line-col,
+    #pipTablesContainer .pip-project-table thead th.pip-annual-budget-col {
+      z-index: 58 !important;
+    }
+    #pipTablesContainer .pip-project-table tbody td.pip-category-id-col,
+    #pipTablesContainer .pip-project-table tbody td.pip-budget-line-col,
+    #pipTablesContainer .pip-project-table tbody td.pip-annual-budget-col {
+      z-index: 12;
+    }
 
     /* Budget vs Actual Report */
     #budgetVsActualReportSection { border-top: 1px solid #dee2e6; padding-top: 6px; }
@@ -812,7 +875,7 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content">
         <div class="modal-body text-center p-3">
-          <h6 class="fw-bold mb-2"><i class="fa-solid fa-gears text-primary me-1"></i>Processing Excel Data</h6>
+          <h6 class="fw-bold mb-2" id="uploadProgressTitle"><i class="fa-solid fa-gears text-primary me-1"></i>Processing Excel Data</h6>
           <div class="progress mb-2" style="height: 18px;">
             <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%; font-size: 0.7rem;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
           </div>
@@ -910,7 +973,7 @@
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.12</div>
+            <div class="developer-version">© 2026 | Version: 3.13</div>
           </div>
         </div>
       </div>
@@ -1361,6 +1424,9 @@
     let accessToken = null;
     let pendingFolderId = null;
     let dailyRefreshDue = false;
+    let autoRefreshTimer = null;
+    let isDataLoading = false;
+    let projectViewSwitchInProgress = false;
 
     let activeProjectIdsSet = new Set();
     let funderProjectMapping = new Map();
@@ -1608,22 +1674,31 @@
 
       const hasRestoredData = await checkAndLoadFromIndexedDB();
 
-      // Keep Refresh Data available at all times. On the first opening of each
-      // calendar date, highlight it as the daily refresh control.
-      const todayKey = new Date().toISOString().slice(0, 10);
-      const lastDailyOpen = localStorage.getItem('mb_budget_last_daily_open');
-      dailyRefreshDue = lastDailyOpen !== todayKey;
-      if (dailyRefreshDue) {
-        $('#btnRefreshData').addClass('daily-refresh-due').attr('title', 'Daily refresh available for today');
-        localStorage.setItem('mb_budget_last_daily_open', todayKey);
-      } else {
-        $('#btnRefreshData').removeClass('daily-refresh-due').attr('title', 'Refresh dashboard data');
-      }
+      // Automatic Google Drive refresh runs at local 12:00 a.m. and 12:00 p.m.
+      // The manual "Refresh Data" button remains available at all times.
+      updateDailyRefreshIndicator();
+      scheduleNextAutoRefresh();
 
       if (!hasRestoredData) {
         // Google Drive is the default data source and loads automatically.
         setTimeout(() => handleGDriveLoad(), 250);
+      } else {
+        // If the browser was closed when a scheduled slot occurred, catch up
+        // once when the dashboard is opened again.
+        setTimeout(() => maybeRunScheduledAutoRefresh(), 500);
       }
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          updateDailyRefreshIndicator();
+          maybeRunScheduledAutoRefresh();
+          scheduleNextAutoRefresh();
+        }
+      });
+      window.addEventListener('focus', () => {
+        updateDailyRefreshIndicator();
+        maybeRunScheduledAutoRefresh();
+      });
 
       $('#budgetBreakdownModal').on('shown.bs.modal', function () {
         if (dataTableInstance) {
@@ -1640,8 +1715,103 @@
       $('#pipStatementModal').on('shown.bs.modal', function () {
         window._pipProjectPage = 1;
         renderPipStatementTable();
+        requestAnimationFrame(updatePipStatementStickyOffsets);
       });
+      $(window).on('resize', updatePipStatementStickyOffsets);
     });
+
+    function getLocalRefreshSlot(dateObj = new Date()) {
+      const d = new Date(dateObj);
+      const slotHour = d.getHours() >= 12 ? 12 : 0;
+      d.setHours(slotHour, 0, 0, 0);
+      const dateKey = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0')
+      ].join('-');
+      return { key: `${dateKey}-${String(slotHour).padStart(2, '0')}`, time: d };
+    }
+
+    function getNextAutoRefreshTime(dateObj = new Date()) {
+      const d = new Date(dateObj);
+      if (d.getHours() < 12) {
+        d.setHours(12, 0, 0, 0);
+      } else {
+        d.setDate(d.getDate() + 1);
+        d.setHours(0, 0, 0, 0);
+      }
+      return d;
+    }
+
+    function updateDailyRefreshIndicator() {
+      const latestSlot = getLocalRefreshSlot();
+      const lastCompletedSlot = localStorage.getItem('mb_budget_last_auto_refresh_slot');
+      dailyRefreshDue = lastCompletedSlot !== latestSlot.key;
+
+      const $button = $('#btnRefreshData');
+      if (dailyRefreshDue) {
+        $button.addClass('daily-refresh-due')
+          .attr('title', 'Scheduled refresh is due. Manual refresh remains available.');
+      } else {
+        $button.removeClass('daily-refresh-due')
+          .attr('title', 'Refresh dashboard data');
+      }
+    }
+
+    function scheduleNextAutoRefresh() {
+      if (autoRefreshTimer) {
+        clearTimeout(autoRefreshTimer);
+        autoRefreshTimer = null;
+      }
+
+      const next = getNextAutoRefreshTime();
+      const delay = Math.max(1000, next.getTime() - Date.now() + 500);
+
+      autoRefreshTimer = setTimeout(async () => {
+        await maybeRunScheduledAutoRefresh();
+        scheduleNextAutoRefresh();
+      }, delay);
+    }
+
+    async function maybeRunScheduledAutoRefresh() {
+      if (currentDataSource !== 'gdrive' || isDataLoading) return;
+
+      const latestSlot = getLocalRefreshSlot();
+      const lastCompletedSlot = localStorage.getItem('mb_budget_last_auto_refresh_slot');
+      if (lastCompletedSlot === latestSlot.key) {
+        updateDailyRefreshIndicator();
+        return;
+      }
+
+      isDataLoading = true;
+      try {
+        $('#btnRefreshData').addClass('disabled').attr('aria-disabled', 'true');
+        updateStatusArea('Google Drive', `ID: ${CONFIG.DEFAULT_GDRIVE_FOLDER_ID.substring(0,8)}...`, 'Scheduled refresh...');
+
+        // The Google Identity Services callback may be asynchronous when the
+        // access token is not currently available. Wait until the existing
+        // Google Drive loading pipeline completes before marking this slot done.
+        await handleGDriveLoad();
+
+        const waitStarted = Date.now();
+        while (isDataLoading && Date.now() - waitStarted < 15 * 60 * 1000) {
+          await delay(250);
+        }
+
+        if (isDataLoading) {
+          throw new Error('Scheduled refresh timed out while loading Google Drive data.');
+        }
+
+        localStorage.setItem('mb_budget_last_auto_refresh_slot', latestSlot.key);
+        dailyRefreshDue = false;
+      } catch (err) {
+        console.error('Scheduled refresh failed:', err);
+      } finally {
+        isDataLoading = false;
+        $('#btnRefreshData').removeClass('disabled').removeAttr('aria-disabled');
+        updateDailyRefreshIndicator();
+      }
+    }
 
     function updateBudgetBreakdownStickyOffsets() {
       const $modalBody = $('#budgetBreakdownModal .modal-body');
@@ -1733,8 +1903,10 @@
           scope: 'https://www.googleapis.com/auth/drive.readonly',
           callback: (response) => {
             if (response.error) {
+              isDataLoading = false;
               updateStatusArea('Google Drive', 'Auth Failed', 'Disconnected', true);
               alert("Please connect your Google Drive account.");
+              updateDailyRefreshIndicator();
               return;
             }
             accessToken = response.access_token;
@@ -1799,7 +1971,7 @@
       processExcelFiles(excelFiles);
     }
 
-    function handleGDriveLoad() {
+    async function handleGDriveLoad() {
       const folderId = CONFIG.DEFAULT_GDRIVE_FOLDER_ID;
       currentDataSource = 'gdrive';
       currentGDriveId = folderId;
@@ -1826,13 +1998,23 @@
       if (accessToken) {
         const fId = pendingFolderId;
         pendingFolderId = null;
-        executeGoogleDriveFetch(fId);
-      } else {
-        tokenClient.requestAccessToken({ prompt: '' });
+        isDataLoading = true;
+        try {
+          return await executeGoogleDriveFetch(fId);
+        } finally {
+          // processExcelFiles keeps the flag true while parsing/persisting.
+          // It clears the flag after rendering is complete.
+        }
       }
+
+      // Google Identity Services completes the request asynchronously through
+      // the existing token callback, so the actual loading state is managed
+      // by executeGoogleDriveFetch/processExcelFiles.
+      tokenClient.requestAccessToken({ prompt: '' });
     }
 
     async function executeGoogleDriveFetch(folderId) {
+      isDataLoading = true;
       const uploadModal = new bootstrap.Modal(document.getElementById('uploadProgressModal'));
       uploadModal.show();
       
@@ -1857,9 +2039,11 @@
         });
 
         if (excelFilesMeta.length === 0) {
+          isDataLoading = false;
           uploadModal.hide();
           updateStatusArea('Google Drive', 'Error', 'Disconnected', true);
           alert('No Excel files were found in the selected Google Drive folder.');
+          updateDailyRefreshIndicator();
           return;
         }
 
@@ -1885,15 +2069,20 @@
         processExcelFiles(excelFileObjects);
 
       } catch (err) {
+        isDataLoading = false;
         uploadModal.hide();
         updateStatusArea('Google Drive', 'Error', 'Disconnected', true);
         alert(`Google Drive Error: ${err.message}`);
+        updateDailyRefreshIndicator();
       }
     }
 
     function handleRefreshData() {
+      if (isDataLoading) return;
+
       dailyRefreshDue = false;
       $('#btnRefreshData').removeClass('daily-refresh-due').attr('title', 'Refresh dashboard data');
+
       if (currentDataSource === 'gdrive') {
         handleGDriveLoad();
       } else {
@@ -2220,9 +2409,8 @@
       $('#btnToggleFilter').on('click', toggleFilterSidebar);
       $('#btnDownloadBudgetVsActual').on('click', downloadBudgetVsActualReport);
 
-      $('#btnToggleNonFunder').on('click', function() {
-        toggleProjectViewMode();
-        resetFilters();
+      $('#btnToggleNonFunder').on('click', async function() {
+        await toggleProjectViewMode();
       });
 
       FILTER_FIELDS.forEach(field => {
@@ -2259,34 +2447,95 @@
       }, 250);
     }
 
-    function toggleProjectViewMode() {
-      showingAllProjects = !showingAllProjects;
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function setUploadProgress(percent, statusText, titleText = 'Processing Excel Data') {
+      const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+      $('#uploadProgressTitle').html(`<i class="fa-solid fa-gears text-primary me-1"></i>${titleText}`);
+      $('#uploadProgressBar')
+        .css('width', safePercent + '%')
+        .text(safePercent + '%')
+        .attr('aria-valuenow', safePercent);
+      $('#uploadStatusText').text(statusText || '');
+      if (safePercent < 100) {
+        $('#uploadTimingText').hide().text('');
+      }
+    }
+
+    async function toggleProjectViewMode() {
+      if (projectViewSwitchInProgress || isDataLoading) return;
+
+      projectViewSwitchInProgress = true;
       const $btn = $('#btnToggleNonFunder');
       const $text = $('#nonFunderBtnText');
+      const targetShowAll = !showingAllProjects;
+      const targetLabel = targetShowAll ? 'Show All Projects' : 'Show Listed Projects';
 
-      if (showingAllProjects) {
-        $btn.removeClass('btn-warning text-dark').addClass('btn-outline-warning');
-        $text.text('Show Listed Projects');
-        rawDataset = allParsedDataset;
-      } else {
-        $btn.removeClass('btn-outline-warning').addClass('btn-warning text-dark');
-        $text.text('Show All Projects');
-        rawDataset = funderDataset;
+      const progressModalEl = document.getElementById('uploadProgressModal');
+      const progressModal = bootstrap.Modal.getOrCreateInstance(progressModalEl);
+
+      try {
+        $btn.addClass('is-busy').attr('aria-busy', 'true');
+        progressModal.show();
+        setUploadProgress(5, `Preparing ${targetShowAll ? 'all projects' : 'listed projects'}...`, 'Updating Project View');
+
+        // Allow the progress UI to paint before the existing dashboard rebuild begins.
+        await delay(50);
+
+        showingAllProjects = targetShowAll;
+        setUploadProgress(20, 'Switching project dataset...', 'Updating Project View');
+
+        if (showingAllProjects) {
+          $btn.removeClass('btn-warning text-dark').addClass('btn-outline-warning');
+          $text.text('Show Listed Projects');
+          rawDataset = allParsedDataset;
+        } else {
+          $btn.removeClass('btn-outline-warning').addClass('btn-warning text-dark');
+          $text.text('Show All Projects');
+          rawDataset = funderDataset;
+        }
+
+        await delay(50);
+        setUploadProgress(40, 'Saving project view preference...', 'Updating Project View');
+
+        await saveDatasetToIDB({
+          allParsedDataset: allParsedDataset,
+          funderDataset: funderDataset,
+          monthColumns: monthColumns,
+          activeProjectIds: Array.from(activeProjectIdsSet),
+          funderProjectMapping: Array.from(funderProjectMapping.entries()),
+          budgetProjectDateMapping: Array.from(budgetProjectDateMapping.entries()),
+          showingAllProjects: showingAllProjects,
+          fileCount: $('#statusFilesLoaded').text(),
+          lastRefresh: $('#statusLastRefresh').text(),
+          folderName: $('#statusFolderName').text()
+        });
+
+        await delay(50);
+        setUploadProgress(60, 'Resetting filters for the selected project view...', 'Updating Project View');
+
+        // Preserve the existing behavior: switching project view resets all filters
+        // and rebuilds every dashboard component using the selected dataset.
+        resetFilters();
+
+        setUploadProgress(88, 'Refreshing KPIs, charts and reports...', 'Updating Project View');
+        await delay(50);
+
+        setUploadProgress(100, 'Completed. Dashboard is ready.', 'Updating Project View');
+        await delay(350);
+        progressModal.hide();
+      } catch (err) {
+        console.error('Project view switch failed:', err);
+        progressModal.hide();
+        alert(`Unable to update project view: ${err.message || err}`);
+      } finally {
+        projectViewSwitchInProgress = false;
+        $btn.removeClass('is-busy').removeAttr('aria-busy');
       }
-      
-      saveDatasetToIDB({
-        allParsedDataset: allParsedDataset,
-        funderDataset: funderDataset,
-        monthColumns: monthColumns,
-        activeProjectIds: Array.from(activeProjectIdsSet),
-        funderProjectMapping: Array.from(funderProjectMapping.entries()),
-        budgetProjectDateMapping: Array.from(budgetProjectDateMapping.entries()),
-        showingAllProjects: showingAllProjects,
-        fileCount: $('#statusFilesLoaded').text(),
-        lastRefresh: $('#statusLastRefresh').text(),
-        folderName: $('#statusFolderName').text()
-      });
     }
+
 
     function parseFileStartWeight(filename) {
       const regex = /([A-Za-z]{3})(\d{4})/g;
@@ -2426,6 +2675,7 @@
     function processExcelFiles(filesArray) {
       if (filesArray.length === 0) return;
 
+      isDataLoading = true;
       const uploadModal = new bootstrap.Modal(document.getElementById('uploadProgressModal'));
       uploadModal.show();
 
@@ -2441,6 +2691,7 @@
       const funderFile = filesArray.find(f => f.name.toLowerCase().includes('funder list') || f.name.toLowerCase() === 'funder list.xlsx');
       
       if (!funderFile) {
+        isDataLoading = false;
         uploadModal.hide();
         updateStatusArea(currentDataSource === 'gdrive' ? 'Google Drive' : 'Local Drive', 'Error', 'Disconnected', true);
         alert('Funder List.xlsx was not found in the selected folder.');
@@ -2552,13 +2803,16 @@
 
               processAndRenderDashboard();
               highlightFilterSection();
+              isDataLoading = false;
             }, 400);
           };
 
           const handleFailure = (err) => {
+            isDataLoading = false;
             uploadModal.hide();
             updateStatusArea(currentDataSource === 'gdrive' ? 'Google Drive' : 'Local Drive', 'Error', 'Disconnected', true);
             alert('Unable to read this Excel file.');
+            updateDailyRefreshIndicator();
           };
 
           if (typeof Worker !== 'undefined') {
@@ -2571,13 +2825,16 @@
           }
 
         } catch (err) {
+          isDataLoading = false;
           uploadModal.hide();
           updateStatusArea(currentDataSource === 'gdrive' ? 'Google Drive' : 'Local Drive', 'Error', 'Disconnected', true);
           alert(err.message || 'Unable to read this Excel file.');
+          updateDailyRefreshIndicator();
         }
       };
 
       funderReader.onerror = function() {
+        isDataLoading = false;
         uploadModal.hide();
         updateStatusArea(currentDataSource === 'gdrive' ? 'Google Drive' : 'Local Drive', 'Error', 'Disconnected', true);
         alert('Funder List.xlsx was not found in the selected folder.');
@@ -3287,7 +3544,18 @@
 
       section.append(table);
       $container.append(section);
+      updatePipStatementStickyOffsets();
       updatePipProjectPagination();
+    }
+
+    function updatePipStatementStickyOffsets() {
+      $('#pipTablesContainer .pip-project-section').each(function() {
+        const $section = $(this);
+        const headingH = $section.find('.pip-project-heading').outerHeight() || 31;
+        const headRowH = $section.find('.pip-project-table thead tr:first-child').outerHeight() || 30;
+        $section.css('--pip-project-heading-height', headingH + 'px');
+        $section.css('--pip-head-row1-height', headRowH + 'px');
+      });
     }
 
     function updatePipProjectPagination() {
