@@ -705,6 +705,47 @@
     /* Non-blocking visual state while Show All Projects is rebuilding the dashboard. */
     #btnToggleNonFunder.is-busy { pointer-events: none; opacity: .75; }
 
+    /* Budget Breakdown Details: robust freeze for Project Name + both header rows.
+       The same sticky stack applies in both Collapse Rows and Expand Rows modes. */
+    #budgetBreakdownModal .modal-body {
+      overflow: auto !important;
+      overscroll-behavior: contain;
+    }
+    #budgetBreakdownModal .table-responsive {
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      position: relative;
+    }
+    #budgetDataTable {
+      border-collapse: separate !important;
+      border-spacing: 0;
+    }
+    #budgetDataTable thead,
+    #budgetDataTable thead tr,
+    #budgetDataTable thead th {
+      position: sticky !important;
+    }
+    #budgetDataTable thead tr:first-child th {
+      top: calc(var(--budget-toolbar-height, 0px) + var(--budget-project-title-height, 0px)) !important;
+      z-index: 60 !important;
+    }
+    #budgetDataTable thead tr:nth-child(2) th {
+      top: calc(
+        var(--budget-toolbar-height, 0px) +
+        var(--budget-project-title-height, 0px) +
+        var(--budget-head-row1-height, 0px)
+      ) !important;
+      z-index: 61 !important;
+    }
+    #budgetDataTable thead th[rowspan="2"] {
+      vertical-align: middle !important;
+    }
+    #budgetProjectTitle {
+      position: sticky !important;
+      top: var(--budget-toolbar-height, 0px) !important;
+      z-index: 69 !important;
+    }
+
     /* Budget Breakdown Details: freeze the toolbar, Project Name row, and both column-heading rows. */
     #budgetBreakdownModal .modal-body {
       overflow: auto !important;
@@ -973,7 +1014,7 @@
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.13</div>
+            <div class="developer-version">© 2026 | Version: 3.14</div>
           </div>
         </div>
       </div>
@@ -1195,7 +1236,7 @@
                   <th rowspan="2">Budget Line</th>
                   <th colspan="3" class="text-center budget-ytd-group">YTD Details</th>
                   <th colspan="4" class="text-center budget-annual-group">Annual Details</th>
-                  <th rowspan="2">Total Open PO Value (Pipeline expenses)</th>
+                  <th rowspan="2">Open PO (Pipeline expenses)</th>
                 </tr>
                 <tr>
                   <th class="budget-ytd-col">YTD Budget</th>
@@ -1314,7 +1355,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Show top 10 overspent budget lines.">Top 10 overspent</button>
         <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Which project has the highest underspending?">Highest underspending project</button>
         <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Which project has the highest overspending?">Highest overspending project</button>
-        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="What is the total Open PO?">Open PO</button>
+        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="What is the total Open PO (Pipeline expenses)?">Open PO (Pipeline expenses)</button>
         <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ai-suggestion" data-question="Show projects below 50% utilization.">Projects below 50%</button>
       </div>
     </div>
@@ -1530,7 +1571,7 @@
           YTDActualCalc: periodActual,
           YTDVariance: variancePeriod,
           YTDUtilization: utilizationPeriod,
-          OpenPOVal: parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0)
+          OpenPOVal: parseFloat(row['Total Open PO Value'] ?? row['Open PO Value'] ?? row['Open PO'] ?? row['OpenPO'] ?? 0)
         };
       });
     }
@@ -1564,7 +1605,7 @@
           YTDActualCalc: periodActual,
           YTDVariance: variancePeriod,
           YTDUtilization: utilizationPeriod,
-          OpenPOVal: parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0)
+          OpenPOVal: parseFloat(row['Total Open PO Value'] ?? row['Open PO Value'] ?? row['Open PO'] ?? row['OpenPO'] ?? 0)
         };
       });
     }
@@ -1653,7 +1694,25 @@
       const info = getProjectDateInfo(projectId, row);
       if (!info.startDate.getTime() || !info.endDate.getTime()) return false;
 
-      return info.startDate <= bounds.toDate && info.endDate >= bounds.fromDate;
+      // Inclusive interval-overlap rule:
+      // Project Start Date <= Reporting Period End
+      // AND Project End Date >= Reporting Period Start.
+      // The reporting period is the complete calendar-month interval from
+      // the first day of Month From through the last day of Month To.
+      const projectStart = new Date(
+        info.startDate.getFullYear(),
+        info.startDate.getMonth(),
+        info.startDate.getDate(),
+        0, 0, 0, 0
+      );
+      const projectEnd = new Date(
+        info.endDate.getFullYear(),
+        info.endDate.getMonth(),
+        info.endDate.getDate(),
+        23, 59, 59, 999
+      );
+
+      return projectStart <= bounds.toDate && projectEnd >= bounds.fromDate;
     }
 
     function formatMonthYear(dateObj) {
@@ -2310,6 +2369,7 @@
           });
         }
         if (dataTableInstance) dataTableInstance.columns.adjust();
+        requestAnimationFrame(updateBudgetBreakdownStickyOffsets);
       });
 
       $('#budgetDataTable').on('click', '.toggle-group-btn', function(e) {
@@ -2328,6 +2388,7 @@
           $rows.hide();
         }
         if (dataTableInstance) dataTableInstance.columns.adjust();
+        requestAnimationFrame(updateBudgetBreakdownStickyOffsets);
       });
 
       $(document).on('change', '#modalFilterMonthFrom, #modalFilterMonthTo', function() {
@@ -2940,7 +3001,7 @@
 
           const canonicalCategory = categoryIdentityMap.get(categoryKey);
           const budgetLine = String(row['Budget Line'] || 'Unassigned');
-          const openPO = parseFloat(row['Open PO Value'] || row['Open PO'] || row['OpenPO'] || 0);
+          const openPO = parseFloat(row['Total Open PO Value'] ?? row['Open PO Value'] ?? row['Open PO'] ?? row['OpenPO'] ?? 0);
           const sheetAnnualBudget = parseFloat(row['Annual Budget'] || row['AnnualBudget'] || 0);
           const sheetStartDate = String(row['Projected Start Date'] || row['Start Month'] || '');
           const sheetEndDate = String(row['Projected End Date'] || row['End Month'] || '');
@@ -3315,6 +3376,14 @@
       return monthColumns.slice(fromIdx, toIdx + 1);
     }
 
+    function getFilteredUniqueProjectIds(rows = filteredDataset) {
+      return Array.from(new Set(
+        (rows || [])
+          .map(r => String(r['Project Id'] ?? r['ProjectID'] ?? '').trim())
+          .filter(Boolean)
+      ));
+    }
+
     function processAndRenderDashboard() {
       if (!rawDataset || rawDataset.length === 0) return;
 
@@ -3376,7 +3445,7 @@
 
       const projectIds = selectedProjectIds.length
         ? selectedProjectIds
-        : Array.from(new Set(filteredDataset.map(r => String(r['Project Id'] || '').trim()).filter(Boolean)));
+        : getFilteredUniqueProjectIds();
 
       window._pipProjectIds = projectIds;
 
@@ -3579,7 +3648,9 @@
     }
 
     function renderKPIs(data) {
-      const totalProjectsCount = new Set(data.map(d => d['Project Name'])).size;
+      const totalProjectsCount = new Set(
+        data.map(d => String(d['Project Id'] ?? d['ProjectID'] ?? '').trim()).filter(Boolean)
+      ).size;
       
       const totalYTDBudget = aggregate(data, 'YTDBudgetCalc');
       const totalYTDActual = aggregate(data, 'YTDActualCalc');
@@ -3866,6 +3937,10 @@
         </tr>`);
       });
     }
+
+    $(window).off('resize.budgetBreakdownSticky').on('resize.budgetBreakdownSticky', function() {
+      requestAnimationFrame(updateBudgetBreakdownStickyOffsets);
+    });
 
     function updateBudgetProjectPagination() {
       if (!dataTableInstance) return;
@@ -4155,13 +4230,13 @@
       if (report === 'project') return [
         {title:'Project Id', data:'name'}, {title:'Project Name', data:'projectName'}, {title:'Annual Budget', data:'budget', render:money},
         {title:'Annual Actual', data:'actual', render:money}, {title:'Variance', data:'variance', render:(d)=>`<span class="${d<0?'status-red':'status-green'} fw-bold">${money(d)}</span>`},
-        {title:'Utilization %', data:'utilization', render:(d)=>`${Number(d).toFixed(1)}%`}, {title:'Open PO', data:'openPO', render:money}
+        {title:'Utilization %', data:'utilization', render:(d)=>`${Number(d).toFixed(1)}%`}, {title:'Open PO (Pipeline expenses)', data:'openPO', render:money}
       ];
       if (report === 'region' || report === 'funder') return [
         {title: report === 'region' ? 'Region' : 'Funder Name', data:'name'}, {title:'Projects', data:'projects'},
         {title:'Annual Budget', data:'budget', render:money}, {title:'Annual Actual', data:'actual', render:money},
         {title:'Variance', data:'variance', render:(d)=>`<span class="${d<0?'status-red':'status-green'} fw-bold">${money(d)}</span>`},
-        {title:'Utilization %', data:'utilization', render:(d)=>`${Number(d).toFixed(1)}%`}, {title:'Open PO', data:'openPO', render:money}
+        {title:'Utilization %', data:'utilization', render:(d)=>`${Number(d).toFixed(1)}%`}, {title:'Open PO (Pipeline expenses)', data:'openPO', render:money}
       ];
       if (report === 'top10') return [
         {title:'Rank', data:'rank'}, {title:'Project Id', data:'projectId'}, {title:'Project Name', data:'projectName'},
@@ -4236,7 +4311,7 @@
       'Show top 10 overspent budget lines.',
       'Which project has the highest underspending?',
       'Which project has the highest overspending?',
-      'What is the total Open PO?',
+      'What is the total Open PO (Pipeline expenses)?',
       'Show projects below 50% utilization.'
     ];
 
@@ -4472,7 +4547,7 @@
         ytdActual: `<h6>Total YTD Actual</h6><strong>${aiFormatCurrency(t.ytdActual)}</strong>`,
         ytdVariance: `<h6>Total YTD Variance</h6><strong>${aiFormatCurrency(t.ytdVariance)}</strong><div class="text-muted mt-1">YTD Budget − YTD Actual</div>`,
         ytdUtilization: `<h6>YTD Budget Utilization</h6><strong>${aiFormatPercentage(t.ytdUtilization)}</strong>`,
-        openPO: `<h6>Total Open PO</h6><strong>${aiFormatCurrency(t.openPO)}</strong>`
+        openPO: `<h6>Open PO (Pipeline expenses)</h6><strong>${aiFormatCurrency(t.openPO)}</strong>`
       };
       return values[metric] || 'I could not determine the requested KPI.';
     }
@@ -4601,7 +4676,7 @@
         case 'lineExtreme': return aiBuildLineResponse(rows,intent);
         case 'keyword': return aiBuildKeywordResponse(rows,intent);
         default:
-          return 'I can currently help with Budget, Actual, Variance, Utilization, Open PO, Projects, Budget Lines, Underutilization and Overspending analysis. Please try a budget-related question.';
+          return 'I can currently help with Budget, Actual, Variance, Utilization, Open PO (Pipeline expenses), Projects, Budget Lines, Underutilization and Overspending analysis. Please try a budget-related question.';
       }
     }
 
