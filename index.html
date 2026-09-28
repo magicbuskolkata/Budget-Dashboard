@@ -840,6 +840,27 @@
     .bva-report-print .annual-var { background:#FFFF00; }
     .bva-report-print .summary-head { background:#BCE2E8; }
 
+
+    /* Smart Menu Bar */
+    .smart-menu-bar { background:#fff; border:1px solid #dfe5ec; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .smart-menu-bar .nav-link { font-size:.76rem; font-weight:700; color:#34495e; padding:.48rem .7rem; }
+    .smart-menu-bar .nav-link:hover, .smart-menu-bar .nav-link:focus, .smart-menu-bar .nav-link.active { color:#0d6efd; background:#eef5fc; }
+    .smart-menu-bar .dropdown-menu { font-size:.74rem; min-width:230px; border:1px solid #d9e1ea; box-shadow:0 5px 18px rgba(0,0,0,.12); }
+    .smart-menu-bar .dropdown-item { padding:.42rem .75rem; }
+    .smart-menu-bar .dropdown-item i { width:18px; text-align:center; margin-right:5px; }
+    .smart-menu-bar .dropdown-header { font-size:.65rem; text-transform:uppercase; font-weight:800; color:#6c757d; }
+    .report-modal-table-wrap { max-height:68vh; overflow:auto; }
+    .report-modal-table-wrap table thead th { position:sticky; top:0; z-index:10; background:#E7F1FF !important; color:#0D6EFD !important; white-space:nowrap; }
+    .report-toolbar { display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+    .report-toolbar .dt-buttons { display:flex; gap:3px; flex-wrap:wrap; }
+    .report-toolbar .global-report-search { min-width:220px; max-width:320px; }
+    .report-kpi-note { font-size:.66rem; color:#6c757d; }
+    .help-content h6 { color:#0a4b9a; font-weight:800; margin-top:12px; }
+    .help-content p, .help-content li { font-size:.76rem; line-height:1.45; }
+    .help-content table { font-size:.72rem; }
+    #kpiTotalProjectsMainCard { min-height:100%; display:flex; flex-direction:column; justify-content:center; }
+    @media(max-width:768px){ .smart-menu-bar .navbar-nav{width:100%;} .smart-menu-bar .nav-link{padding:.55rem .65rem;} .report-toolbar .global-report-search{width:100%;max-width:none;} }
+
   </style>
 </head>
 <body>
@@ -911,6 +932,57 @@
     </div>
   </div>
 
+  <!-- Smart Menu Bar -->
+  <div class="container-fluid px-3 mb-2">
+    <nav class="smart-menu-bar navbar navbar-expand-lg navbar-light px-2" aria-label="Smart Menu Bar">
+      <button class="navbar-toggler py-1" type="button" data-bs-toggle="collapse" data-bs-target="#smartMenuCollapse" aria-controls="smartMenuCollapse" aria-expanded="false" aria-label="Toggle menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="smartMenuCollapse">
+        <ul class="navbar-nav me-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link active" href="#" id="menuDashboard"><i class="fa-solid fa-house me-1"></i>Dashboard</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fa-solid fa-folder-open me-1"></i>Project</a>
+            <ul class="dropdown-menu">
+              <li><h6 class="dropdown-header">Project Reports</h6></li>
+              <li><button class="dropdown-item" type="button" id="menuProjectSummary"><i class="fa-solid fa-list-check text-primary"></i>Project Summary</button></li>
+              <li><button class="dropdown-item" type="button" id="menuProjectStatus"><i class="fa-solid fa-circle-half-stroke text-success"></i>Project Status</button></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fa-solid fa-magnifying-glass-chart me-1"></i>Detailed Analysis</a>
+            <ul class="dropdown-menu">
+              <li><h6 class="dropdown-header">Detailed Reports</h6></li>
+              <li><button class="dropdown-item" type="button" id="menuBudgetBreakdown"><i class="fa-solid fa-table-list text-primary"></i>Budget Breakdown</button></li>
+              <li><button class="dropdown-item" type="button" id="menuPipStatement"><i class="fa-solid fa-chart-line text-success"></i>PIP Statement</button></li>
+              <li><button class="dropdown-item" type="button" id="menuBroadCategory"><i class="fa-solid fa-layer-group text-warning"></i>Broad Category</button></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fa-solid fa-chart-column me-1"></i>Reports</a>
+            <ul class="dropdown-menu">
+              <li><h6 class="dropdown-header">Management Reports</h6></li>
+              <li><button class="dropdown-item" type="button" id="menuManagementReport"><i class="fa-solid fa-chart-column text-success"></i>Management Report</button></li>
+              <li><button class="dropdown-item" type="button" id="menuBudgetVsActual"><i class="fa-solid fa-scale-balanced text-primary"></i>Budget vs Actual Report</button></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fa-solid fa-circle-info me-1"></i>Help</a>
+            <ul class="dropdown-menu">
+              <li><h6 class="dropdown-header">Documentation</h6></li>
+              <li><button class="dropdown-item" type="button" data-help-section="user-guide"><i class="fa-solid fa-book text-primary"></i>User Guide</button></li>
+              <li><button class="dropdown-item" type="button" data-help-section="kpi-definitions"><i class="fa-solid fa-gauge-high text-success"></i>KPI Definitions</button></li>
+              <li><button class="dropdown-item" type="button" data-help-section="calculation-logic"><i class="fa-solid fa-calculator text-warning"></i>Calculation Logic</button></li>
+              <li><button class="dropdown-item" type="button" data-help-section="data-structure"><i class="fa-solid fa-database text-info"></i>Data Structure</button></li>
+              <li><button class="dropdown-item" type="button" data-help-section="about-dashboard"><i class="fa-solid fa-user-gear text-secondary"></i>About Dashboard</button></li>
+            </ul>
+          </li>
+        </ul>
+        <div class="small text-muted fw-semibold px-2 py-1"><i class="fa-solid fa-filter me-1"></i>Reports use current Smart Filters</div>
+      </div>
+    </nav>
+  </div>
+
   <!-- Upload Progress Modal -->
   <div class="modal fade" id="uploadProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -938,11 +1010,6 @@
 
       <!-- LEFT SIDEBAR: Smart Cascading Filters -->
       <div class="col-lg-3" id="filterSidebarCol">
-        <div class="card dashboard-card p-2 mb-2 border-start border-primary border-3 text-center" id="totalProjectsKpiCard">
-          <div class="kpi-title">Total Projects</div>
-          <div class="kpi-value mt-1" id="kpiTotalProjects">0</div>
-          <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-folder me-1"></i>Selected Projects</div>
-        </div>
         <div class="card sidebar-card p-2" id="filterSidebarCard">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="fw-bold m-0 text-primary" style="font-size: 0.85rem;"><i class="fa-solid fa-filter me-1"></i>Smart Filters</h6>
@@ -1000,21 +1067,12 @@
               <label class="form-label fw-semibold mb-0" style="font-size: 0.7rem;">Budget Line</label>
               <select id="filterBudgetLine" class="form-select select2" multiple></select>
             </div>
-            <div id="budgetVsActualReportSection" class="mt-2">
-              <div class="report-section-label"><i class="fa-solid fa-file-export me-1 text-primary"></i>Budget vs. Actual Report</div>
-              <div class="report-download-controls">
-                <select id="budgetVsActualReportFormat" class="form-select form-select-sm">
-                  <option value="excel">Excel</option><option value="csv">CSV</option><option value="pdf">PDF</option><option value="print">Print</option>
-                </select>
-                <button type="button" id="btnDownloadBudgetVsActual" class="btn btn-primary btn-sm"><i class="fa-solid fa-download me-1"></i>Download</button>
-              </div>
-            </div>
           </form>
         </div>
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.14</div>
+            <div class="developer-version">© 2026 | Version: 3.16</div>
           </div>
         </div>
       </div>
@@ -1027,15 +1085,6 @@
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <button id="btnToggleFilter" class="btn btn-outline-primary btn-sm py-1 fw-semibold shadow-sm" style="font-size: 0.75rem;">
               <i class="fa-solid fa-filter-circle-xmark me-1" id="toggleFilterIcon"></i> <span id="toggleFilterText">Hide Filters</span>
-            </button>
-            <button id="btnOpenBudgetDetails" class="btn btn-outline-secondary btn-sm py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#budgetBreakdownModal" style="font-size: 0.75rem;">
-              <i class="fa-solid fa-table-list me-1 text-primary"></i> Budget Breakdown Details
-            </button>
-            <button id="btnOpenPipStatement" class="btn btn-outline-primary btn-sm py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#pipStatementModal" style="font-size: 0.75rem;">
-              <i class="fa-solid fa-chart-line me-1 text-success"></i> Budget PIP statement
-            </button>
-            <button id="btnOpenManagementAnalysis" class="btn btn-outline-success btn-sm py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#managementAnalysisModal" style="font-size: 0.75rem;">
-              <i class="fa-solid fa-chart-column me-1"></i> Management analysis
             </button>
           </div>
           <button id="btnToggleNonFunder" class="btn btn-outline-warning btn-sm py-1 fw-semibold shadow-sm" style="font-size: 0.75rem;">
@@ -1051,66 +1100,68 @@
           </div>
         </div>
 
-        <!-- KPI Summary Cards - ROW 1 -->
-        <div class="row g-2 mb-2">
-          <div class="col">
-            <div class="card dashboard-card p-2 border-start border-info border-3 h-100">
-              <div class="kpi-title">Total YTD Budget</div>
-              <div class="kpi-value mt-1" id="kpiYTDBudget">₹0</div>
-              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-calendar-check me-1"></i>Period Allocated</div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card dashboard-card p-2 border-start border-success border-3 h-100">
-              <div class="kpi-title">Total YTD Actual spend</div>
-              <div class="kpi-value mt-1" id="kpiYTDActual">₹0</div>
-              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-receipt me-1"></i>Period Spent</div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card dashboard-card p-2 border-start border-secondary border-3 h-100">
-              <div class="kpi-title">Total YTD Budget Variance</div>
-              <div class="kpi-value mt-1" id="kpiYTDVariance">₹0</div>
-              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-scale-balanced me-1"></i>Budget - Actual</div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card dashboard-card p-2 border-start border-warning border-3 h-100">
-              <div class="kpi-title">YTD Budget Utilization</div>
-              <div class="kpi-value mt-1" id="kpiYTDUtilization">0%</div>
-              <div class="mt-1"><span class="badge rounded-pill" id="kpiYTDStatusBadge" style="font-size: 0.6rem;">N/A</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI Summary Cards - ROW 2 -->
-        <div class="row g-2 mb-2">
+        <!-- KPI Summary Cards -->
+        <div class="row g-2 mb-2 align-items-stretch">
           <div class="col-md-3">
-            <div class="card dashboard-card p-2 border-start border-primary border-3">
-              <div class="kpi-title">Total Annual Budget</div>
-              <div class="kpi-value mt-1" id="kpiAnnualBudget">₹0</div>
-              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-wallet me-1"></i>Full Year Allocated</div>
+            <div class="card dashboard-card p-2 border-start border-primary border-3 h-100 text-center" id="kpiTotalProjectsMainCard">
+              <div class="kpi-title">Total Project</div>
+              <div class="kpi-value mt-1" id="kpiTotalProjects">0</div>
+              <div class="text-muted small mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-folder me-1"></i>Selected Projects</div>
+              <div class="report-kpi-note mt-2">Project count follows the current reporting-period overlap and Smart Filters.</div>
             </div>
           </div>
-          <div class="col-md-3">
-            <div class="card dashboard-card p-2 border-start border-info border-3">
-              <div class="kpi-title">Total Annual Actual Spend</div>
-              <div class="kpi-value mt-1" id="kpiActualTotal">₹0</div>
-              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-money-bill-transfer me-1"></i>Full Year Spent</div>
+          <div class="col-md-9">
+            <div class="row g-2">
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-info border-3 h-100">
+                  <div class="kpi-title">Total YTD Budget</div><div class="kpi-value mt-1" id="kpiYTDBudget">₹0</div>
+                  <div class="text-muted small mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-calendar-check me-1"></i>Period Allocated</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-success border-3 h-100">
+                  <div class="kpi-title">Total YTD Actual spend</div><div class="kpi-value mt-1" id="kpiYTDActual">₹0</div>
+                  <div class="text-muted small mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-receipt me-1"></i>Period Spent</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-secondary border-3 h-100">
+                  <div class="kpi-title">Total YTD Budget Variance</div><div class="kpi-value mt-1" id="kpiYTDVariance">₹0</div>
+                  <div class="text-muted small mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-scale-balanced me-1"></i>Budget - Actual</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-warning border-3 h-100">
+                  <div class="kpi-title">YTD Budget Utilization</div><div class="kpi-value mt-1" id="kpiYTDUtilization">0%</div>
+                  <div class="mt-1"><span class="badge rounded-pill" id="kpiYTDStatusBadge" style="font-size:0.6rem;">N/A</span></div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card dashboard-card p-2 border-start border-secondary border-3">
-              <div class="kpi-title">Total Annual Variance</div>
-              <div class="kpi-value mt-1" id="kpiVariance">₹0</div>
-              <div class="text-muted small mt-1" style="font-size: 0.65rem;"><i class="fa-solid fa-chart-line me-1"></i>Annual Variance</div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card dashboard-card p-2 border-start border-warning border-3">
-              <div class="kpi-title">Annual Budget Utilization</div>
-              <div class="kpi-value mt-1" id="kpiUtilization">0%</div>
-              <div class="mt-1"><span class="badge rounded-pill" id="kpiAnnualStatusBadge" style="font-size: 0.6rem;">N/A</span></div>
+            <div class="row g-2 mt-0">
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-primary border-3 h-100">
+                  <div class="kpi-title">Total Annual Budget</div><div class="kpi-value mt-1" id="kpiAnnualBudget">₹0</div>
+                  <div class="text-muted small mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-wallet me-1"></i>Full Year Allocated</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-info border-3 h-100">
+                  <div class="kpi-title">Total Annual Actual Spend</div><div class="kpi-value mt-1" id="kpiActualTotal">₹0</div>
+                  <div class="text-muted small mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-money-bill-transfer me-1"></i>Full Year Spent</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-secondary border-3 h-100">
+                  <div class="kpi-title">Total Annual Variance</div><div class="kpi-value mt-1" id="kpiVariance">₹0</div>
+                  <div class="text-muted small mt-1" style="font-size:0.65rem;"><i class="fa-solid fa-chart-line me-1"></i>Annual Variance</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card dashboard-card p-2 border-start border-warning border-3 h-100">
+                  <div class="kpi-title">Annual Budget Utilization</div><div class="kpi-value mt-1" id="kpiUtilization">0%</div>
+                  <div class="mt-1"><span class="badge rounded-pill" id="kpiAnnualStatusBadge" style="font-size:0.6rem;">N/A</span></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1287,6 +1338,7 @@
               <button class="btn btn-primary" id="btnPipCsv"><i class="fa-solid fa-file-csv me-1"></i>CSV</button>
               <button class="btn btn-danger" id="btnPipPdf"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
               <button class="btn btn-secondary" id="btnPipPrint"><i class="fa-solid fa-print me-1"></i>Print</button>
+              <button class="btn btn-outline-primary" type="button" id="btnPipSmartFilter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button>
             </div>
             <div class="input-group input-group-sm" style="max-width:240px;">
               <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
@@ -1319,6 +1371,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-2">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2"><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button><span class="text-muted" style="font-size:.68rem;">Global Search is available in the report table</span></div>
           <div class="management-submenu btn-group btn-group-sm flex-wrap mb-2" role="group" aria-label="Management analysis submenu">
             <button type="button" class="btn btn-outline-success active" data-management-report="project">Project-wise analysis</button>
             <button type="button" class="btn btn-outline-success" data-management-report="region">Region-wise analysis</button>
@@ -1331,6 +1384,46 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Project Summary Report Modal -->
+  <div class="modal fade" id="projectSummaryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-primary"><i class="fa-solid fa-list-check me-2"></i>Project Summary</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="report-export-host"></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="projectSummarySearch" placeholder="Global Search: any field"></div><div class="report-modal-table-wrap"><table id="projectSummaryTable" class="table table-sm table-striped table-hover w-100"></table></div></div>
+    </div></div>
+  </div>
+
+  <!-- Project Status Report Modal -->
+  <div class="modal fade" id="projectStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-success"><i class="fa-solid fa-circle-half-stroke me-2"></i>Project Status</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="report-export-host"></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="projectStatusSearch" placeholder="Global Search: any field"></div><div class="report-modal-table-wrap"><table id="projectStatusTable" class="table table-sm table-striped table-hover w-100"></table></div></div>
+    </div></div>
+  </div>
+
+  <!-- Broad Category Report Modal -->
+  <div class="modal fade" id="broadCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-warning"><i class="fa-solid fa-layer-group me-2"></i>Broad Category</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="report-export-host"></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="broadCategorySearch" placeholder="Global Search: any field"></div><div class="report-modal-table-wrap"><table id="broadCategoryTable" class="table table-sm table-striped table-hover w-100"></table></div></div>
+    </div></div>
+  </div>
+
+  <!-- Budget vs Actual Report Modal -->
+  <div class="modal fade" id="budgetVsActualModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-primary"><i class="fa-solid fa-scale-balanced me-2"></i>Budget vs Actual Report</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="btn-group btn-group-sm"><button class="btn btn-success" id="bvaExcelMenu"><i class="fa-solid fa-file-excel me-1"></i>Excel</button><button class="btn btn-primary" id="bvaCsvMenu"><i class="fa-solid fa-file-csv me-1"></i>CSV</button><button class="btn btn-danger" id="bvaPdfMenu"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button><button class="btn btn-secondary" id="bvaPrintMenu"><i class="fa-solid fa-print me-1"></i>Print</button></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="bvaSearch" placeholder="Global Search: any field"></div><div id="bvaReportContainer" class="report-modal-table-wrap"></div></div>
+    </div></div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-primary" id="helpModalTitle"><i class="fa-solid fa-circle-info me-2"></i>Help</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-3 help-content" id="helpModalBody"></div>
+    </div></div>
   </div>
 
   <!-- Zero-cost, client-side Budget AI Assistant -->
@@ -4287,16 +4380,18 @@
       $(`.management-submenu .btn[data-management-report="${report}"]`).addClass('active');
       const $container = $('#managementAnalysisContainer');
       if (managementDataTable) { managementDataTable.destroy(); managementDataTable = null; }
-      $container.html('<table id="managementAnalysisTable" class="table table-sm table-striped table-hover management-analysis-table w-100"></table>');
+      $container.html('<div class="report-toolbar management-report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="management-export-host"></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="managementReportSearch" placeholder="Global Search: any field"></div><table id="managementAnalysisTable" class="table table-sm table-striped table-hover management-analysis-table w-100"></table>');
       const columns = managementColumns(report);
       managementDataTable = $('#managementAnalysisTable').DataTable({
         data: buildManagementReport(report), columns, responsive:false, autoWidth:false, pageLength:25,
-        dom:'<"d-flex justify-content-between align-items-center mb-2"Bf>rtip',
+        dom:'rtip',
         buttons:[
           {extend:'excelHtml5',title:'Management Analysis'}, {extend:'csvHtml5',title:'Management Analysis'},
           {extend:'pdfHtml5',title:'Management Analysis',orientation:'landscape'}, {extend:'print',title:'Management Analysis'}
         ]
       });
+      $('.management-export-host').append(managementDataTable.buttons().container());
+      $('#managementReportSearch').off('input.smart').on('input.smart',function(){managementDataTable.search(this.value).draw();});
     }
 
     // ---------------- Zero-cost Client-side Budget AI Assistant ----------------
@@ -4795,6 +4890,119 @@ $(document).on('click','#btnPipExcel',()=>pipExport('excel'));
 $(document).on('click','#btnPipCsv',()=>pipExport('csv'));
 $(document).on('click','#btnPipPdf',()=>pipExport('pdf'));
 $(document).on('click','#btnPipPrint',()=>pipExport('print'));
+
+
+
+// ================= Smart Menu + Report Layer =================
+let smartReportTables = {};
+
+function smartReportRows() {
+  return getProcessedRows();
+}
+
+function uniqueProjectSummaryRows() {
+  const rows = smartReportRows();
+  const map = new Map();
+  rows.forEach(r => {
+    const id=String(r['Project Id']||'').trim(); if(!id) return;
+    if(!map.has(id)) map.set(id,{id,name:r['Project Name']||'',region:r['Region']||'',funder:r['Funder Name']||'',program:r['Program Type']||'',budget:0,actual:0});
+    const x=map.get(id); x.budget+=Number(r.AnnualBudgetCalc)||0; x.actual+=Number(r.ActualTotalCalc)||0;
+  });
+  return [...map.values()].map(x=>({
+    'Project Id':x.id,'Project Name':x.name,'Region':x.region,'Funder Name':x.funder,'Program Type':x.program,
+    'Annual Budget':x.budget,'Annual Actual':x.actual,'Variance':x.budget-x.actual,'Utilization %':x.budget?x.actual/x.budget*100:0
+  }));
+}
+
+function uniqueProjectStatusRows() {
+  const rows=smartReportRows(), map=new Map();
+  rows.forEach(r=>{
+    const id=String(r['Project Id']||'').trim(); if(!id) return;
+    if(!map.has(id)) map.set(id,r);
+  });
+  const today=new Date(); today.setHours(0,0,0,0);
+  const fmt=d=>d&& !isNaN(d.getTime()) ? `${String(d.getDate()).padStart(2,'0')}-${d.toLocaleString('en',{month:'short'})}-${d.getFullYear()}` : '';
+  return [...map.values()].map(r=>{
+    const info=getProjectDateInfo(String(r['Project Id']||'').trim(),r), start=info.startDate, end=info.endDate;
+    let status='Unknown';
+    if(start&&end&&!isNaN(start)&&!isNaN(end)){ if(today<start) status='Not Started'; else if(today>end) status='Closed'; else status='Active'; }
+    const daysStart=start&&!isNaN(start)?Math.floor((today-start)/86400000):'';
+    const daysEnd=end&&!isNaN(end)?Math.ceil((end-today)/86400000):'';
+    return {'Project Id':r['Project Id']||'','Project Name':r['Project Name']||'','Region':r['Region']||'','Funder Name':r['Funder Name']||'','Program Type':r['Program Type']||'', 'Project Start Date':fmt(start),'Project End Date':fmt(end),'Status':status,'Days from Start':daysStart,'Days to End':daysEnd};
+  });
+}
+
+function broadCategoryRows(){
+  return getModalProcessedRows().map(r=>({
+    'Region':r['Region'],'Funder ID':r['Funder ID'],'Project ID':r['Project Id'],'Project Name':r['Project Name'],'Category Id':normalizeCategoryId(r['Category Id']),'Budget Line':r['Budget Line'],
+    'Annual Budget':r.AnnualBudgetCalc,'Annual Actual':r.ActualTotalCalc,'Annual Variance':r.VarianceAnnual,'Utilization %':r.UtilizationAnnual,'Open PO (Pipeline expenditure)':r.OpenPOVal,'Broad Category':r['Broad Category']||'Unassigned Category'
+  }));
+}
+
+function destroySmartTable(id){ if(smartReportTables[id]){smartReportTables[id].destroy(); smartReportTables[id]=null;} }
+function initSmartTable(selector, rows, columns, searchSelector, title, groupField){
+  destroySmartTable(selector.replace('#',''));
+  const dt=$(selector).DataTable({data:rows,columns:columns,responsive:false,autoWidth:false,pageLength:25,paging: groupField === 'Broad Category' ? false : true,dom:'rtip',order:groupField?[[columns.findIndex(c=>c.data===groupField),'asc']]:[],rowGroup:groupField?{dataSrc:groupField}:undefined,buttons:[
+    {extend:'excelHtml5',title:title}, {extend:'csvHtml5',title:title}, {extend:'pdfHtml5',title:title,orientation:'landscape'}, {extend:'print',title:title}
+  ]});
+  smartReportTables[selector.replace('#','')]=dt;
+  const host=$(selector).closest('.modal-body').find('.report-export-host'); host.empty().append(dt.buttons().container());
+  $(searchSelector).off('input.smart').on('input.smart',function(){dt.search(this.value).draw();});
+  return dt;
+}
+
+function reportAmount(d){return money(d);}
+function openProjectSummary(){
+  const rows=uniqueProjectSummaryRows();
+  const cols=[
+    {title:'Project Id',data:'Project Id'},{title:'Project Name',data:'Project Name'},{title:'Region',data:'Region'},{title:'Funder Name',data:'Funder Name'},{title:'Program Type',data:'Program Type'},
+    {title:'Annual Budget',data:'Annual Budget',render:reportAmount},{title:'Annual Actual',data:'Annual Actual',render:reportAmount},{title:'Variance',data:'Variance',render:d=>`<span class="${d<0?'status-red':'status-green'} fw-bold">${money(d)}</span>`},{title:'Utilization %',data:'Utilization %',render:d=>`${Number(d).toFixed(1)}%`}
+  ];
+  initSmartTable('#projectSummaryTable',rows,cols,'#projectSummarySearch','Project Summary');
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('projectSummaryModal')).show();
+}
+function openProjectStatus(){
+  const rows=uniqueProjectStatusRows();
+  const cols=['Project Id','Project Name','Region','Funder Name','Program Type','Project Start Date','Project End Date','Status','Days from Start','Days to End'].map(k=>({title:k,data:k,render:k==='Days to End'?d=>d===''?'':(Number(d)<0?`<span class="status-red fw-bold">${d}</span>`:d):undefined}));
+  initSmartTable('#projectStatusTable',rows,cols,'#projectStatusSearch','Project Status');
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('projectStatusModal')).show();
+}
+function openBroadCategory(){
+  const rows=broadCategoryRows();
+  const cols=['Region','Funder ID','Project ID','Project Name','Category Id','Budget Line','Annual Budget','Annual Actual','Annual Variance','Utilization %','Open PO (Pipeline expenditure)','Broad Category'].map(k=>({title:k,data:k,render:['Annual Budget','Annual Actual','Annual Variance','Open PO (Pipeline expenditure)'].includes(k)?d=>money(d):k==='Utilization %'?d=>`${Number(d).toFixed(1)}%`:undefined}));
+  initSmartTable('#broadCategoryTable',rows,cols,'#broadCategorySearch','Broad Category','Broad Category');
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('broadCategoryModal')).show();
+}
+function openBvaMenu(){
+  if(!filteredDataset.length){alert('No filtered data is available for the Budget vs Actual Report.');return;}
+  const model=buildBvaModel(); $('#bvaReportContainer').html(buildBvaHtml(model));
+  $('#bvaSearch').off('input.smart').on('input.smart',function(){const q=this.value.toLowerCase().trim();$('#bvaReportContainer table tbody tr').each(function(){$(this).toggle(!q||$(this).text().toLowerCase().includes(q));});});
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('budgetVsActualModal')).show();
+}
+
+const HELP_CONTENT={
+'user-guide':{title:'User Guide',html:`<h6>1. Load Data</h6><ol><li>Open the dashboard in a modern browser.</li><li>Use <b>Refresh Data</b> to load the configured Google Drive data source.</li><li>If Google Drive is unavailable, use <b>More Options</b> for Local Drive or Manual Upload Fallback.</li><li>Wait for the loading process to complete. The dashboard also restores cached data from browser storage when available.</li></ol><h6>2. Apply Smart Filters</h6><ol><li>Select Month From and Month To.</li><li>Use Region, Program Type, Funder Name, Project Id, Project Name, Broad Category, Category Name and Budget Line.</li><li>Filters cascade and reports use the currently filtered data.</li><li>Use Reset to clear the selections.</li></ol><h6>3. Navigate Reports</h6><p>Use the Smart Menu Bar. Dashboard returns to the home dashboard. Project contains Project Summary and Project Status. Detailed Analysis contains Budget Breakdown, PIP Statement and Broad Category. Reports contains Management Report and Budget vs Actual Report. Help contains this documentation.</p><h6>4. Export</h6><p>Report tables provide Excel, CSV, PDF and Print. Use the Global Search box to search across all displayed fields.</p><h6>5. Dashboard KPIs</h6><p>The Total Project KPI and financial KPIs refresh whenever Smart Filters or the reporting period changes.</p>`},
+'kpi-definitions':{title:'KPI Definitions',html:`<table class="table table-bordered table-sm"><thead><tr><th>KPI</th><th>Definition</th></tr></thead><tbody><tr><td>Total Project</td><td>Unique projects included after Smart Filters and reporting-period overlap logic.</td></tr><tr><td>Total YTD Budget</td><td>Budget allocated across the selected reporting months.</td></tr><tr><td>Total YTD Actual Spend</td><td>Actual expenditure across the selected reporting months.</td></tr><tr><td>Total YTD Budget Variance</td><td>YTD Budget minus YTD Actual.</td></tr><tr><td>YTD Budget Utilization</td><td>YTD Actual divided by YTD Budget × 100.</td></tr><tr><td>Total Annual Budget</td><td>Annual Budget for the filtered rows.</td></tr><tr><td>Total Annual Actual Spend</td><td>Annual actual expenditure for the filtered rows.</td></tr><tr><td>Total Annual Variance</td><td>Annual Budget minus Annual Actual.</td></tr><tr><td>Annual Budget Utilization</td><td>Annual Actual divided by Annual Budget × 100.</td></tr></tbody></table>`},
+'calculation-logic':{title:'Calculation Logic',html:`<h6>Project inclusion</h6><p>A project is included when its project period overlaps the selected reporting period. Projects ending during the selected period are therefore included; projects that ended before Month From are excluded.</p><h6>YTD</h6><p>For every filtered budget row, the dashboard sums Budget {month} and Actual {month} for every month from Month From through Month To.</p><h6>Annual</h6><p>Annual Budget uses the row's Annual Budget. Annual Actual is based on the available monthly actual values. Variance = Budget - Actual.</p><h6>Utilization</h6><p>Utilization % = Actual ÷ Budget × 100 when Budget is greater than zero.</p><h6>Open PO</h6><p>Open PO values use the dashboard's existing Open PO field and processing logic.</p><h6>Project Status</h6><p>Status is evaluated against today's browser date: Not Started when today is before the start date, Active when today is within the project period, and Closed when today is after the end date.</p>`},
+'data-structure':{title:'Data Structure',html:`<p>The dashboard reads Excel workbooks and maps the fields used by its existing processing layer. Common report fields include:</p><ul><li>Region</li><li>Funder ID / Funder Name</li><li>Project Id / Project Name</li><li>Program Type</li><li>Project Start Date / Project End Date</li><li>Broad Category / Category Name / Category Id</li><li>Budget Line</li><li>Annual Budget</li><li>Monthly Budget and Actual columns</li><li>Open PO / pipeline expenditure fields</li></ul><p>The exact source column names must match the dashboard's existing Excel processing rules.</p>`},
+'about-dashboard':{title:'About Dashboard',html:`<h6>Purpose</h6><p>This Budget Monitoring Dashboard consolidates budget, actual, variance, utilization and pipeline information into a browser-based management tool.</p><h6>Contribution</h6><ul><li>Centralizes budget monitoring across projects and branches.</li><li>Provides Smart Filters for quick project, funder, region and category analysis.</li><li>Reduces repetitive manual report preparation through reusable reports and exports.</li><li>Supports management review through KPI cards, charts, detailed analysis and downloadable reports.</li><li>Retains the existing Google Drive, Excel, IndexedDB, chart, export and AI Assistant functionality.</li></ul><h6>Technology</h6><p>The dashboard remains client-side HTML, CSS and JavaScript using the existing Bootstrap, DataTables, Chart.js and SheetJS libraries.</p>`}
+};
+function openHelp(section){const x=HELP_CONTENT[section]||HELP_CONTENT['user-guide'];$('#helpModalTitle').html(`<i class="fa-solid fa-circle-info me-2"></i>${x.title}`);$('#helpModalBody').html(x.html);bootstrap.Modal.getOrCreateInstance(document.getElementById('helpModal')).show();}
+
+$(document).on('click','.btn-smart-filter,#btnPipSmartFilter',function(){ $('#btnToggleFilter').trigger('click'); const modalEl=$(this).closest('.modal')[0]; if(modalEl){bootstrap.Modal.getOrCreateInstance(modalEl).hide();} setTimeout(()=>document.getElementById('filterSidebarCard')?.scrollIntoView({behavior:'smooth',block:'start'}),200); });
+$(document).on('click','#menuDashboard',function(e){e.preventDefault();$('.smart-menu-bar .nav-link').removeClass('active');$(this).addClass('active');document.getElementById('mainContentCol')?.scrollIntoView({behavior:'smooth',block:'start'});});
+$(document).on('click','#menuProjectSummary',openProjectSummary);
+$(document).on('click','#menuProjectStatus',openProjectStatus);
+$(document).on('click','#menuBudgetBreakdown',()=>bootstrap.Modal.getOrCreateInstance(document.getElementById('budgetBreakdownModal')).show());
+$(document).on('click','#menuPipStatement',()=>bootstrap.Modal.getOrCreateInstance(document.getElementById('pipStatementModal')).show());
+$(document).on('click','#menuBroadCategory',openBroadCategory);
+$(document).on('click','#menuManagementReport',()=>{renderManagementAnalysis('project');bootstrap.Modal.getOrCreateInstance(document.getElementById('managementAnalysisModal')).show();});
+$(document).on('click','#menuBudgetVsActual',openBvaMenu);
+$(document).on('click','[data-help-section]',function(){openHelp($(this).data('help-section'));});
+$(document).on('click','#bvaExcelMenu',()=>downloadBvaExcel(buildBvaModel()));
+$(document).on('click','#bvaCsvMenu',()=>downloadBvaCsv(buildBvaModel()));
+$(document).on('click','#bvaPdfMenu',()=>downloadBvaPdf(buildBvaModel()));
+$(document).on('click','#bvaPrintMenu',()=>printBva(buildBvaModel()));
 
 </script>
 </body>
