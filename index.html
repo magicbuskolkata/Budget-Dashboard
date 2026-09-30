@@ -167,7 +167,7 @@
       background-color: #FFFF00 !important;
     }
 
-    /* Requirement 3 & 5: PIP Statement Unique Professional Colors & Increased Budget Line Width */
+    /* Requirement 3 & 5: Project-wise PIP Analysis Unique Professional Colors & Increased Budget Line Width */
     .pip-budget-col {
       background-color: #F0F4F8 !important;
       color: #1d3557 !important;
@@ -198,7 +198,7 @@
       font-weight: bold;
     }
 
-    /* PIP Statement: equal month widths and clear month-group borders */
+    /* Project-wise PIP Analysis: equal month widths and clear month-group borders */
     #pipTablesContainer {
       width: 100%;
     }
@@ -272,7 +272,7 @@
       vertical-align: middle !important;
     }
 
-    /* Budget PIP Statement: Budget Line wraps while remaining frozen during horizontal scroll */
+    /* Budget Project-wise PIP Analysis: Budget Line wraps while remaining frozen during horizontal scroll */
     .pip-project-table .pip-budget-line-col {
       white-space: normal !important;
       overflow-wrap: anywhere !important;
@@ -304,7 +304,7 @@
       border-color: #adb5bd !important;
     }
 
-    /* Budget Breakdown Details: compact and highlighted export buttons */
+    /* Budget Analysis: compact and highlighted export buttons */
     #budgetDataTable_wrapper .dt-buttons .buttons-excel,
     #budgetDataTable_wrapper .dt-buttons .buttons-csv,
     #budgetDataTable_wrapper .dt-buttons .buttons-pdf,
@@ -349,7 +349,7 @@
       color: #ffffff !important;
     }
 
-    /* Budget Breakdown Details: YTD is always visible. */
+    /* Budget Analysis: YTD is always visible. */
     #budgetDataTable_wrapper .budget-report-toolbar {
       width: 100%;
     }
@@ -387,7 +387,7 @@
       padding: 0;
     }
 
-    /* Keep the complete Budget Breakdown report justified inside the modal. */
+    /* Keep the complete Budget Analysis report justified inside the modal. */
     #budgetBreakdownModal .modal-body {
       overflow-x: auto;
     }
@@ -600,7 +600,7 @@
       margin-top: 2px;
     }
 
-    /* Budget Breakdown Details: clearly separate YTD and Annual column groups. */
+    /* Budget Analysis: clearly separate YTD and Annual column groups. */
     #budgetDataTable th.budget-ytd-col,
     #budgetDataTable td.budget-ytd-col {
       border-left: 1px solid #8ea5bd !important;
@@ -628,7 +628,7 @@
       border-right: 3px solid #6f879f !important;
     }
 
-    /* Budget Breakdown Details: sticky toolbar, project name and two-level header. */
+    /* Budget Analysis: sticky toolbar, project name and two-level header. */
     #budgetBreakdownModal .modal-body {
       --budget-toolbar-height: 0px;
       --budget-project-title-height: 0px;
@@ -660,7 +660,7 @@
       background-color: #E7F1FF !important;
     }
 
-    /* Budget PIP Statement: Broad Category group label remains visible during horizontal scrolling. */
+    /* Budget Project-wise PIP Analysis: Broad Category group label remains visible during horizontal scrolling. */
     #pipStatementModal .pip-group-sticky-content {
       position: sticky;
       left: 0;
@@ -705,7 +705,7 @@
     /* Non-blocking visual state while Show All Projects is rebuilding the dashboard. */
     #btnToggleNonFunder.is-busy { pointer-events: none; opacity: .75; }
 
-    /* Budget Breakdown Details: robust freeze for Project Name + both header rows.
+    /* Budget Analysis: robust freeze for Project Name + both header rows.
        The same sticky stack applies in both Collapse Rows and Expand Rows modes. */
     #budgetBreakdownModal .modal-body {
       overflow: auto !important;
@@ -746,7 +746,7 @@
       z-index: 69 !important;
     }
 
-    /* Budget Breakdown Details: freeze the toolbar, Project Name row, and both column-heading rows. */
+    /* Budget Analysis: freeze the toolbar, Project Name row, and both column-heading rows. */
     #budgetBreakdownModal .modal-body {
       overflow: auto !important;
       position: relative;
@@ -782,7 +782,7 @@
     #budgetDataTable th:nth-child(6), #budgetDataTable td:nth-child(6) { width: 20% !important; min-width: 220px !important; }
     #budgetDataTable th:nth-child(4), #budgetDataTable td:nth-child(4) { width: 14% !important; }
 
-    /* Budget PIP Statement: freeze Project heading, month row and column-heading row. */
+    /* Budget Project-wise PIP Analysis: freeze Project heading, month row and column-heading row. */
     #pipTablesContainer {
       position: relative;
       overflow: auto !important;
@@ -855,6 +855,7 @@
     .report-toolbar .dt-buttons { display:flex; gap:3px; flex-wrap:wrap; }
     .report-toolbar .global-report-search { min-width:220px; max-width:320px; }
     .report-kpi-note { font-size:.66rem; color:#6c757d; }
+    #monthlySpendingTrendChart { width:100% !important; height:100% !important; }
     .help-content h6 { color:#0a4b9a; font-weight:800; margin-top:12px; }
     .help-content p, .help-content li { font-size:.76rem; line-height:1.45; }
     .help-content table { font-size:.72rem; }
@@ -953,9 +954,10 @@
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fa-solid fa-magnifying-glass-chart me-1"></i>Detailed Analysis</a>
             <ul class="dropdown-menu">
               <li><h6 class="dropdown-header">Detailed Reports</h6></li>
-              <li><button class="dropdown-item" type="button" id="menuBudgetBreakdown"><i class="fa-solid fa-table-list text-primary"></i>Budget Breakdown</button></li>
-              <li><button class="dropdown-item" type="button" id="menuPipStatement"><i class="fa-solid fa-chart-line text-success"></i>PIP Statement</button></li>
-              <li><button class="dropdown-item" type="button" id="menuBroadCategory"><i class="fa-solid fa-layer-group text-warning"></i>Broad Category</button></li>
+              <li><button class="dropdown-item" type="button" id="menuBudgetBreakdown"><i class="fa-solid fa-table-list text-primary"></i>Budget Analysis</button></li>
+              <li><button class="dropdown-item" type="button" id="menuPipStatement"><i class="fa-solid fa-chart-line text-success"></i>Project-wise PIP Analysis</button></li>
+              <li><button class="dropdown-item" type="button" id="menuBroadCategory"><i class="fa-solid fa-layer-group text-warning"></i>Broad Category-wise Analysis</button></li>
+              <li><button class="dropdown-item" type="button" id="menuMonthlySpendingTrend"><i class="fa-solid fa-chart-line text-info"></i>Monthly Spending Trend</button></li>
             </ul>
           </li>
           <li class="nav-item dropdown">
@@ -1072,7 +1074,7 @@
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.19</div>
+            <div class="developer-version">© 2026 | Version: 3.20</div>
           </div>
         </div>
       </div>
@@ -1264,13 +1266,13 @@
     </div>
   </div>
 
-  <!-- Budget Breakdown Details Modal -->
+  <!-- Budget Analysis Modal -->
   <div class="modal fade" id="budgetBreakdownModal" tabindex="-1" aria-labelledby="budgetBreakdownModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-90-width modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header py-2 px-3">
           <h6 class="modal-title fw-bold text-primary" id="budgetBreakdownModalLabel">
-            <i class="fa-solid fa-table me-2"></i>Budget Breakdown Details
+            <i class="fa-solid fa-table me-2"></i>Budget Analysis
           </h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -1321,13 +1323,13 @@
     </div>
   </div>
 
-  <!-- Budget PIP Statement Modal -->
+  <!-- Budget Project-wise PIP Analysis Modal -->
   <div class="modal fade" id="pipStatementModal" tabindex="-1" aria-labelledby="pipStatementModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-90-width modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header py-2 px-3 bg-light d-flex justify-content-between align-items-center">
           <h6 class="modal-title fw-bold text-primary" id="pipStatementModalLabel">
-            <i class="fa-solid fa-chart-line me-2"></i>Budget PIP Statement &nbsp;|&nbsp; <span id="pipModalProjectTitle" class="text-dark">All Projects</span>
+            <i class="fa-solid fa-chart-line me-2"></i>Project-wise PIP Analysis &nbsp;|&nbsp; <span id="pipModalProjectTitle" class="text-dark">All Projects</span>
           </h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -1405,7 +1407,7 @@
   <!-- Broad Category Report Modal -->
   <div class="modal fade" id="broadCategoryModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
-      <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-warning"><i class="fa-solid fa-layer-group me-2"></i>Broad Category</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-warning"><i class="fa-solid fa-layer-group me-2"></i>Broad Category-wise Analysis</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="report-export-host"></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="broadCategorySearch" placeholder="Global Search: any field"></div><div class="report-modal-table-wrap"><table id="broadCategoryTable" class="table table-sm table-striped table-hover w-100"></table></div></div>
     </div></div>
   </div>
@@ -1415,6 +1417,34 @@
     <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
       <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-primary"><i class="fa-solid fa-scale-balanced me-2"></i>Budget vs Actual Report</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="btn-group btn-group-sm"><button class="btn btn-success" id="bvaExcelMenu"><i class="fa-solid fa-file-excel me-1"></i>Excel</button><button class="btn btn-primary" id="bvaCsvMenu"><i class="fa-solid fa-file-csv me-1"></i>CSV</button><button class="btn btn-danger" id="bvaPdfMenu"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button><button class="btn btn-secondary" id="bvaPrintMenu"><i class="fa-solid fa-print me-1"></i>Print</button></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="bvaSearch" placeholder="Global Search: any field"></div><div id="bvaReportContainer" class="report-modal-table-wrap"></div></div>
+    </div></div>
+  </div>
+
+  <!-- Monthly Spending Trend Modal -->
+  <div class="modal fade" id="monthlySpendingTrendModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header py-2 px-3">
+        <h6 class="modal-title fw-bold text-info"><i class="fa-solid fa-chart-line me-2"></i>Monthly Spending Trend</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2">
+        <div class="report-toolbar">
+          <div class="d-flex align-items-center gap-1 flex-wrap">
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-success" id="monthlyTrendExcel"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+              <button class="btn btn-primary" id="monthlyTrendCsv"><i class="fa-solid fa-file-csv me-1"></i>CSV</button>
+              <button class="btn btn-secondary" id="monthlyTrendPrint"><i class="fa-solid fa-print me-1"></i>Print</button>
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button>
+          </div>
+          <input class="form-control form-control-sm global-report-search" id="monthlyTrendSearch" placeholder="Global Search: any field">
+        </div>
+        <div class="card dashboard-card p-2 mb-2">
+          <h6 class="fw-bold text-secondary mb-2" style="font-size:.8rem;"><i class="fa-solid fa-chart-line me-1 text-info"></i>Monthly Budget vs Actual Spending</h6>
+          <div style="position:relative;height:300px;width:100%;"><canvas id="monthlySpendingTrendChart"></canvas></div>
+        </div>
+        <div id="monthlyTrendTableWrap" class="report-modal-table-wrap"></div>
+      </div>
     </div></div>
   </div>
 
@@ -1570,7 +1600,7 @@
 
     let activeProjectIdsSet = new Set();
     let funderProjectMapping = new Map();
-    // PIP Statement date source: ONLY files whose name starts with 'Budget Vs Actual'.
+    // Project-wise PIP Analysis date source: ONLY files whose name starts with 'Budget Vs Actual'.
     let budgetProjectDateMapping = new Map();
 
     const FILTER_FIELDS = [
@@ -2433,7 +2463,15 @@
         },
         dom: '<"budget-report-toolbar"<"d-flex justify-content-between align-items-center mb-2"B>>rt<"budget-report-footer"i>',
         buttons: [
-          { extend: 'excelHtml5', className: 'btn btn-xs py-1', title: 'Budget Report' },
+          {
+            text: '<i class="fa-solid fa-file-excel me-1"></i>Excel',
+            className: 'btn btn-xs py-1 buttons-excel',
+            action: function () {
+              const exportRows = dataTableInstance.rows({search:'applied'}).data().toArray();
+              const headers = ['Region','Funder ID','Project Id','Project Name','Category Id','Budget Line','YTD Budget','YTD Actual','YTD Budget Variance','Annual Budget','Annual Actual','Annual Variance','Utilization','Total Open PO Value'];
+              downloadRowsToExcel(exportRows, headers, 'Budget_Analysis.xlsx', 'Budget Analysis');
+            }
+          },
           { extend: 'csvHtml5', className: 'btn btn-xs py-1', title: 'Budget Report' },
           { extend: 'pdfHtml5', className: 'btn btn-xs py-1', title: 'Budget Report', orientation: 'landscape' },
           { extend: 'print', className: 'btn btn-xs py-1 me-2' }
@@ -3167,7 +3205,7 @@
 
           // Category identity is unique within each Project.
           // The source database contains one Category Id per Project, so the
-          // Budget Breakdown data must never create a second report row for the
+          // Budget Analysis data must never create a second report row for the
           // same Project + Category Id merely because source files/rows differ
           // in Region, Funder, Budget Line, or monthly columns.
           // Monthly values are merged below when the same Project + Category Id
@@ -4453,7 +4491,14 @@
         data: buildManagementReport(report), columns, responsive:false, autoWidth:false, pageLength:25,
         dom:'rtip',
         buttons:[
-          {extend:'excelHtml5',title:'Management Analysis'}, {extend:'csvHtml5',title:'Management Analysis'},
+          {
+            text:'<i class="fa-solid fa-file-excel me-1"></i>Excel', className:'buttons-excel',
+            action:function(){
+              const exportRows=managementDataTable.rows({search:'applied'}).data().toArray();
+              const headers=managementDataTable.columns().header().toArray().map(h=>$(h).text().trim());
+              downloadRowsToExcel(exportRows,headers,'Management_Analysis.xlsx','Management Analysis');
+            }
+          }, {extend:'csvHtml5',title:'Management Analysis'},
           {extend:'pdfHtml5',title:'Management Analysis',orientation:'landscape'}, {extend:'print',title:'Management Analysis'}
         ]
       });
@@ -4942,15 +4987,18 @@ function pipExport(type){
  let csv='';
  tables.each(function(i,t){
    const ws=XLSX.utils.table_to_sheet(t);
+   applyAccountingFormats(ws,0);
    XLSX.utils.book_append_sheet(wb,ws,'Project_'+(i+1));
    csv+=XLSX.utils.sheet_to_csv(ws)+'\n';
  });
- if(type==='excel') XLSX.writeFile(wb,'Budget_PIP_Statement.xlsx');
+ if(type==='excel') XLSX.writeFile(wb,'Project_wise_PIP_Analysis.xlsx');
  else if(type==='csv'){
-   const blob=new Blob([csv],{type:'text/csv'});
-   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Budget_PIP_Statement.csv';a.click();
+   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Project_wise_PIP_Analysis.csv';a.click();
+   setTimeout(()=>URL.revokeObjectURL(a.href),0);
  } else if(type==='pdf'){window.print();}
 }
+
 $(document).on('click','#btnPipProjectPrev',()=>changePipProjectPage(-1));
 $(document).on('click','#btnPipProjectNext',()=>changePipProjectPage(1));
 $(document).on('click','#btnPipExcel',()=>pipExport('excel'));
@@ -5001,17 +5049,83 @@ function uniqueProjectStatusRows() {
 
 function broadCategoryRows(){
   return getModalProcessedRows().map(r=>({
-    'Region':r['Region'],'Funder ID':r['Funder ID'],'Project ID':r['Project Id'],'Project Name':r['Project Name'],'Category Id':normalizeCategoryId(r['Category Id']),'Budget Line':r['Budget Line'],
-    'Annual Budget':r.AnnualBudgetCalc,'Annual Actual':r.ActualTotalCalc,'Annual Variance':r.VarianceAnnual,'Utilization %':r.UtilizationAnnual,'Open PO (Pipeline expenditure)':r.OpenPOVal,'Broad Category':r['Broad Category']||'Unassigned Category'
+    'Region':r['Region'],
+    'Funder ID':r['Funder ID'],
+    'Project ID':r['Project Id'],
+    'Project Name':r['Project Name'],
+    'Program Type':r['Program Type'] || '',
+    'Category Id':normalizeCategoryId(r['Category Id']),
+    'Budget Line':r['Budget Line'],
+    'Annual Budget':Number(r.AnnualBudgetCalc)||0,
+    'Annual Actual':Number(r.ActualTotalCalc)||0,
+    'Annual Variance':Number(r.VarianceAnnual)||0,
+    'Utilization %':Number(r.UtilizationAnnual)||0,
+    'Open PO (Pipeline expenditure)':Number(r.OpenPOVal)||0,
+    'Broad Category':r['Broad Category']||'Unassigned Category'
   }));
 }
 
 function destroySmartTable(id){ if(smartReportTables[id]){smartReportTables[id].destroy(); smartReportTables[id]=null;} }
+
+const ACCOUNTING_XLSX_FORMAT = '_(* #,##0_);_(* (#,##0);_(* "-"_);_(@_)';
+const AMOUNT_HEADER_PATTERN = /(budget|actual|variance|spend|spent|open po|pipeline|underspent|balance|commitment|expenditure)/i;
+
+function xlsxAccountingNumber(value){
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const n = Number(String(value).replace(/[₹,\s]/g,'').replace(/[()]/g,''));
+  return Number.isFinite(n) ? (String(value).includes('(') ? -Math.abs(n) : n) : null;
+}
+
+function applyAccountingFormats(ws, headerRow=0){
+  const range=ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']) : null;
+  if(!range) return;
+  for(let c=range.s.c;c<=range.e.c;c++){
+    const h=ws[XLSX.utils.encode_cell({r:headerRow,c})];
+    const header=String(h?.v??'');
+    if(!AMOUNT_HEADER_PATTERN.test(header) || /%|utilization/i.test(header)) continue;
+    for(let r=headerRow+1;r<=range.e.r;r++){
+      const addr=XLSX.utils.encode_cell({r,c});
+      const cell=ws[addr];
+      if(!cell) continue;
+      const n=xlsxAccountingNumber(cell.v);
+      if(n!==null){ cell.v=n; cell.t='n'; cell.z=ACCOUNTING_XLSX_FORMAT; }
+    }
+  }
+}
+
+function downloadRowsToExcel(rows, headers, fileName, sheetName='Report'){
+  const aoa=[headers, ...rows.map(r=>headers.map(h=>r[h] ?? ''))];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  applyAccountingFormats(ws,0);
+  ws['!cols']=headers.map(h=>({wch: Math.min(32, Math.max(12, String(h).length+2))}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,sheetName.substring(0,31));
+  XLSX.writeFile(wb,fileName);
+}
+
 function initSmartTable(selector, rows, columns, searchSelector, title, groupField){
   destroySmartTable(selector.replace('#',''));
-  const dt=$(selector).DataTable({data:rows,columns:columns,responsive:false,autoWidth:false,pageLength:25,paging: groupField === 'Broad Category' ? false : true,dom:'rtip',order:groupField?[[columns.findIndex(c=>c.data===groupField),'asc']]:[],rowGroup:groupField?{dataSrc:groupField}:undefined,buttons:[
-    {extend:'excelHtml5',title:title}, {extend:'csvHtml5',title:title}, {extend:'pdfHtml5',title:title,orientation:'landscape'}, {extend:'print',title:title}
-  ]});
+  const dt=$(selector).DataTable({
+    data:rows, columns:columns, responsive:false, autoWidth:false, pageLength:25,
+    paging: groupField === 'Broad Category' ? false : true, dom:'rtip',
+    order:groupField?[[columns.findIndex(c=>c.data===groupField),'asc']]:[],
+    rowGroup:groupField?{dataSrc:groupField}:undefined,
+    buttons:[
+      {
+        text:'<i class="fa-solid fa-file-excel me-1"></i>Excel',
+        className:'buttons-excel',
+        action:function(){
+          const exportRows=dt.rows({search:'applied'}).data().toArray();
+          const headers=columns.map(c=>c.title||c.data);
+          downloadRowsToExcel(exportRows,headers,title.replace(/\s+/g,'_')+'.xlsx',title);
+        }
+      },
+      {extend:'csvHtml5',title:title},
+      {extend:'pdfHtml5',title:title,orientation:'landscape'},
+      {extend:'print',title:title}
+    ]
+  });
   smartReportTables[selector.replace('#','')]=dt;
   const host=$(selector).closest('.modal-body').find('.report-export-host'); host.empty().append(dt.buttons().container());
   $(searchSelector).off('input.smart').on('input.smart',function(){dt.search(this.value).draw();});
@@ -5034,12 +5148,122 @@ function openProjectStatus(){
   initSmartTable('#projectStatusTable',rows,cols,'#projectStatusSearch','Project Status');
   bootstrap.Modal.getOrCreateInstance(document.getElementById('projectStatusModal')).show();
 }
+
+function broadCategoryGroupId(group){
+  return 'bc_group_' + encodeURIComponent(String(group||'Unassigned Category'))
+    .replace(/%/g,'_').replace(/[^a-zA-Z0-9_-]/g,'_');
+}
+
+function broadCategoryExportRows(rows){
+  const map=new Map();
+  rows.forEach(r=>{
+    const g=r['Broad Category']||'Unassigned Category';
+    if(!map.has(g)) map.set(g,[]);
+    map.get(g).push(r);
+  });
+  const out=[];
+  map.forEach((items,g)=>{
+    const total=k=>items.reduce((a,r)=>a+(Number(r[k])||0),0);
+    out.push({
+      'Region':g+' Total',
+      'Funder ID':'','Project ID':'','Project Name':'','Program Type':'','Category Id':'','Budget Line':'',
+      'Annual Budget':total('Annual Budget'),'Annual Actual':total('Annual Actual'),'Annual Variance':total('Annual Variance'),
+      'Utilization %':total('Annual Budget')?total('Annual Actual')/total('Annual Budget')*100:0,
+      'Open PO (Pipeline expenditure)':total('Open PO (Pipeline expenditure)'),'Broad Category':g
+    });
+    items.forEach(r=>out.push({...r}));
+  });
+  return out;
+}
+
 function openBroadCategory(){
   const rows=broadCategoryRows();
-  const cols=['Region','Funder ID','Project ID','Project Name','Category Id','Budget Line','Annual Budget','Annual Actual','Annual Variance','Utilization %','Open PO (Pipeline expenditure)','Broad Category'].map(k=>({title:k,data:k,render:['Annual Budget','Annual Actual','Annual Variance','Open PO (Pipeline expenditure)'].includes(k)?d=>money(d):k==='Utilization %'?d=>`${Number(d).toFixed(1)}%`:undefined}));
-  initSmartTable('#broadCategoryTable',rows,cols,'#broadCategorySearch','Broad Category','Broad Category');
+  const cols=[
+    {title:'Region',data:'Region'},
+    {title:'Funder ID',data:'Funder ID'},
+    {title:'Project ID',data:'Project ID'},
+    {title:'Project Name',data:'Project Name'},
+    {title:'Program Type',data:'Program Type'},
+    {title:'Category Id',data:'Category Id'},
+    {title:'Budget Line',data:'Budget Line'},
+    {title:'Annual Budget',data:'Annual Budget',render:d=>money(d),className:'text-end'},
+    {title:'Annual Actual',data:'Annual Actual',render:d=>money(d),className:'text-end'},
+    {title:'Annual Variance',data:'Annual Variance',render:d=>`<span class="${d<0?'status-red':'status-green'} fw-bold">${money(d)}</span>`,className:'text-end'},
+    {title:'Utilization %',data:'Utilization %',render:d=>`${Number(d).toFixed(1)}%`,className:'text-center'},
+    {title:'Open PO (Pipeline expenditure)',data:'Open PO (Pipeline expenditure)',render:d=>money(d),className:'text-end'},
+    {title:'Broad Category',data:'Broad Category',visible:false}
+  ];
+
+  destroySmartTable('broadCategoryTable');
+  const dt=$('#broadCategoryTable').DataTable({
+    data:rows, columns:cols, responsive:false, autoWidth:false, pageLength:-1, paging:false,
+    dom:'rtip',
+    order:[[12,'asc'],[2,'asc'],[5,'asc']],
+    rowGroup:{
+      dataSrc:'Broad Category',
+      startRender:function(groupRows,group){
+        const items=groupRows.data().toArray();
+        const total=k=>items.reduce((a,r)=>a+(Number(r[k])||0),0);
+        const b=total('Annual Budget'), a=total('Annual Actual'), v=b-a, u=b?a/b*0+a?0:0:0;
+        const util=b? a/b*100:0;
+        const po=total('Open PO (Pipeline expenditure)');
+        const gid=broadCategoryGroupId(group);
+        const safe=$('<div>').text(group||'Unassigned Category').html();
+        return $('<tr class="group-header-row"/>').append(
+          '<td colspan="7" class="group-label-cell budget-text-col">'+
+            '<button type="button" class="btn btn-sm btn-outline-primary me-2 toggle-broad-group-btn" data-group-id="'+gid+'" style="width:22px;height:22px;padding:0;line-height:1;font-size:.65rem;"><i class="fa-solid fa-plus"></i></button>'+
+            '<span>'+safe+'</span></td>'+
+          '<td class="group-subtotal-cell text-end">'+money(b)+'</td>'+
+          '<td class="group-subtotal-cell text-end">'+money(a)+'</td>'+
+          '<td class="group-subtotal-cell text-end"><span class="'+(v<0?'status-red':'status-green')+'">'+money(v)+'</span></td>'+
+          '<td class="group-subtotal-cell text-center"><span class="badge '+(util>100?'bg-status-red':'bg-status-green')+'">'+util.toFixed(1)+'%</span></td>'+
+          '<td class="group-subtotal-cell text-end">'+money(po)+'</td>'
+        );
+      }
+    },
+    createdRow:function(row,data){
+      $(row).addClass('broad-detail-row '+broadCategoryGroupId(data['Broad Category'])).hide();
+    },
+    buttons:[{
+      text:'<i class="fa-solid fa-file-excel me-1"></i>Excel', className:'buttons-excel',
+      action:function(){
+        const exportRows=dt.rows({search:'applied'}).data().toArray();
+        const headers=cols.filter(c=>c.visible!==false).map(c=>c.title||c.data);
+        downloadRowsToExcel(broadCategoryExportRows(exportRows),headers,'Broad_Category_wise_Analysis.xlsx','Broad Category-wise Analysis');
+      }
+    },{extend:'csvHtml5',title:'Broad Category-wise Analysis'},{extend:'pdfHtml5',title:'Broad Category-wise Analysis',orientation:'landscape'},{extend:'print',title:'Broad Category-wise Analysis'}]
+  });
+  smartReportTables['broadCategoryTable']=dt;
+
+  const $host=$('#broadCategoryTable').closest('.modal-body').find('.report-export-host').empty();
+  $host.append(dt.buttons().container());
+  const $expand=$('<button type="button" class="btn btn-outline-primary btn-sm ms-1" id="btnBroadCategoryExpandCollapse"><i class="fa-solid fa-arrows-expand me-1"></i>Expand Rows</button>');
+  $host.append($expand);
+
+  let allExpanded=false;
+  function setBroadExpanded(expand){
+    allExpanded=!!expand;
+    $('#broadCategoryTable tbody .toggle-broad-group-btn').each(function(){
+      const gid=$(this).data('group-id'), $rows=$('#broadCategoryTable tbody tr.'+gid);
+      $(this).find('i').toggleClass('fa-plus',!allExpanded).toggleClass('fa-minus',allExpanded);
+      $(this).toggleClass('btn-outline-primary',!allExpanded).toggleClass('btn-primary text-white',allExpanded);
+      $rows.toggle(allExpanded);
+    });
+    $expand.html(allExpanded?'<i class="fa-solid fa-arrows-collapse me-1"></i>Collapse Rows':'<i class="fa-solid fa-arrows-expand me-1"></i>Expand Rows');
+  }
+  $expand.off('click').on('click',function(){setBroadExpanded(!allExpanded);});
+  $('#broadCategoryTable').off('click.broadToggle','.toggle-broad-group-btn').on('click.broadToggle','.toggle-broad-group-btn',function(e){
+    e.stopPropagation();
+    const $btn=$(this), gid=$btn.data('group-id'), $rows=$('#broadCategoryTable tbody tr.'+gid);
+    const expand=$btn.find('i').hasClass('fa-plus');
+    $btn.find('i').toggleClass('fa-plus',!expand).toggleClass('fa-minus',expand);
+    $btn.toggleClass('btn-outline-primary',!expand).toggleClass('btn-primary text-white',expand);
+    $rows.toggle(expand);
+  });
+  $('#broadCategorySearch').off('input.smart').on('input.smart',function(){dt.search(this.value).draw(); setTimeout(()=>setBroadExpanded(false),0);});
   bootstrap.Modal.getOrCreateInstance(document.getElementById('broadCategoryModal')).show();
 }
+
 function openBvaMenu(){
   if(!filteredDataset.length){alert('No filtered data is available for the Budget vs Actual Report.');return;}
   const model=buildBvaModel(); $('#bvaReportContainer').html(buildBvaHtml(model));
@@ -5047,8 +5271,74 @@ function openBvaMenu(){
   bootstrap.Modal.getOrCreateInstance(document.getElementById('budgetVsActualModal')).show();
 }
 
+
+let monthlySpendingTrendChart = null;
+let monthlySpendingTrendRows = [];
+
+function buildMonthlySpendingTrendRows(){
+  const months=getActiveSelectedMonths();
+  const data=getProcessedRows();
+  return months.map(m=>{
+    const budget=data.reduce((sum,r)=>sum+(Number(r[`Budget ${m}`])||0),0);
+    const actual=data.reduce((sum,r)=>sum+(Number(r[`Actual ${m}`])||0),0);
+    return {'Month':formatMonthYear(parseDDMMYY(m))||m,'Budget':budget,'Actual':actual,'Variance':budget-actual,'Utilization %':budget?actual/budget*100:0};
+  });
+}
+
+function openMonthlySpendingTrend(){
+  monthlySpendingTrendRows=buildMonthlySpendingTrendRows();
+  const labels=monthlySpendingTrendRows.map(r=>r.Month);
+  const budget=monthlySpendingTrendRows.map(r=>r.Budget);
+  const actual=monthlySpendingTrendRows.map(r=>r.Actual);
+
+  if(monthlySpendingTrendChart){ monthlySpendingTrendChart.destroy(); monthlySpendingTrendChart=null; }
+  const canvas=document.getElementById('monthlySpendingTrendChart');
+  if(canvas){
+    monthlySpendingTrendChart=new Chart(canvas,{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'Monthly Budget',data:budget,borderColor:'#0d6efd',backgroundColor:'#0d6efd',tension:.25,fill:false},
+        {label:'Monthly Actual',data:actual,borderColor:'#dc3545',backgroundColor:'#dc3545',tension:.25,fill:false}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>new Intl.NumberFormat('en-IN',{maximumFractionDigits:0}).format(v)}}}}
+    });
+  }
+
+  const rowsHtml=monthlySpendingTrendRows.map(r=>`<tr>
+    <td>${r.Month}</td><td class="text-end">${money(r.Budget)}</td><td class="text-end">${money(r.Actual)}</td>
+    <td class="text-end ${r.Variance<0?'status-red':'status-green'}">${money(r.Variance)}</td><td class="text-center">${Number(r['Utilization %']).toFixed(1)}%</td>
+  </tr>`).join('');
+  $('#monthlyTrendTableWrap').html(`<table class="table table-sm table-striped table-hover w-100" id="monthlyTrendTable">
+    <thead><tr><th>Month</th><th class="text-end">Budget</th><th class="text-end">Actual</th><th class="text-end">Variance</th><th class="text-center">Utilization %</th></tr></thead>
+    <tbody>${rowsHtml}</tbody></table>`);
+  $('#monthlyTrendSearch').off('input.trend').on('input.trend',function(){
+    const q=this.value.toLowerCase().trim();
+    $('#monthlyTrendTable tbody tr').each(function(){$(this).toggle(!q||$(this).text().toLowerCase().includes(q));});
+  });
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('monthlySpendingTrendModal')).show();
+}
+
+function exportMonthlyTrendExcel(){
+  downloadRowsToExcel(monthlySpendingTrendRows,['Month','Budget','Actual','Variance','Utilization %'],'Monthly_Spending_Trend.xlsx','Monthly Spending Trend');
+}
+function exportMonthlyTrendCsv(){
+  const ws=XLSX.utils.json_to_sheet(monthlySpendingTrendRows,{header:['Month','Budget','Actual','Variance','Utilization %']});
+  const csv=XLSX.utils.sheet_to_csv(ws);
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='Monthly_Spending_Trend.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),0);
+}
+function printMonthlyTrend(){
+  const html=document.querySelector('#monthlyTrendTableWrap')?.innerHTML||'';
+  const w=window.open('','_blank','width=1100,height=800'); if(!w)return;
+  w.document.write(`<html><head><title>Monthly Spending Trend</title><style>body{font-family:Arial;font-size:10px}h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:5px}th{background:#E7F1FF}</style></head><body><h2>Monthly Spending Trend</h2>${html}</body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),250);
+}
+$(document).on('click','#monthlyTrendExcel',exportMonthlyTrendExcel);
+$(document).on('click','#monthlyTrendCsv',exportMonthlyTrendCsv);
+$(document).on('click','#monthlyTrendPrint',printMonthlyTrend);
+
 const HELP_CONTENT={
-'user-guide':{title:'User Guide',html:`<h6>1. Load Data</h6><ol><li>Open the dashboard in a modern browser.</li><li>Use <b>Refresh Data</b> to load the configured Google Drive data source.</li><li>If Google Drive is unavailable, use <b>More Options</b> for Local Drive or Manual Upload Fallback.</li><li>Wait for the loading process to complete. The dashboard also restores cached data from browser storage when available.</li></ol><h6>2. Apply Smart Filters</h6><ol><li>Select Month From and Month To.</li><li>Use Region, Program Type, Funder Name, Project Id, Project Name, Broad Category, Category Name and Budget Line.</li><li>Filters cascade and reports use the currently filtered data.</li><li>Use Reset to clear the selections.</li></ol><h6>3. Navigate Reports</h6><p>Use the Smart Menu Bar. Dashboard returns to the home dashboard. Project contains Project Summary and Project Status. Detailed Analysis contains Budget Breakdown, PIP Statement and Broad Category. Reports contains Management Report and Budget vs Actual Report. Help contains this documentation.</p><h6>4. Export</h6><p>Report tables provide Excel, CSV, PDF and Print. Use the Global Search box to search across all displayed fields.</p><h6>5. Dashboard KPIs</h6><p>The Total Project KPI and financial KPIs refresh whenever Smart Filters or the reporting period changes.</p>`},
+'user-guide':{title:'User Guide',html:`<h6>1. Load Data</h6><ol><li>Open the dashboard in a modern browser.</li><li>Use <b>Refresh Data</b> to load the configured Google Drive data source.</li><li>If Google Drive is unavailable, use <b>More Options</b> for Local Drive or Manual Upload Fallback.</li><li>Wait for the loading process to complete. The dashboard also restores cached data from browser storage when available.</li></ol><h6>2. Apply Smart Filters</h6><ol><li>Select Month From and Month To.</li><li>Use Region, Program Type, Funder Name, Project Id, Project Name, Broad Category, Category Name and Budget Line.</li><li>Filters cascade and reports use the currently filtered data.</li><li>Use Reset to clear the selections.</li></ol><h6>3. Navigate Reports</h6><p>Use the Smart Menu Bar. Dashboard returns to the home dashboard. Project contains Project Summary and Project Status. Detailed Analysis contains Budget Analysis, Project-wise PIP Analysis, Broad Category-wise Analysis and Monthly Spending Trend. Reports contains Management Report and Budget vs Actual Report. Help contains this documentation.</p><h6>4. Export</h6><p>Report tables provide Excel, CSV, PDF and Print. Use the Global Search box to search across all displayed fields.</p><h6>5. Dashboard KPIs</h6><p>The Total Project KPI and financial KPIs refresh whenever Smart Filters or the reporting period changes.</p>`},
 'kpi-definitions':{title:'KPI Definitions',html:`<table class="table table-bordered table-sm"><thead><tr><th>KPI</th><th>Definition</th></tr></thead><tbody><tr><td>Total Project</td><td>Unique projects included after Smart Filters and reporting-period overlap logic.</td></tr><tr><td>Total YTD Budget</td><td>Budget allocated across the selected reporting months.</td></tr><tr><td>Total YTD Actual Spend</td><td>Actual expenditure across the selected reporting months.</td></tr><tr><td>Total YTD Budget Variance</td><td>YTD Budget minus YTD Actual.</td></tr><tr><td>YTD Budget Utilization</td><td>YTD Actual divided by YTD Budget × 100.</td></tr><tr><td>Total Annual Budget</td><td>Annual Budget for the filtered rows.</td></tr><tr><td>Total Annual Actual Spend</td><td>Annual actual expenditure for the filtered rows.</td></tr><tr><td>Total Annual Variance</td><td>Annual Budget minus Annual Actual.</td></tr><tr><td>Annual Budget Utilization</td><td>Annual Actual divided by Annual Budget × 100.</td></tr></tbody></table>`},
 'calculation-logic':{title:'Calculation Logic',html:`<h6>Project inclusion</h6><p>A project is included when its project period overlaps the selected reporting period. Projects ending during the selected period are therefore included; projects that ended before Month From are excluded.</p><h6>YTD</h6><p>For every filtered budget row, the dashboard sums Budget {month} and Actual {month} for every month from Month From through Month To.</p><h6>Annual</h6><p>Annual Budget uses the row's Annual Budget. Annual Actual is based on the available monthly actual values. Variance = Budget - Actual.</p><h6>Utilization</h6><p>Utilization % = Actual ÷ Budget × 100 when Budget is greater than zero.</p><h6>Open PO</h6><p>Open PO values use the dashboard's existing Open PO field and processing logic.</p><h6>Project Status</h6><p>Status is evaluated against today's browser date: Not Started when today is before the start date, Active when today is within the project period, and Closed when today is after the end date.</p>`},
 'data-structure':{title:'Data Structure',html:`<p>The dashboard reads Excel workbooks and maps the fields used by its existing processing layer. Common report fields include:</p><ul><li>Region</li><li>Funder ID / Funder Name</li><li>Project Id / Project Name</li><li>Program Type</li><li>Project Start Date / Project End Date</li><li>Broad Category / Category Name / Category Id</li><li>Budget Line</li><li>Annual Budget</li><li>Monthly Budget and Actual columns</li><li>Open PO / pipeline expenditure fields</li></ul><p>The exact source column names must match the dashboard's existing Excel processing rules.</p>`},
@@ -5063,6 +5353,7 @@ $(document).on('click','#menuProjectStatus',openProjectStatus);
 $(document).on('click','#menuBudgetBreakdown',()=>bootstrap.Modal.getOrCreateInstance(document.getElementById('budgetBreakdownModal')).show());
 $(document).on('click','#menuPipStatement',()=>bootstrap.Modal.getOrCreateInstance(document.getElementById('pipStatementModal')).show());
 $(document).on('click','#menuBroadCategory',openBroadCategory);
+$(document).on('click','#menuMonthlySpendingTrend',openMonthlySpendingTrend);
 $(document).on('click','#menuManagementReport',()=>{renderManagementAnalysis('project');bootstrap.Modal.getOrCreateInstance(document.getElementById('managementAnalysisModal')).show();});
 $(document).on('click','#menuBudgetVsActual',openBvaMenu);
 $(document).on('click','[data-help-section]',function(){openHelp($(this).data('help-section'));});
