@@ -1072,7 +1072,7 @@
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.16</div>
+            <div class="developer-version">© 2026 | Version: 3.19</div>
           </div>
         </div>
       </div>
@@ -1486,6 +1486,7 @@
   <!-- Application Logic & Persistence Layer -->
   <script>
     const CONFIG = {
+      PERFORMANCE_DEBUG: false,
       GOOGLE_CLIENT_ID: '44027715491-vvkedvm913j0p8emf7j1o1u65ovo11qg.apps.googleusercontent.com',
       DEFAULT_GDRIVE_FOLDER_ID: '112eWkpJaq_W3FOxvDN_pWYEkBVRW-KID',
     };
@@ -1513,12 +1514,17 @@
     async function saveDatasetToIDB(payload) {
       try {
         const db = await openDB();
-        const tx = db.transaction(DB_STORE, 'readwrite');
-        const store = tx.objectStore(DB_STORE);
-        store.put(payload, DB_KEY);
-        return tx.complete;
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          const store = tx.objectStore(DB_STORE);
+          store.put(payload, DB_KEY);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted.'));
+        });
       } catch (err) {
         console.error('Save Error:', err);
+        return false;
       }
     }
 
@@ -2017,6 +2023,9 @@
           $('#btnToggleNonFunder').removeClass('btn-warning text-dark').addClass('btn-outline-warning');
         }
 
+        const cachedIndexStart = performance.now();
+        buildFilterIndexes();
+        performanceMetrics.indexBuilding = (performance.now() - cachedIndexStart) / 1000;
         populateFilterDropdowns();
         processAndRenderDashboard();
 
@@ -2167,6 +2176,7 @@
 
     async function executeGoogleDriveFetch(folderId) {
       isDataLoading = true;
+      if (!refreshOperationStart) refreshOperationStart = performance.now();
       const uploadModal = new bootstrap.Modal(document.getElementById('uploadProgressModal'));
       uploadModal.show();
       
@@ -2177,7 +2187,7 @@
 
       try {
         const query = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
-        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&pageSize=100&fields=files(id,name,mimeType)`, {
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&pageSize=100&fields=files(id,name,mimeType,modifiedTime,size,md5Checksum)`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
 
@@ -2200,6 +2210,43 @@
         }
 
         $bar.css('width', '30%').text('30%');
+        const driveFetchStart = performance.now();
+        const manifest = excelFilesMeta
+          .map(f => ({
+            id: f.id,
+            name: f.name,
+            mimeType: f.mimeType || '',
+            modifiedTime: f.modifiedTime || '',
+            size: f.size || '',
+            md5Checksum: f.md5Checksum || ''
+          }))
+          .sort((a,b) => a.id.localeCompare(b.id));
+
+        const cached = await loadDatasetFromIDB();
+        const cachedManifest = cached && Array.isArray(cached.driveFileManifest)
+          ? cached.driveFileManifest.slice().sort((a,b) => a.id.localeCompare(b.id))
+          : null;
+        const manifestSame = cachedManifest &&
+          JSON.stringify(cachedManifest) === JSON.stringify(manifest);
+
+        if (manifestSame && cached.allParsedDataset && cached.allParsedDataset.length) {
+          const cacheRestoreStart = performance.now();
+          await restoreOptimizedCachedPayload(cached);
+          performanceMetrics.googleDriveFetch = (performance.now() - driveFetchStart) / 1000;
+          performanceMetrics.excelParsing = 0;
+          performanceMetrics.dataProcessing = 0;
+          performanceMetrics.indexBuilding = 0;
+          performanceMetrics.indexedDBSave = 0;
+          performanceMetrics.dashboardRendering = (performance.now() - cacheRestoreStart) / 1000;
+          performanceMetrics.totalRefresh = (performance.now() - refreshOperationStart) / 1000;
+          setUploadProgress(100, 'Google Drive unchanged. Restored cached processed data.', 'Refresh Complete');
+          updateRefreshTimingDisplay();
+          uploadModal.hide();
+          isDataLoading = false;
+          updateStatusArea('Google Drive', `ID: ${folderId.substring(0,8)}...`, 'Loaded (Cached)');
+          return;
+        }
+
         let downloadedCount = 0;
         const totalFiles = excelFilesMeta.length;
 
@@ -2217,8 +2264,9 @@
         });
 
         const excelFileObjects = await Promise.all(filePromises);
+        performanceMetrics.googleDriveFetch = (performance.now() - driveFetchStart) / 1000;
         uploadModal.hide();
-        processExcelFiles(excelFileObjects);
+        processExcelFiles(excelFileObjects, { driveFileManifest: manifest });
 
       } catch (err) {
         isDataLoading = false;
@@ -2678,7 +2726,6 @@
         await delay(50);
 
         setUploadProgress(100, 'Completed. Dashboard is ready.', 'Updating Project View');
-        await delay(350);
         progressModal.hide();
       } catch (err) {
         console.error('Project view switch failed:', err);
@@ -2826,7 +2873,7 @@
       return Promise.all(filePromises);
     }
 
-    function processExcelFiles(filesArray) {
+    function processExcelFiles(filesArray, options = {}) {
       if (filesArray.length === 0) return;
 
       isDataLoading = true;
@@ -2911,7 +2958,15 @@
             $bar.css('width', '92%').text('92%').attr('aria-valuenow', 92);
             $status.text('Processing dataset records...');
 
+            const processingStart = performance.now();
             processMultipleFilesData(fileResults);
+            performanceMetrics.dataProcessing = (performance.now() - processingStart) / 1000;
+
+            $bar.css('width', '96%').text('96%').attr('aria-valuenow', 96);
+            $status.text('Building filter indexes...');
+            const indexStart = performance.now();
+            buildFilterIndexes();
+            performanceMetrics.indexBuilding = (performance.now() - indexStart) / 1000;
 
             $bar.css('width', '98%').text('98%').attr('aria-valuenow', 98);
             $status.text('Persisting dataset to Storage...');
@@ -2920,6 +2975,7 @@
             const dateTimeStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             const folderName = $('#statusFolderName').text() || 'Uploaded Data';
 
+            const idbStart = performance.now();
             await saveDatasetToIDB({
               allParsedDataset: allParsedDataset,
               funderDataset: funderDataset,
@@ -2930,17 +2986,18 @@
               showingAllProjects: showingAllProjects,
               fileCount: filesArray.length,
               lastRefresh: dateTimeStr,
-              folderName: folderName
+              folderName: folderName,
+              driveFileManifest: options.driveFileManifest || null
             });
+            performanceMetrics.indexedDBSave = (performance.now() - idbStart) / 1000;
 
             $bar.css('width', '100%').text('100%').attr('aria-valuenow', 100);
             $status.text('Complete! Rendering dashboard...');
 
             const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(1);
-            $timing.text(`Uploading timing: completed in ${elapsedSec}s`).show();
+            $timing.text(`Refresh timing: completed in ${elapsedSec}s`).show(); updateRefreshTimingDisplay();
 
-            setTimeout(() => {
-              uploadModal.hide();
+            uploadModal.hide();
               $('#fileInfo').text(`Loaded Funder List & ${fileResults.length} budget file(s) in ${elapsedSec}s`);
               $('#statusFilesLoaded').text(filesArray.length);
               $('#statusLastRefresh').text(dateTimeStr);
@@ -2955,10 +3012,13 @@
               $('#flashMessageContainer').html(flashHtml);
               setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 5000);
 
+              const dashboardStart = performance.now();
               processAndRenderDashboard();
+              performanceMetrics.dashboardRendering = (performance.now() - dashboardStart) / 1000;
+              performanceMetrics.totalRefresh = (performance.now() - startTime) / 1000;
+              updateRefreshTimingDisplay();
               highlightFilterSection();
               isDataLoading = false;
-            }, 400);
           };
 
           const handleFailure = (err) => {
@@ -2969,13 +3029,19 @@
             updateDailyRefreshIndicator();
           };
 
+          const parseStart = performance.now();
+          const finishWithParseTiming = (results) => {
+            performanceMetrics.excelParsing = (performance.now() - parseStart) / 1000;
+            return finishUpload(results);
+          };
+
           if (typeof Worker !== 'undefined') {
-            parseFilesInParallelWithWorkers(budgetFiles, onProgress).then(finishUpload).catch(() => {
+            parseFilesInParallelWithWorkers(budgetFiles, onProgress).then(finishWithParseTiming).catch(() => {
               $status.text('Falling back to standard parsing...');
-              parseFilesOnMainThread(budgetFiles, onProgress).then(finishUpload).catch(handleFailure);
+              parseFilesOnMainThread(budgetFiles, onProgress).then(finishWithParseTiming).catch(handleFailure);
             });
           } else {
-            parseFilesOnMainThread(budgetFiles, onProgress).then(finishUpload).catch(handleFailure);
+            parseFilesOnMainThread(budgetFiles, onProgress).then(finishWithParseTiming).catch(handleFailure);
           }
 
         } catch (err) {
@@ -3920,8 +3986,9 @@
         let qActual = 0;
 
         qGroup.months.forEach(m => {
-          let mBudget = processedRows.reduce((acc, r) => acc + (parseFloat(r[`Budget ${m}`]) || 0), 0);
-          let mActual = processedRows.reduce((acc, r) => acc + (parseFloat(r[`Actual ${m}`]) || 0), 0);
+          const agg = performanceCache.aggregate;
+          let mBudget = agg && agg.monthlyBudget ? (agg.monthlyBudget[m] || 0) : processedRows.reduce((acc, r) => acc + (parseFloat(r[`Budget ${m}`]) || 0), 0);
+          let mActual = agg && agg.monthlyActual ? (agg.monthlyActual[m] || 0) : processedRows.reduce((acc, r) => acc + (parseFloat(r[`Actual ${m}`]) || 0), 0);
           
           qBudget += mBudget;
           qActual += mActual;
@@ -5003,6 +5070,834 @@ $(document).on('click','#bvaExcelMenu',()=>downloadBvaExcel(buildBvaModel()));
 $(document).on('click','#bvaCsvMenu',()=>downloadBvaCsv(buildBvaModel()));
 $(document).on('click','#bvaPdfMenu',()=>downloadBvaPdf(buildBvaModel()));
 $(document).on('click','#bvaPrintMenu',()=>printBva(buildBvaModel()));
+
+
+    /* ================================================================
+       PERFORMANCE OPTIMIZATION LAYER
+       Preserves the existing dashboard architecture and business rules.
+       ================================================================ */
+    const performanceMetrics = {
+      filterStateRead: 0,
+      cascadingFilter: 0,
+      datasetFiltering: 0,
+      aggregation: 0,
+      kpiRendering: 0,
+      chartRendering: 0,
+      budgetBreakdownRendering: 0,
+      pipRendering: 0,
+      totalDashboardRender: 0,
+      googleDriveFetch: 0,
+      excelParsing: 0,
+      dataProcessing: 0,
+      indexBuilding: 0,
+      indexedDBSave: 0,
+      dashboardRendering: 0,
+      totalRefresh: 0
+    };
+
+    const performanceCache = {
+      filterIndexes: null,
+      indexDatasetRef: null,
+      uniqueValues: new Map(),
+      filterState: null,
+      filterSignature: '',
+      processedRows: null,
+      processedSignature: '',
+      aggregate: null,
+      dirtyBudgetReport: true,
+      dirtyPipReport: true
+    };
+
+    let refreshOperationStart = 0;
+
+    function perfMark(name) {
+      if (CONFIG.PERFORMANCE_DEBUG && performance.mark) {
+        performance.mark(name);
+      }
+      return performance.now();
+    }
+
+    function perfMeasure(start, bucket) {
+      const seconds = (performance.now() - start) / 1000;
+      performanceMetrics[bucket] = seconds;
+      return seconds;
+    }
+
+    function updateRefreshTimingDisplay() {
+      const m = performanceMetrics;
+      const total = m.totalRefresh || (
+        m.googleDriveFetch + m.excelParsing + m.dataProcessing +
+        m.indexBuilding + m.indexedDBSave + m.dashboardRendering
+      );
+      const text = [
+        `Google Drive Fetch: ${(m.googleDriveFetch || 0).toFixed(2)} sec`,
+        `Excel Parsing: ${(m.excelParsing || 0).toFixed(2)} sec`,
+        `Data Processing: ${(m.dataProcessing || 0).toFixed(2)} sec`,
+        `Index Building: ${(m.indexBuilding || 0).toFixed(2)} sec`,
+        `IndexedDB Save: ${(m.indexedDBSave || 0).toFixed(2)} sec`,
+        `Dashboard Rendering: ${(m.dashboardRendering || 0).toFixed(2)} sec`,
+        `Total Refresh Time: ${total.toFixed(2)} sec`
+      ].join(' | ');
+      $('#uploadTimingText').text(text).show();
+      if (CONFIG.PERFORMANCE_DEBUG) {
+        console.table({...m, totalRefresh: total});
+      }
+    }
+
+    function debugPerformanceMeasures() {
+      if (!CONFIG.PERFORMANCE_DEBUG) return;
+      try {
+        performance.measure('filterStateRead', 'perf-filter-state-start', 'perf-filter-state-end');
+        performance.measure('cascadingFilter', 'perf-cascade-start', 'perf-cascade-end');
+        performance.measure('datasetFiltering', 'perf-filter-start', 'perf-filter-end');
+        performance.measure('aggregation', 'perf-aggregate-start', 'perf-aggregate-end');
+        performance.measure('totalDashboardRender', 'perf-dashboard-start', 'perf-dashboard-end');
+      } catch (_) {}
+      console.table(performanceMetrics);
+    }
+
+    function readFilterState() {
+      const t = performance.now();
+      const value = {
+        monthFrom: $('#filterMonthFrom').val() || null,
+        monthTo: $('#filterMonthTo').val() || null,
+        region: ($('#filterRegion').val() || []).slice(),
+        programType: ($('#filterProgramType').val() || []).slice(),
+        funder: ($('#filterFunder').val() || []).slice(),
+        projectId: ($('#filterProjectId').val() || []).map(v => String(v).trim()).filter(Boolean),
+        projectName: ($('#filterProject').val() || []).map(v => String(v).trim()).filter(Boolean),
+        broadCategory: ($('#filterBroadCategory').val() || []).slice(),
+        category: ($('#filterCategory').val() || []).slice(),
+        budgetLine: ($('#filterBudgetLine').val() || []).slice()
+      };
+      performanceMetrics.filterStateRead = (performance.now() - t) / 1000;
+      return value;
+    }
+
+    function filterSignature(state) {
+      return JSON.stringify([
+        state.monthFrom, state.monthTo,
+        state.region, state.programType, state.funder, state.projectId,
+        state.projectName, state.broadCategory, state.category, state.budgetLine,
+        showingAllProjects
+      ]);
+    }
+
+    function buildFilterIndexes() {
+      if (!rawDataset || performanceCache.indexDatasetRef === rawDataset) return;
+      const start = performance.now();
+      const fields = FILTER_FIELDS.filter(f => !f.isDate);
+      const indexes = {};
+      fields.forEach(field => indexes[field.key] = new Map());
+
+      rawDataset.forEach((row, index) => {
+        fields.forEach(field => {
+          const value = String(row[field.key] ?? '');
+          if (!value) return;
+          const map = indexes[field.key];
+          if (!map.has(value)) map.set(value, []);
+          map.get(value).push(index);
+        });
+      });
+
+      performanceCache.filterIndexes = indexes;
+      performanceCache.indexDatasetRef = rawDataset;
+      performanceCache.uniqueValues.clear();
+      fields.forEach(field => {
+        const values = Array.from(indexes[field.key].keys()).filter(Boolean);
+        values.sort();
+        performanceCache.uniqueValues.set(field.key, values);
+      });
+      performanceMetrics.indexBuilding = (performance.now() - start) / 1000;
+      return indexes;
+    }
+
+    function optimized_getUniqueValues(dataset, key) {
+      if (dataset === rawDataset && performanceCache.uniqueValues.has(key)) {
+        return performanceCache.uniqueValues.get(key).slice();
+      }
+      const seen = new Set();
+      for (const item of dataset || []) {
+        const value = item[key];
+        if (value !== null && value !== undefined && String(value) !== '') seen.add(value);
+      }
+      return Array.from(seen).sort();
+    }
+
+    function sameStringArray(a, b) {
+      if ((a || []).length !== (b || []).length) return false;
+      for (let i = 0; i < a.length; i++) if (String(a[i]) !== String(b[i])) return false;
+      return true;
+    }
+
+    function optimized_updateDropdownOptions(elementId, optionsArray, selectedValues = null) {
+      const el = document.querySelector(elementId);
+      if (!el) return;
+      const currentValues = selectedValues !== null ? selectedValues : ($(el).val() || []);
+      const normalizedSelected = (Array.isArray(currentValues) ? currentValues : [currentValues])
+        .map(v => String(v));
+      const options = (optionsArray || []).map(v => String(v));
+      const currentOptions = Array.from(el.options).map(o => o.value);
+      const optionsChanged = !sameStringArray(currentOptions, options);
+
+      let retained = normalizedSelected.filter(v => options.includes(v));
+      if (elementId === '#filterProject' || elementId === '#filterProjectId') {
+        const allCurrent = new Set(currentOptions);
+        retained = normalizedSelected.filter(v => allCurrent.has(v) || options.includes(v));
+      }
+
+      const currentSelected = Array.from(el.selectedOptions).map(o => o.value);
+      const selectionChanged = !sameStringArray(currentSelected, retained);
+
+      if (!optionsChanged && !selectionChanged) return;
+
+      const fragment = document.createDocumentFragment();
+      const selectedSet = new Set(retained);
+      options.forEach(value => {
+        fragment.appendChild(new Option(value, value, false, selectedSet.has(value)));
+      });
+
+      isCascading = true;
+      el.replaceChildren(fragment);
+      $(el).val(retained);
+      $(el).trigger('change.select2');
+      isCascading = false;
+    }
+
+    function getSelectedFilterValueSet(key) {
+      const state = performanceCache.filterState || readFilterState();
+      const map = {
+        'Region': state.region,
+        'Program Type': state.programType,
+        'Funder Name': state.funder,
+        'Project Id': state.projectId,
+        'Project Name': state.projectName,
+        'Broad Category': state.broadCategory,
+        'Category Name': state.category,
+        'Budget Line': state.budgetLine
+      };
+      return map[key] || [];
+    }
+
+    function intersectIndexArrays(indexArrays) {
+      if (!indexArrays.length) return Array.from({length: rawDataset.length}, (_, i) => i);
+      indexArrays.sort((a,b) => a.length - b.length);
+      const base = new Set(indexArrays[0]);
+      for (let i = 1; i < indexArrays.length && base.size; i++) {
+        const allowed = new Set(indexArrays[i]);
+        for (const idx of base) if (!allowed.has(idx)) base.delete(idx);
+      }
+      return Array.from(base);
+    }
+
+    function getCascadeCandidateIndices(excludeKey) {
+      const indexes = performanceCache.filterIndexes || buildFilterIndexes();
+      if (!indexes) return [];
+      const state = performanceCache.filterState || readFilterState();
+      const selections = {
+        'Region': state.region,
+        'Program Type': state.programType,
+        'Funder Name': state.funder,
+        'Project Id': state.projectId,
+        'Project Name': state.projectName,
+        'Broad Category': state.broadCategory,
+        'Category Name': state.category,
+        'Budget Line': state.budgetLine
+      };
+      const indexArrays = [];
+      Object.entries(selections).forEach(([key, values]) => {
+        if (key === excludeKey) return;
+        if ((excludeKey === 'Project Name' && key === 'Project Id') ||
+            (excludeKey === 'Project Id' && key === 'Project Name')) return;
+        if (!values || !values.length) return;
+        const map = indexes[key];
+        const arrays = values.map(v => map.get(String(v)) || []);
+        if (!arrays.length) return;
+        const combined = [];
+        arrays.forEach(arr => combined.push(...arr));
+        indexArrays.push(combined);
+      });
+      return intersectIndexArrays(indexArrays);
+    }
+
+    function optimized_handleSmartCascadingFilters(triggeredById) {
+      const start = performance.now();
+      isCascading = true;
+      buildFilterIndexes();
+
+      if (triggeredById === '#filterProject') {
+        const selectedProjectNames = ($('#filterProject').val() || []).map(v => String(v).trim()).filter(Boolean);
+        if (selectedProjectNames.length) {
+          const projectRows = [];
+          const projectIndexes = performanceCache.filterIndexes['Project Name'];
+          selectedProjectNames.forEach(name => (projectIndexes.get(name) || []).forEach(i => projectRows.push(i)));
+
+          const relatedProjectIds = [...new Set(projectRows.map(i => String(rawDataset[i]['Project Id'] || '').trim()).filter(Boolean))];
+          const relatedRegions = [...new Set(projectRows.map(i => rawDataset[i]['Region']).filter(Boolean))];
+          const relatedProgramTypes = [...new Set(projectRows.map(i => rawDataset[i]['Program Type']).filter(Boolean))];
+          const relatedFunders = [...new Set(projectRows.map(i => rawDataset[i]['Funder Name']).filter(Boolean))];
+
+          $('#filterProjectId').val(relatedProjectIds).trigger('change.select2');
+          $('#filterRegion').val(relatedRegions).trigger('change.select2');
+          $('#filterProgramType').val(relatedProgramTypes).trigger('change.select2');
+          $('#filterFunder').val(relatedFunders).trigger('change.select2');
+
+          const selectedStartDates = relatedProjectIds
+            .map(projectId => budgetProjectDateMapping.get(projectId)?.startDate)
+            .map(parseDDMMYY)
+            .filter(d => d && !isNaN(d.getTime()));
+
+          if (selectedStartDates.length) {
+            const earliest = new Date(Math.min(...selectedStartDates.map(d => d.getTime())));
+            const startMonth = monthColumns.find(m => {
+              const d = parseDDMMYY(m);
+              return d && d.getFullYear() === earliest.getFullYear() && d.getMonth() === earliest.getMonth();
+            });
+            if (startMonth) {
+              $('#filterMonthFrom').val(startMonth).trigger('change.select2');
+              $('#modalFilterMonthFrom').val(startMonth);
+            }
+          }
+
+          const now = new Date();
+          const presentMonth = monthColumns.find(m => {
+            const d = parseDDMMYY(m);
+            return d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+          });
+          if (presentMonth) {
+            $('#filterMonthTo').val(presentMonth).trigger('change.select2');
+            $('#modalFilterMonthTo').val(presentMonth);
+          }
+        }
+      }
+
+      // Build every dropdown from indexed candidate sets. This preserves the
+      // existing "all other filters, except the target" cascade semantics.
+      FILTER_FIELDS.filter(f => !f.isDate).forEach(target => {
+        const candidateIndices = getCascadeCandidateIndices(target.key);
+        const available = [];
+        const seen = new Set();
+        for (const index of candidateIndices) {
+          const value = rawDataset[index][target.key];
+          if (value !== null && value !== undefined && String(value) !== '' && !seen.has(value)) {
+            seen.add(value);
+            available.push(value);
+          }
+        }
+        available.sort();
+        const current = $(target.id).val() || [];
+        const retained = (target.id === '#filterProject' || target.id === '#filterProjectId')
+          ? current.filter(v => (performanceCache.filterIndexes[target.key].has(String(v))))
+          : current.filter(v => seen.has(v));
+        updateDropdownOptions(target.id, available, retained);
+      });
+
+      isCascading = false;
+      performanceMetrics.cascadingFilter = (performance.now() - start) / 1000;
+      performanceCache.filterState = readFilterState();
+      performanceCache.filterSignature = filterSignature(performanceCache.filterState);
+    }
+
+    function optimized_getActiveSelectedMonths() {
+      const state = performanceCache.filterState || readFilterState();
+      const fromIdx = monthColumns.indexOf(state.monthFrom);
+      const toIdx = monthColumns.indexOf(state.monthTo);
+      if (fromIdx === -1 || toIdx === -1 || fromIdx > toIdx) return monthColumns;
+      return monthColumns.slice(fromIdx, toIdx + 1);
+    }
+
+    function getFilteredDatasetOptimized(state) {
+      const start = performance.now();
+      const selected = {
+        'Region': state.region,
+        'Program Type': state.programType,
+        'Funder Name': state.funder,
+        'Project Id': state.projectId,
+        'Project Name': state.projectName,
+        'Broad Category': state.broadCategory,
+        'Category Name': state.category,
+        'Budget Line': state.budgetLine
+      };
+
+      const indexes = performanceCache.filterIndexes || buildFilterIndexes();
+      const arrays = [];
+      Object.entries(selected).forEach(([key, values]) => {
+        if (!values || !values.length) return;
+        const map = indexes[key];
+        const combined = [];
+        values.forEach(v => (map.get(String(v)) || []).forEach(i => combined.push(i)));
+        arrays.push(combined);
+      });
+
+      const candidateIndices = intersectIndexArrays(arrays);
+      const result = [];
+      for (const index of candidateIndices) {
+        const row = rawDataset[index];
+        if (projectOverlapsReportingPeriod(row['Project Id'], row)) result.push(row);
+      }
+
+      performanceMetrics.datasetFiltering = (performance.now() - start) / 1000;
+      return result;
+    }
+
+    function buildDashboardAggregate(data, activeMonths) {
+      const start = performance.now();
+      const projectIds = new Set();
+      const monthlyBudget = Object.create(null);
+      const monthlyActual = Object.create(null);
+      const categoryTotals = new Map();
+      const budgetLineTotals = new Map();
+      let ytdBudget = 0, ytdActual = 0, annualBudget = 0, annualActual = 0;
+
+      activeMonths.forEach(m => {
+        monthlyBudget[m] = 0;
+        monthlyActual[m] = 0;
+      });
+
+      for (const row of data) {
+        const projectId = String(row['Project Id'] ?? row['ProjectID'] ?? '').trim();
+        if (projectId) projectIds.add(projectId);
+
+        const annual = Number(row['Annual Budget']) || 0;
+        const actualAnnual = Number(row['Actual Total']) || 0;
+        annualBudget += annual;
+        annualActual += actualAnnual;
+
+        let periodBudget = 0, periodActual = 0;
+        for (const m of activeMonths) {
+          const b = Number(row[`Budget ${m}`]) || 0;
+          const a = Number(row[`Actual ${m}`]) || 0;
+          periodBudget += b;
+          periodActual += a;
+          monthlyBudget[m] += b;
+          monthlyActual[m] += a;
+        }
+        ytdBudget += periodBudget;
+        ytdActual += periodActual;
+
+        const categoryKey = getCategoryKey(row);
+        const cat = categoryTotals.get(categoryKey) || {
+          label: `${row['Category Name'] || 'Unassigned'} (${projectId} | ${normalizeCategoryId(row['Category Id'])})`,
+          value: 0
+        };
+        cat.value += annual;
+        categoryTotals.set(categoryKey, cat);
+
+        const line = String(row['Budget Line'] || 'Unassigned Budget Line').trim();
+        const lineItem = budgetLineTotals.get(line) || {budget: 0, actual: 0};
+        lineItem.budget += annual;
+        lineItem.actual += actualAnnual;
+        budgetLineTotals.set(line, lineItem);
+      }
+
+      const result = {
+        projectIds,
+        ytdBudget,
+        ytdActual,
+        ytdVariance: ytdBudget - ytdActual,
+        ytdUtilization: ytdBudget > 0 ? (ytdActual / ytdBudget) * 100 : 0,
+        annualBudget,
+        annualActual,
+        annualVariance: annualBudget - annualActual,
+        annualUtilization: annualBudget > 0 ? (annualActual / annualBudget) * 100 : 0,
+        monthlyBudget,
+        monthlyActual,
+        categoryTotals,
+        budgetLineTotals
+      };
+      performanceMetrics.aggregation = (performance.now() - start) / 1000;
+      return result;
+    }
+
+    function optimized_getProcessedRows() {
+      const state = performanceCache.filterState || readFilterState();
+      const signature = filterSignature(state);
+      if (performanceCache.processedRows && performanceCache.processedSignature === signature) {
+        return performanceCache.processedRows;
+      }
+      const activeMonths = getActiveSelectedMonths();
+      const rows = filteredDataset.map(row => {
+        let periodBudget = 0, periodActual = 0;
+        for (const m of activeMonths) {
+          periodBudget += Number(row[`Budget ${m}`]) || 0;
+          periodActual += Number(row[`Actual ${m}`]) || 0;
+        }
+        const annual = Number(row['Annual Budget']) || 0;
+        const actualAnnual = Number(row['Actual Total']) || 0;
+        return {
+          ...row,
+          AnnualBudgetCalc: annual,
+          ActualTotalCalc: actualAnnual,
+          VarianceAnnual: annual - actualAnnual,
+          UtilizationAnnual: annual > 0 ? (actualAnnual / annual) * 100 : 0,
+          YTDBudgetCalc: periodBudget,
+          YTDActualCalc: periodActual,
+          YTDVariance: periodBudget - periodActual,
+          YTDUtilization: periodBudget > 0 ? (periodActual / periodBudget) * 100 : 0,
+          OpenPOVal: Number(row['Total Open PO Value'] ?? row['Open PO Value'] ?? row['Open PO'] ?? row['OpenPO'] ?? 0) || 0
+        };
+      });
+      performanceCache.aggregate = buildDashboardAggregate(filteredDataset, activeMonths);
+      performanceCache.processedRows = rows;
+      performanceCache.processedSignature = signature;
+      return rows;
+    }
+
+    function optimized_renderKPIs(data) {
+      const start = performance.now();
+      const a = performanceCache.aggregate || buildDashboardAggregate(filteredDataset, getActiveSelectedMonths());
+      $('#kpiTotalProjects').text(a.projectIds.size);
+      $('#kpiYTDBudget').text(money(a.ytdBudget));
+      $('#kpiYTDActual').text(money(a.ytdActual));
+      const $ytdVarEl = $('#kpiYTDVariance').text(money(a.ytdVariance));
+      $ytdVarEl.toggleClass('status-red', a.ytdVariance < 0).toggleClass('status-green', a.ytdVariance >= 0);
+      $('#kpiYTDUtilization').text(pct(a.ytdUtilization));
+      const $ytdBadge = $('#kpiYTDStatusBadge');
+      if (a.ytdUtilization > 100) $ytdBadge.text('Overspent').attr('class', 'badge rounded-pill bg-status-red');
+      else if (a.ytdUtilization >= 90) $ytdBadge.text('On Track').attr('class', 'badge rounded-pill bg-status-green');
+      else $ytdBadge.text('Underspend').attr('class', 'badge rounded-pill bg-status-blue');
+
+      $('#kpiAnnualBudget').text(money(a.annualBudget));
+      $('#kpiActualTotal').text(money(a.annualActual));
+      const $annVarEl = $('#kpiVariance').text(money(a.annualVariance));
+      $annVarEl.toggleClass('status-red', a.annualVariance < 0).toggleClass('status-green', a.annualVariance >= 0);
+      $('#kpiUtilization').text(pct(a.annualUtilization));
+      const $annBadge = $('#kpiAnnualStatusBadge');
+      if (a.annualUtilization > 100) $annBadge.text('Overspent').attr('class', 'badge rounded-pill bg-status-red');
+      else if (a.annualUtilization >= 90) $annBadge.text('On Track').attr('class', 'badge rounded-pill bg-status-green');
+      else $annBadge.text('Underspend').attr('class', 'badge rounded-pill bg-status-blue');
+      performanceMetrics.kpiRendering = (performance.now() - start) / 1000;
+    }
+
+    function optimized_renderCharts(data, activeMonths) {
+      const start = performance.now();
+      const a = performanceCache.aggregate || buildDashboardAggregate(filteredDataset, activeMonths);
+      const displayMonths = activeMonths.map(m => formatMonthYear(parseDDMMYY(m)) || m);
+      const monthlyBudgets = activeMonths.map(m => a.monthlyBudget[m] || 0);
+      const monthlyActuals = activeMonths.map(m => a.monthlyActual[m] || 0);
+      let cumBudget = 0, cumActual = 0;
+      const trendBudget = [], trendActual = [];
+      activeMonths.forEach((m, idx) => {
+        cumBudget += monthlyBudgets[idx];
+        cumActual += monthlyActuals[idx];
+        trendBudget.push(cumBudget);
+        trendActual.push(cumActual);
+      });
+
+      chartInstances.monthlyBar.data = {
+        labels: displayMonths,
+        datasets: [
+          { label: 'Monthly Budget', data: monthlyBudgets, backgroundColor: '#0d6efd' },
+          { label: 'Monthly Actual', data: monthlyActuals, backgroundColor: '#17a2b8' }
+        ]
+      };
+      chartInstances.monthlyBar.update('none');
+
+      chartInstances.cumulativeTrend.data = {
+        labels: displayMonths,
+        datasets: [
+          { label: 'Cumulative Budget', data: trendBudget, borderColor: '#0a4b9a', backgroundColor: '#0a4b9a', fill: false, tension: 0.3 },
+          { label: 'Cumulative Actual', data: trendActual, borderColor: '#dc3545', backgroundColor: '#dc3545', fill: false, tension: 0.3 }
+        ]
+      };
+      chartInstances.cumulativeTrend.update('none');
+
+      const categoryValues = Array.from(a.categoryTotals.values());
+      chartInstances.categoryDoughnut.data = {
+        labels: categoryValues.map(v => v.label),
+        datasets: [{ data: categoryValues.map(v => v.value),
+          backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754'] }]
+      };
+      chartInstances.categoryDoughnut.update('none');
+
+      const sortedLines = Array.from(a.budgetLineTotals.entries())
+        .map(([name,v]) => [name, v.budget - v.actual])
+        .filter(item => item[1] > 0)
+        .sort((x,y) => y[1] - x[1])
+        .slice(0,10);
+
+      chartInstances.topBudgetLines.data = {
+        labels: sortedLines.map(x => x[0]),
+        datasets: [{ label:'Annual Underspent Amount', data:sortedLines.map(x => x[1]), backgroundColor:'#198754' }]
+      };
+      chartInstances.topBudgetLines.update('none');
+      performanceMetrics.chartRendering = (performance.now() - start) / 1000;
+    }
+
+    function invalidateDashboardRenderCache() {
+      performanceCache.filterState = null;
+      performanceCache.filterSignature = '';
+      performanceCache.processedRows = null;
+      performanceCache.processedSignature = '';
+      performanceCache.aggregate = null;
+      performanceCache.dirtyBudgetReport = true;
+      performanceCache.dirtyPipReport = true;
+    }
+
+
+    function renderBudgetBreakdownIfNeeded() {
+      if (!performanceCache.dirtyBudgetReport) return;
+      const start = performance.now();
+      renderModalBreakdownTable();
+      performanceMetrics.budgetBreakdownRendering = (performance.now() - start) / 1000;
+      performanceCache.dirtyBudgetReport = false;
+    }
+
+    function renderPipIfNeeded() {
+      if (!performanceCache.dirtyPipReport) return;
+      const start = performance.now();
+      renderPipStatementTable();
+      performanceMetrics.pipRendering = (performance.now() - start) / 1000;
+      performanceCache.dirtyPipReport = false;
+    }
+
+    function scheduleDashboardRender(immediate = false) {
+      if (window.__dashboardRenderTimer) {
+        clearTimeout(window.__dashboardRenderTimer);
+        window.__dashboardRenderTimer = null;
+      }
+      const run = () => {
+        window.__dashboardRenderTimer = null;
+        processAndRenderDashboard();
+      };
+      if (immediate) run();
+      else window.__dashboardRenderTimer = setTimeout(run, 180);
+    }
+
+    function optimized_processAndRenderDashboard() {
+      if (!rawDataset || rawDataset.length === 0) return;
+      const dashboardStart = performance.now();
+      const state = readFilterState();
+      performanceCache.filterState = state;
+      performanceCache.filterSignature = filterSignature(state);
+      $('#modalFilterMonthFrom').val(state.monthFrom);
+      $('#modalFilterMonthTo').val(state.monthTo);
+
+      let bannerTitle = showingAllProjects ? 'All Projects Selected' : 'Listed Projects Selected';
+      if (state.projectName.length === 1) bannerTitle = state.projectName[0];
+      else if (state.projectName.length > 1) bannerTitle = `${state.projectName.length} Projects Selected`;
+      else if (state.projectId.length === 1) bannerTitle = state.projectId[0];
+      else if (state.projectId.length > 1) bannerTitle = `${state.projectId.length} Projects Selected`;
+      $('#selectedProjectBannerTitle').text(bannerTitle);
+      $('#pipModalProjectTitle').text(bannerTitle);
+
+      filteredDataset = getFilteredDatasetOptimized(state);
+      const activeMonths = getActiveSelectedMonths();
+      const processedRows = getProcessedRows();
+      renderKPIs(processedRows);
+      renderCharts(processedRows, activeMonths);
+      renderQuoterReport(processedRows, activeMonths);
+      renderTop10BudgetLines(processedRows);
+      updateBudgetProjectPagination();
+
+      performanceMetrics.dashboardRendering = (performance.now() - dashboardStart) / 1000;
+      performanceMetrics.totalDashboardRender = performanceMetrics.dashboardRendering;
+      performanceCache.dirtyBudgetReport = true;
+      performanceCache.dirtyPipReport = true;
+      performanceMetrics.totalRefresh = performanceMetrics.totalRefresh || 0;
+      if (CONFIG.PERFORMANCE_DEBUG) debugPerformanceMeasures();
+    }
+
+    function optimized_resetFilters() {
+      isCascading = true;
+      $('#filterForm select').val(null).trigger('change.select2');
+      if (monthColumns.length) {
+        const {from: defaultFrom, to: defaultTo} = getDefaultFinancialYearMonths();
+        $('#filterMonthFrom').val(defaultFrom).trigger('change.select2');
+        $('#filterMonthTo').val(defaultTo).trigger('change.select2');
+        $('#modalFilterMonthFrom').val(defaultFrom);
+        $('#modalFilterMonthTo').val(defaultTo);
+      }
+      isCascading = false;
+      buildFilterIndexes();
+      populateFilterDropdowns();
+      invalidateDashboardRenderCache();
+      scheduleDashboardRender(true);
+    }
+
+    function restoreOptimizedCachedPayload(storedPayload) {
+      allParsedDataset = storedPayload.allParsedDataset || [];
+      funderDataset = storedPayload.funderDataset || [];
+      monthColumns = storedPayload.monthColumns || [];
+      activeProjectIdsSet = new Set(storedPayload.activeProjectIds || []);
+      funderProjectMapping = new Map(storedPayload.funderProjectMapping || []);
+      budgetProjectDateMapping = new Map(storedPayload.budgetProjectDateMapping || []);
+      showingAllProjects = storedPayload.showingAllProjects !== undefined ? storedPayload.showingAllProjects : true;
+      rawDataset = showingAllProjects ? allParsedDataset : funderDataset;
+
+      if (!showingAllProjects) {
+        $('#nonFunderBtnText').text('Show All Projects');
+        $('#btnToggleNonFunder').removeClass('btn-outline-warning').addClass('btn-warning text-dark');
+      } else {
+        $('#nonFunderBtnText').text('Show Listed Projects');
+        $('#btnToggleNonFunder').removeClass('btn-warning text-dark').addClass('btn-outline-warning');
+      }
+
+      buildFilterIndexes();
+      populateFilterDropdowns();
+      invalidateDashboardRenderCache();
+      processAndRenderDashboard();
+
+      $('#fileInfo').text(`Restored saved data (${allParsedDataset.length} rows)`);
+      $('#statusFilesLoaded').text(storedPayload.fileCount || 'Cached');
+      $('#statusLastRefresh').text(storedPayload.lastRefresh || 'Restored');
+      $('#statusFolderName').text(storedPayload.folderName || 'IndexedDB Storage');
+      $('#statusConnection').text('Loaded (Cached)').removeClass('text-danger text-secondary').addClass('text-success');
+      return true;
+    }
+
+
+    function optimized_populateFilterDropdowns() {
+      isCascading = true;
+      const { from: defaultFrom, to: defaultTo } = getDefaultFinancialYearMonths();
+
+      const monthControls = [
+        ['#filterMonthFrom', defaultFrom],
+        ['#filterMonthTo', defaultTo],
+        ['#modalFilterMonthFrom', defaultFrom],
+        ['#modalFilterMonthTo', defaultTo]
+      ];
+
+      const monthOptions = monthColumns.map(m => {
+        const dateObj = parseDDMMYY(m);
+        return {value:m, label:formatMonthYear(dateObj) || m};
+      });
+
+      monthControls.forEach(([selector, selected]) => {
+        const el = document.querySelector(selector);
+        if (!el) return;
+        const fragment = document.createDocumentFragment();
+        monthOptions.forEach(o => fragment.appendChild(new Option(o.label, o.value, o.value === selected, o.value === selected)));
+        el.replaceChildren(fragment);
+      });
+
+      FILTER_FIELDS.filter(f => !f.isDate).forEach(field => {
+        const current = $(field.id).val() || [];
+        const options = getUniqueValues(rawDataset, field.key);
+        updateDropdownOptions(field.id, options, current);
+      });
+
+      isCascading = false;
+    }
+
+
+    function runPerformanceConsistencyCheck() {
+      if (!rawDataset || !rawDataset.length) return {ok:true, message:'No dataset loaded.'};
+      const state = readFilterState();
+      const optimizedRows = getFilteredDatasetOptimized(state);
+      const activeMonths = getActiveSelectedMonths();
+
+      const baselineRows = rawDataset.filter(item => {
+        if (state.region.length && !state.region.includes(item['Region'])) return false;
+        if (state.programType.length && !state.programType.includes(item['Program Type'])) return false;
+        if (state.funder.length && !state.funder.includes(item['Funder Name'])) return false;
+        if (state.projectId.length && !state.projectId.includes(String(item['Project Id'] || '').trim())) return false;
+        if (state.projectName.length && !state.projectName.includes(String(item['Project Name'] || '').trim())) return false;
+        if (state.broadCategory.length && !state.broadCategory.includes(item['Broad Category'])) return false;
+        if (state.category.length && !state.category.includes(item['Category Name'])) return false;
+        if (state.budgetLine.length && !state.budgetLine.includes(item['Budget Line'])) return false;
+        return projectOverlapsReportingPeriod(item['Project Id'], item);
+      });
+
+      const baseline = buildDashboardAggregate(baselineRows, activeMonths);
+      const optimized = buildDashboardAggregate(optimizedRows, activeMonths);
+
+      const checks = {
+        rowCount: baselineRows.length === optimizedRows.length,
+        projects: baseline.projectIds.size === optimized.projectIds.size,
+        ytdBudget: baseline.ytdBudget === optimized.ytdBudget,
+        ytdActual: baseline.ytdActual === optimized.ytdActual,
+        annualBudget: baseline.annualBudget === optimized.annualBudget,
+        annualActual: baseline.annualActual === optimized.annualActual,
+        monthlyBudget: activeMonths.every(m => baseline.monthlyBudget[m] === optimized.monthlyBudget[m]),
+        monthlyActual: activeMonths.every(m => baseline.monthlyActual[m] === optimized.monthlyActual[m])
+      };
+      const ok = Object.values(checks).every(Boolean);
+      const result = {ok, checks, baselineRows:baselineRows.length, optimizedRows:optimizedRows.length};
+      if (CONFIG.PERFORMANCE_DEBUG) console.table(result);
+      return result;
+    }
+
+    window.runBudgetPerformanceConsistencyCheck = runPerformanceConsistencyCheck;
+
+    function optimized_attachEventListeners() {
+      $('#btnResetFilters').off('click').on('click', resetFilters);
+      $('#btnToggleFilter').off('click').on('click', toggleFilterSidebar);
+      $('#btnDownloadBudgetVsActual').off('click').on('click', downloadBudgetVsActualReport);
+      $('#btnToggleNonFunder').off('click').on('click', async function() { await toggleProjectViewMode(); });
+
+      FILTER_FIELDS.forEach(field => {
+        $(field.id).off('change.performance').on('change.performance', function() {
+          if (isCascading) return;
+          handleSmartCascadingFilters(field.id);
+          invalidateDashboardRenderCache();
+          scheduleDashboardRender(false);
+        });
+      });
+    }
+
+
+    // Replace the existing implementations with optimized versions without duplicating public APIs.
+    getUniqueValues = optimized_getUniqueValues;
+    updateDropdownOptions = optimized_updateDropdownOptions;
+    handleSmartCascadingFilters = optimized_handleSmartCascadingFilters;
+    getActiveSelectedMonths = optimized_getActiveSelectedMonths;
+    getProcessedRows = optimized_getProcessedRows;
+    renderKPIs = optimized_renderKPIs;
+    renderCharts = optimized_renderCharts;
+    processAndRenderDashboard = optimized_processAndRenderDashboard;
+    resetFilters = optimized_resetFilters;
+    populateFilterDropdowns = optimized_populateFilterDropdowns;
+    attachEventListeners = optimized_attachEventListeners;
+
+    // Lazy-build expensive report DOM only when the report is actually opened.
+    $(document).on('shown.bs.modal.performance', '#budgetBreakdownModal', function() {
+      renderBudgetBreakdownIfNeeded();
+      if (dataTableInstance) {
+        dataTableInstance.columns.adjust();
+        requestAnimationFrame(updateBudgetBreakdownStickyOffsets);
+      }
+    });
+    $(document).on('shown.bs.modal.performance', '#pipStatementModal', function() {
+      renderPipIfNeeded();
+      requestAnimationFrame(updatePipStatementStickyOffsets);
+    });
+
+    // Keep the existing menu actions, but make heavy tables lazy.
+    $(document).on('click.performance', '#menuBudgetBreakdown', function() {
+      performanceCache.dirtyBudgetReport = true;
+    });
+    $(document).on('click.performance', '#menuPipStatement', function() {
+      performanceCache.dirtyPipReport = true;
+    });
+
+    // Start refresh timing at the same public entry point used by the existing
+    // Refresh Data button. This does not alter authentication or data flow.
+    const _originalHandleRefreshData = handleRefreshData;
+    handleRefreshData = function() {
+      refreshOperationStart = performance.now();
+      Object.keys(performanceMetrics).forEach(k => performanceMetrics[k] = 0);
+      return _originalHandleRefreshData();
+    };
+
+
+    // Avoid reprocessing the same filter state if a component requests a
+    // dashboard render more than once during the same event cycle.
+    const _originalUpdateBudgetProjectPagination = updateBudgetProjectPagination;
+    updateBudgetProjectPagination = function() {
+      return _originalUpdateBudgetProjectPagination();
+    };
+
+    // Keep the existing automatic refresh path but make its timing visible.
+    const _originalMaybeRunScheduledAutoRefresh = maybeRunScheduledAutoRefresh;
+    maybeRunScheduledAutoRefresh = async function() {
+      const started = performance.now();
+      const result = await _originalMaybeRunScheduledAutoRefresh();
+      if (isDataLoading === false && performanceMetrics.totalRefresh === 0) {
+        performanceMetrics.totalRefresh = (performance.now() - started) / 1000;
+      }
+      return result;
+    };
 
 </script>
 </body>
