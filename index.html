@@ -1297,8 +1297,8 @@
                   <th class="budget-ytd-col budget-ytd-last">YTD Variance</th>
                   <th class="budget-annual-col">Annual Budget</th>
                   <th class="budget-annual-col">Annual Actual</th>
-                  <th class="budget-annual-col budget-annual-last">Annual Variance</th>
-                  <th>Annual Utilization %</th>
+                  <th class="budget-annual-col">Annual Variance</th>
+                  <th class="budget-annual-last">Annual Utilization %</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -2422,7 +2422,7 @@
           {
             data: 'Annual Variance',
             render: (data) => `<span class="${data < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(data)}</span>`,
-            className: 'col-annual-variance budget-amount-col budget-annual-col budget-annual-last'
+            className: 'col-annual-variance budget-amount-col budget-annual-col'
           },
           {
             data: 'Utilization',
