@@ -3176,7 +3176,7 @@
           const projectId = String(row['Project Id'] || row['ProjectId'] || row['Project ID'] || 'Unassigned').trim();
           const projectName = String(row['Project Name'] || 'Unassigned').trim();
           const broadCategory = String(row['Broad Category'] || row['Broad Category-US'] || 'Unassigned').trim();
-          const categoryId = normalizeCategoryId(row['Category Id'] || row['CategoryId'] || 'Unassigned');
+          const categoryId = normalizeCategoryId(row['Category ID'] || row['Category Id'] || row['CategoryId'] || 'Unassigned');
           const categoryName = String(row['Category Name'] || 'Unassigned').trim();
 
           // Enforce one canonical category definition per Project + Category Id.
