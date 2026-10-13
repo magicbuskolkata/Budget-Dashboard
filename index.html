@@ -1074,7 +1074,7 @@
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.20</div>
+            <div class="developer-version">© 2026 | Version: 3.22</div>
           </div>
         </div>
       </div>
@@ -1548,9 +1548,9 @@
           const tx = db.transaction(DB_STORE, 'readwrite');
           const store = tx.objectStore(DB_STORE);
           store.put(payload, DB_KEY);
-          tx.oncomplete = () => resolve(true);
-          tx.onerror = () => reject(tx.error);
-          tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted.'));
+          tx.oncomplete = () => { db.close(); resolve(true); };
+          tx.onerror = () => { const err = tx.error; db.close(); reject(err); };
+          tx.onabort = () => { const err = tx.error || new Error('IndexedDB transaction aborted.'); db.close(); reject(err); };
         });
       } catch (err) {
         console.error('Save Error:', err);
@@ -1565,8 +1565,8 @@
           const tx = db.transaction(DB_STORE, 'readonly');
           const store = tx.objectStore(DB_STORE);
           const request = store.get(DB_KEY);
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(request.error);
+          request.onsuccess = () => { const result = request.result; db.close(); resolve(result); };
+          request.onerror = () => { const err = request.error; db.close(); reject(err); };
         });
       } catch (err) {
         console.error('Load Error:', err);
@@ -2279,21 +2279,30 @@
 
         let downloadedCount = 0;
         const totalFiles = excelFilesMeta.length;
-
-        const filePromises = excelFilesMeta.map(async (meta) => {
-          const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${meta.id}?alt=media`, {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-          });
-          if (!fileRes.ok) throw new Error(`Unable to read file (${meta.name}).`);
-          const arrayBuffer = await fileRes.arrayBuffer();
-          downloadedCount++;
-          const pctVal = Math.floor(30 + (downloadedCount / totalFiles) * 50);
-          $bar.css('width', pctVal + '%').text(pctVal + '%');
-
-          return new File([arrayBuffer], meta.name, { type: meta.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        });
-
-        const excelFileObjects = await Promise.all(filePromises);
+        const excelFileObjects = new Array(totalFiles);
+        let nextDownloadIndex = 0;
+        // Limit concurrent downloads to reduce memory spikes and connection contention.
+        const downloadConcurrency = Math.min(6, totalFiles);
+        const downloadWorker = async () => {
+          while (true) {
+            const index = nextDownloadIndex++;
+            if (index >= totalFiles) return;
+            const meta = excelFilesMeta[index];
+            const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${meta.id}?alt=media`, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            if (!fileRes.ok) throw new Error(`Unable to read file (${meta.name}).`);
+            const arrayBuffer = await fileRes.arrayBuffer();
+            excelFileObjects[index] = new File([arrayBuffer], meta.name, {
+              type: meta.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            downloadedCount++;
+            const pctVal = Math.floor(30 + (downloadedCount / totalFiles) * 50);
+            $bar.css('width', pctVal + '%').text(pctVal + '%');
+            $status.text(`Downloading ${downloadedCount} of ${totalFiles} Excel file(s)...`);
+          }
+        };
+        await Promise.all(Array.from({ length: downloadConcurrency }, () => downloadWorker()));
         performanceMetrics.googleDriveFetch = (performance.now() - driveFetchStart) / 1000;
         uploadModal.hide();
         processExcelFiles(excelFileObjects, { driveFileManifest: manifest });
@@ -2807,8 +2816,10 @@
     `;
 
     function getWorkerPoolSize(fileCount) {
-      const cores = (navigator.hardwareConcurrency || 4);
-      return Math.max(2, Math.min(cores * 2, fileCount, 16));
+      // XLSX parsing is CPU- and memory-intensive. A small pool generally
+      // gives better throughput than spawning 2x logical cores for every refresh.
+      const cores = Math.max(2, navigator.hardwareConcurrency || 4);
+      return Math.max(1, Math.min(cores, fileCount, 4));
     }
 
     function createExcelWorker() {
@@ -3118,6 +3129,11 @@
 
       monthColumns = Array.from(monthKeysSet);
       monthColumns.sort((a, b) => parseDDMMYY(a) - parseDDMMYY(b));
+      const monthColumnKeys = monthColumns.map(month => ({
+        month,
+        budgetKey: `Budget ${month}`,
+        actualKey: `Actual ${month}`
+      }));
       fileResults.sort((a, b) => b.startWeight - a.startWeight);
 
       // IMPORTANT: PIP Projected Start/End Dates are sourced ONLY from
@@ -3259,15 +3275,13 @@
           if (!lineObj['Remarks'] && (row['Remarks'] || row['Remark'])) lineObj['Remarks'] = String(row['Remarks'] || row['Remark']).trim();
           if (!lineObj['Broad Category-US'] && (row['Broad Category-US'] || row['Broad Category'])) lineObj['Broad Category-US'] = String(row['Broad Category-US'] || row['Broad Category']).trim();
 
-          monthColumns.forEach(m => {
-            const bKey = `Budget ${m}`;
-            const aKey = `Actual ${m}`;
-
-            if (row[bKey] !== undefined && row[bKey] !== null &&
-                lineObj.monthsData[m] === undefined) {
-              lineObj.monthsData[m] = {
-                budget: parseFloat(row[bKey]) || 0,
-                actual: parseFloat(row[aKey]) || 0,
+          monthColumnKeys.forEach(({ month, budgetKey, actualKey }) => {
+            const budgetValue = row[budgetKey];
+            if (budgetValue !== undefined && budgetValue !== null &&
+                lineObj.monthsData[month] === undefined) {
+              lineObj.monthsData[month] = {
+                budget: parseFloat(budgetValue) || 0,
+                actual: parseFloat(row[actualKey]) || 0,
                 sourceFile: fileObj.filename
               };
             }
@@ -3301,14 +3315,13 @@
 
         let computedAnnualActual = 0;
 
-        monthColumns.forEach(m => {
-          const mData = lineObj.monthsData[m];
+        monthColumnKeys.forEach(({ month, budgetKey, actualKey }) => {
+          const mData = lineObj.monthsData[month];
           const bVal = mData ? mData.budget : 0;
           const aVal = mData ? mData.actual : 0;
 
-          rowRecord[`Budget ${m}`] = bVal;
-          rowRecord[`Actual ${m}`] = aVal;
-
+          rowRecord[budgetKey] = bVal;
+          rowRecord[actualKey] = aVal;
           computedAnnualActual += aVal;
         });
 
