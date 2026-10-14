@@ -1074,7 +1074,7 @@
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.22</div>
+            <div class="developer-version">© 2026 | Version: 3.23</div>
           </div>
         </div>
       </div>
@@ -1523,22 +1523,81 @@
 
     // --- INDEXEDDB STORAGE ENGINE (MagicBusFinancialDB) ---
     const DB_NAME = 'MagicBusFinancialDB';
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const DB_STORE = 'dashboard_store';
     const DB_KEY = 'raw_records';
+    const DRIVE_FILE_CACHE_STORE = 'drive_file_cache';
+    let dbOpenPromise = null;
 
     function openDB() {
-      return new Promise((resolve, reject) => {
+      if (dbOpenPromise) return dbOpenPromise;
+      dbOpenPromise = new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         request.onupgradeneeded = (event) => {
           const db = event.target.result;
-          if (!db.objectStoreNames.contains(DB_STORE)) {
-            db.createObjectStore(DB_STORE);
+          if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+          if (!db.objectStoreNames.contains(DRIVE_FILE_CACHE_STORE)) {
+            db.createObjectStore(DRIVE_FILE_CACHE_STORE, { keyPath: 'cacheKey' });
           }
         };
-        request.onsuccess = (event) => resolve(event.target.result);
-        request.onerror = (event) => reject(event.target.error);
+        request.onsuccess = (event) => {
+          const db = event.target.result;
+          db.onversionchange = () => { db.close(); dbOpenPromise = null; };
+          resolve(db);
+        };
+        request.onerror = (event) => {
+          dbOpenPromise = null;
+          reject(event.target.error);
+        };
+        request.onblocked = () => {
+          console.warn('IndexedDB upgrade is blocked by another open dashboard tab.');
+        };
       });
+      return dbOpenPromise;
+    }
+
+    function makeDriveFileCacheKey(meta) {
+      return [meta.id || '', meta.modifiedTime || '', meta.size || '', meta.md5Checksum || ''].join('|');
+    }
+
+    async function getCachedDriveFile(meta) {
+      try {
+        const db = await openDB();
+        return await new Promise((resolve, reject) => {
+          const tx = db.transaction(DRIVE_FILE_CACHE_STORE, 'readonly');
+          const request = tx.objectStore(DRIVE_FILE_CACHE_STORE).get(makeDriveFileCacheKey(meta));
+          request.onsuccess = () => resolve(request.result || null);
+          request.onerror = () => reject(request.error);
+        });
+      } catch (err) {
+        console.warn('Drive file cache read failed; file will be downloaded:', err);
+        return null;
+      }
+    }
+
+    async function cacheDriveFile(meta, buffer) {
+      try {
+        const db = await openDB();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(DRIVE_FILE_CACHE_STORE, 'readwrite');
+          tx.objectStore(DRIVE_FILE_CACHE_STORE).put({
+            cacheKey: makeDriveFileCacheKey(meta),
+            id: meta.id,
+            name: meta.name,
+            mimeType: meta.mimeType || '',
+            buffer: buffer,
+            cachedAt: Date.now()
+          });
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error('Drive file cache transaction aborted.'));
+        });
+        return true;
+      } catch (err) {
+        // Cache quota/private-mode failures must not prevent a successful refresh.
+        console.warn('Drive file cache write failed; continuing without file cache:', err);
+        return false;
+      }
     }
 
     async function saveDatasetToIDB(payload) {
@@ -1548,9 +1607,9 @@
           const tx = db.transaction(DB_STORE, 'readwrite');
           const store = tx.objectStore(DB_STORE);
           store.put(payload, DB_KEY);
-          tx.oncomplete = () => { db.close(); resolve(true); };
-          tx.onerror = () => { const err = tx.error; db.close(); reject(err); };
-          tx.onabort = () => { const err = tx.error || new Error('IndexedDB transaction aborted.'); db.close(); reject(err); };
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted.'));
         });
       } catch (err) {
         console.error('Save Error:', err);
@@ -1565,8 +1624,8 @@
           const tx = db.transaction(DB_STORE, 'readonly');
           const store = tx.objectStore(DB_STORE);
           const request = store.get(DB_KEY);
-          request.onsuccess = () => { const result = request.result; db.close(); resolve(result); };
-          request.onerror = () => { const err = request.error; db.close(); reject(err); };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
         });
       } catch (err) {
         console.error('Load Error:', err);
@@ -2217,14 +2276,18 @@
 
       try {
         const query = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
-        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&pageSize=100&fields=files(id,name,mimeType,modifiedTime,size,md5Checksum)`, {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-
-        if (!listRes.ok) throw new Error("Unable to access this Google Drive folder.");
-
-        const listData = await listRes.json();
-        const files = listData.files || [];
+        const files = [];
+        let pageToken = '';
+        do {
+          const pageParam = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+          const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&pageSize=100&fields=nextPageToken,files(id,name,mimeType,modifiedTime,size,md5Checksum)${pageParam}`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+          if (!listRes.ok) throw new Error("Unable to access this Google Drive folder.");
+          const listData = await listRes.json();
+          files.push(...(listData.files || []));
+          pageToken = listData.nextPageToken || '';
+        } while (pageToken);
         const excelFilesMeta = files.filter(f => {
           const name = f.name.toLowerCase();
           return name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.xlsm');
@@ -2260,49 +2323,62 @@
           JSON.stringify(cachedManifest) === JSON.stringify(manifest);
 
         if (manifestSame && cached.allParsedDataset && cached.allParsedDataset.length) {
+          // If the dashboard already has the same dataset in memory, do not rebuild
+          // every filter index and report merely because the user clicked Refresh.
+          const alreadyLoaded = Array.isArray(allParsedDataset) &&
+            allParsedDataset.length === cached.allParsedDataset.length &&
+            allParsedDataset.length > 0;
           const cacheRestoreStart = performance.now();
-          await restoreOptimizedCachedPayload(cached);
+          if (!alreadyLoaded) await restoreOptimizedCachedPayload(cached);
+
           performanceMetrics.googleDriveFetch = (performance.now() - driveFetchStart) / 1000;
           performanceMetrics.excelParsing = 0;
           performanceMetrics.dataProcessing = 0;
           performanceMetrics.indexBuilding = 0;
           performanceMetrics.indexedDBSave = 0;
-          performanceMetrics.dashboardRendering = (performance.now() - cacheRestoreStart) / 1000;
-          performanceMetrics.totalRefresh = (performance.now() - refreshOperationStart) / 1000;
-          setUploadProgress(100, 'Google Drive unchanged. Restored cached processed data.', 'Refresh Complete');
+          performanceMetrics.dashboardRendering = alreadyLoaded ? 0 : (performance.now() - cacheRestoreStart) / 1000;
+          performanceMetrics.totalRefresh = refreshOperationStart ? (performance.now() - refreshOperationStart) / 1000 : performanceMetrics.googleDriveFetch;
+          setUploadProgress(100, alreadyLoaded
+            ? 'Google Drive unchanged. Current processed data is already up to date.'
+            : 'Google Drive unchanged. Restored cached processed data.', 'Refresh Complete');
           updateRefreshTimingDisplay();
           uploadModal.hide();
           isDataLoading = false;
           updateStatusArea('Google Drive', `ID: ${folderId.substring(0,8)}...`, 'Loaded (Cached)');
+          $('#fileInfo').text(alreadyLoaded
+            ? `Data unchanged; existing dataset retained (${allParsedDataset.length} rows)`
+            : `Restored saved data (${allParsedDataset.length} rows)`);
+          refreshOperationStart = 0;
           return;
         }
 
         let downloadedCount = 0;
         const totalFiles = excelFilesMeta.length;
-        const excelFileObjects = new Array(totalFiles);
-        let nextDownloadIndex = 0;
-        // Limit concurrent downloads to reduce memory spikes and connection contention.
-        const downloadConcurrency = Math.min(6, totalFiles);
-        const downloadWorker = async () => {
-          while (true) {
-            const index = nextDownloadIndex++;
-            if (index >= totalFiles) return;
-            const meta = excelFilesMeta[index];
+
+        // Reuse previously downloaded file bytes when Drive metadata is unchanged.
+        // Only new/modified files need a network download.
+        const filePromises = excelFilesMeta.map(async (meta) => {
+          const cacheRecord = await getCachedDriveFile(meta);
+          let arrayBuffer;
+          if (cacheRecord && cacheRecord.buffer) {
+            arrayBuffer = cacheRecord.buffer;
+          } else {
             const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${meta.id}?alt=media`, {
               headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             if (!fileRes.ok) throw new Error(`Unable to read file (${meta.name}).`);
-            const arrayBuffer = await fileRes.arrayBuffer();
-            excelFileObjects[index] = new File([arrayBuffer], meta.name, {
-              type: meta.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-            downloadedCount++;
-            const pctVal = Math.floor(30 + (downloadedCount / totalFiles) * 50);
-            $bar.css('width', pctVal + '%').text(pctVal + '%');
-            $status.text(`Downloading ${downloadedCount} of ${totalFiles} Excel file(s)...`);
+            arrayBuffer = await fileRes.arrayBuffer();
+            await cacheDriveFile(meta, arrayBuffer);
           }
-        };
-        await Promise.all(Array.from({ length: downloadConcurrency }, () => downloadWorker()));
+          downloadedCount++;
+          const pctVal = Math.floor(30 + (downloadedCount / totalFiles) * 50);
+          $bar.css('width', pctVal + '%').text(pctVal + '%');
+          return new File([arrayBuffer], meta.name, {
+            type: meta.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          });
+        });
+
+        const excelFileObjects = await Promise.all(filePromises);
         performanceMetrics.googleDriveFetch = (performance.now() - driveFetchStart) / 1000;
         uploadModal.hide();
         processExcelFiles(excelFileObjects, { driveFileManifest: manifest });
@@ -2319,6 +2395,7 @@
     function handleRefreshData() {
       if (isDataLoading) return;
 
+      refreshOperationStart = performance.now();
       dailyRefreshDue = false;
       $('#btnRefreshData').removeClass('daily-refresh-due').attr('title', 'Refresh dashboard data');
 
@@ -2816,10 +2893,8 @@
     `;
 
     function getWorkerPoolSize(fileCount) {
-      // XLSX parsing is CPU- and memory-intensive. A small pool generally
-      // gives better throughput than spawning 2x logical cores for every refresh.
-      const cores = Math.max(2, navigator.hardwareConcurrency || 4);
-      return Math.max(1, Math.min(cores, fileCount, 4));
+      const cores = (navigator.hardwareConcurrency || 4);
+      return Math.max(2, Math.min(cores * 2, fileCount, 16));
     }
 
     function createExcelWorker() {
@@ -3064,14 +3139,16 @@
               const dashboardStart = performance.now();
               processAndRenderDashboard();
               performanceMetrics.dashboardRendering = (performance.now() - dashboardStart) / 1000;
-              performanceMetrics.totalRefresh = (performance.now() - startTime) / 1000;
+              performanceMetrics.totalRefresh = (performance.now() - (refreshOperationStart || startTime)) / 1000;
               updateRefreshTimingDisplay();
               highlightFilterSection();
               isDataLoading = false;
+              refreshOperationStart = 0;
           };
 
           const handleFailure = (err) => {
             isDataLoading = false;
+            refreshOperationStart = 0;
             uploadModal.hide();
             updateStatusArea(currentDataSource === 'gdrive' ? 'Google Drive' : 'Local Drive', 'Error', 'Disconnected', true);
             alert('Unable to read this Excel file.');
@@ -3129,11 +3206,6 @@
 
       monthColumns = Array.from(monthKeysSet);
       monthColumns.sort((a, b) => parseDDMMYY(a) - parseDDMMYY(b));
-      const monthColumnKeys = monthColumns.map(month => ({
-        month,
-        budgetKey: `Budget ${month}`,
-        actualKey: `Actual ${month}`
-      }));
       fileResults.sort((a, b) => b.startWeight - a.startWeight);
 
       // IMPORTANT: PIP Projected Start/End Dates are sourced ONLY from
@@ -3275,13 +3347,15 @@
           if (!lineObj['Remarks'] && (row['Remarks'] || row['Remark'])) lineObj['Remarks'] = String(row['Remarks'] || row['Remark']).trim();
           if (!lineObj['Broad Category-US'] && (row['Broad Category-US'] || row['Broad Category'])) lineObj['Broad Category-US'] = String(row['Broad Category-US'] || row['Broad Category']).trim();
 
-          monthColumnKeys.forEach(({ month, budgetKey, actualKey }) => {
-            const budgetValue = row[budgetKey];
-            if (budgetValue !== undefined && budgetValue !== null &&
-                lineObj.monthsData[month] === undefined) {
-              lineObj.monthsData[month] = {
-                budget: parseFloat(budgetValue) || 0,
-                actual: parseFloat(row[actualKey]) || 0,
+          monthColumns.forEach(m => {
+            const bKey = `Budget ${m}`;
+            const aKey = `Actual ${m}`;
+
+            if (row[bKey] !== undefined && row[bKey] !== null &&
+                lineObj.monthsData[m] === undefined) {
+              lineObj.monthsData[m] = {
+                budget: parseFloat(row[bKey]) || 0,
+                actual: parseFloat(row[aKey]) || 0,
                 sourceFile: fileObj.filename
               };
             }
@@ -3315,13 +3389,14 @@
 
         let computedAnnualActual = 0;
 
-        monthColumnKeys.forEach(({ month, budgetKey, actualKey }) => {
-          const mData = lineObj.monthsData[month];
+        monthColumns.forEach(m => {
+          const mData = lineObj.monthsData[m];
           const bVal = mData ? mData.budget : 0;
           const aVal = mData ? mData.actual : 0;
 
-          rowRecord[budgetKey] = bVal;
-          rowRecord[actualKey] = aVal;
+          rowRecord[`Budget ${m}`] = bVal;
+          rowRecord[`Actual ${m}`] = aVal;
+
           computedAnnualActual += aVal;
         });
 
