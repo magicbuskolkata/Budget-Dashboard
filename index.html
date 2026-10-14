@@ -1408,7 +1408,7 @@
   <div class="modal fade" id="broadCategoryModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-90-width modal-dialog-scrollable"><div class="modal-content">
       <div class="modal-header py-2 px-3"><h6 class="modal-title fw-bold text-warning"><i class="fa-solid fa-layer-group me-2"></i>Broad Category-wise Analysis</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="report-export-host"></div><button type="button" class="btn btn-outline-primary btn-sm btn-smart-filter"><i class="fa-solid fa-filter me-1"></i>Smart Filter</button></div><input class="form-control form-control-sm global-report-search" id="broadCategorySearch" placeholder="Global Search: any field"></div><div class="report-modal-table-wrap"><table id="broadCategoryTable" class="table table-sm table-striped table-hover w-100"></table></div></div>
+      <div class="modal-body p-2"><div class="report-toolbar"><div class="d-flex align-items-center gap-1 flex-wrap"><div class="report-export-host"></div></div><input class="form-control form-control-sm global-report-search" id="broadCategorySearch" placeholder="Global Search: any field"></div><div class="report-modal-table-wrap"><table id="broadCategoryTable" class="table table-sm table-striped table-hover w-100"></table></div></div>
     </div></div>
   </div>
 
@@ -2266,7 +2266,7 @@
     async function executeGoogleDriveFetch(folderId) {
       isDataLoading = true;
       if (!refreshOperationStart) refreshOperationStart = performance.now();
-      const uploadModal = new bootstrap.Modal(document.getElementById('uploadProgressModal'));
+      const uploadModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('uploadProgressModal'));
       uploadModal.show();
       
       const $bar = $('#uploadProgressBar');
@@ -2319,8 +2319,18 @@
         const cachedManifest = cached && Array.isArray(cached.driveFileManifest)
           ? cached.driveFileManifest.slice().sort((a,b) => a.id.localeCompare(b.id))
           : null;
-        const manifestSame = cachedManifest &&
-          JSON.stringify(cachedManifest) === JSON.stringify(manifest);
+        const manifestSame = !!cachedManifest &&
+          cachedManifest.length === manifest.length &&
+          cachedManifest.every((cachedFile, index) => {
+            const currentFile = manifest[index];
+            return !!currentFile &&
+              cachedFile.id === currentFile.id &&
+              cachedFile.name === currentFile.name &&
+              cachedFile.mimeType === currentFile.mimeType &&
+              cachedFile.modifiedTime === currentFile.modifiedTime &&
+              String(cachedFile.size || '') === String(currentFile.size || '') &&
+              String(cachedFile.md5Checksum || '') === String(currentFile.md5Checksum || '');
+          });
 
         if (manifestSame && cached.allParsedDataset && cached.allParsedDataset.length) {
           // If the dashboard already has the same dataset in memory, do not rebuild
@@ -2477,8 +2487,8 @@
                 '<td class="group-subtotal-cell budget-amount-col budget-ytd-col budget-ytd-last"><span class="' + clsYtd + '">' + formatINR(sumYtdVariance) + '</span></td>' +
                 '<td class="group-subtotal-cell budget-amount-col budget-annual-col">' + formatINR(sumBudget) + '</td>' +
                 '<td class="group-subtotal-cell budget-amount-col budget-annual-col">' + formatINR(sumActual) + '</td>' +
-                '<td class="group-subtotal-cell budget-amount-col budget-annual-col budget-annual-last"><span class="' + clsAnnual + '">' + formatINR(sumVariance) + '</span></td>' +
-                '<td class="group-subtotal-cell budget-util-col"><span class="badge ' + badgeClass + '">' + sumUtil.toFixed(1) + '%</span></td>' +
+                '<td class="group-subtotal-cell budget-amount-col budget-annual-col"><span class="' + clsAnnual + '">' + formatINR(sumVariance) + '</span></td>' +
+                '<td class="group-subtotal-cell budget-util-col budget-annual-last"><span class="badge ' + badgeClass + '">' + sumUtil.toFixed(1) + '%</span></td>' +
                 '<td class="group-subtotal-cell budget-amount-col">' + formatINR(sumOpenPO) + '</td>'
               );
           }
@@ -2513,7 +2523,7 @@
           {
             data: 'Utilization',
             render: (data) => `<span class="badge ${data > 100 ? 'bg-status-red' : 'bg-status-green'}">${(parseFloat(data) || 0).toFixed(1)}%</span>`,
-            className: 'budget-util-col'
+            className: 'budget-util-col budget-annual-last'
           },
           { data: 'Total Open PO Value', render: (data) => formatINR(data), className: 'budget-amount-col' },
           // Hidden technical sort key used only to keep Broad Categories contiguous.
@@ -2543,8 +2553,8 @@
           $(api.column(11).footer()).html(`<span class="${totalAnnualVariance < 0 ? 'status-red fw-bold' : 'status-green fw-bold'}">${formatINR(totalAnnualVariance)}</span>`);
           $(api.column(9).footer()).addClass('budget-annual-col');
           $(api.column(10).footer()).addClass('budget-annual-col');
-          $(api.column(11).footer()).addClass('budget-annual-col budget-annual-last');
-          $(api.column(12).footer()).html(`<span class="badge ${totalAnnualUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalAnnualUtil.toFixed(1)}%</span>`);
+          $(api.column(11).footer()).addClass('budget-annual-col');
+          $(api.column(12).footer()).html(`<span class="badge ${totalAnnualUtil > 100 ? 'bg-status-red' : 'bg-status-green'}">${totalAnnualUtil.toFixed(1)}%</span>`).addClass('budget-annual-last');
           $(api.column(13).footer()).html(formatINR(totalOpenPO));
         },
         dom: '<"budget-report-toolbar"<"d-flex justify-content-between align-items-center mb-2"B>>rt<"budget-report-footer"i>',
@@ -2597,7 +2607,14 @@
           <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
           <input type="text" id="budgetBreakdownSearch" class="form-control" placeholder="Global Search: any field...">
         </div>`;
-      $dtButtons.append(expandBtnHtml + modalFilterHtml + breakdownSearchHtml);
+      // Keep Expand Rows beside Print for quick access, without changing its behavior.
+      const $printButton = $dtButtons.find('.buttons-print').last();
+      if ($printButton.length) {
+        $printButton.after(expandBtnHtml);
+      } else {
+        $dtButtons.append(expandBtnHtml);
+      }
+      $dtButtons.append(modalFilterHtml + breakdownSearchHtml);
       $(document).off('input.budgetBreakdownSearch', '#budgetBreakdownSearch')
         .on('input.budgetBreakdownSearch', '#budgetBreakdownSearch', function() {
           if (dataTableInstance) dataTableInstance.search(this.value).draw();
@@ -3133,8 +3150,24 @@
                   <button type="button" class="btn-close py-1" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
               `;
-              $('#flashMessageContainer').html(flashHtml);
-              setTimeout(() => $('#flashMessageContainer .alert').alert('close'), 5000);
+              // Replace any previous refresh notice and ensure the flash message
+              // is removed from the DOM after its timeout (Bootstrap 5 safe).
+              const $flashContainer = $('#flashMessageContainer');
+              $flashContainer.find('.alert').each(function () {
+                bootstrap.Alert.getOrCreateInstance(this).close();
+              });
+              $flashContainer.html(flashHtml);
+              const flashAlert = $flashContainer.find('.alert').get(0);
+              if (flashAlert) {
+                const closeFlash = () => {
+                  if (!flashAlert.isConnected) return;
+                  bootstrap.Alert.getOrCreateInstance(flashAlert).close();
+                };
+                flashAlert.addEventListener('closed.bs.alert', () => {
+                  bootstrap.Alert.getInstance(flashAlert)?.dispose();
+                }, { once: true });
+                window.setTimeout(closeFlash, 4000);
+              }
 
               const dashboardStart = performance.now();
               processAndRenderDashboard();
