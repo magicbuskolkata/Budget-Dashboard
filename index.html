@@ -1074,7 +1074,7 @@
         <div class="smart-filter-developer mt-2 mb-1">
           <div class="developer-pill" role="contentinfo" aria-label="Dashboard developer information">
             <div class="developer-name">Develop by: Sanju Kumar Mallik</div>
-            <div class="developer-version">© 2026 | Version: 3.24</div>
+            <div class="developer-version">© 2026 | Version: 3.25</div>
           </div>
         </div>
       </div>
@@ -1926,26 +1926,35 @@
       updateDailyRefreshIndicator();
       scheduleNextAutoRefresh();
 
-      if (!hasRestoredData) {
-        // Google Drive is the default data source and loads automatically.
-        setTimeout(() => handleGDriveLoad(), 250);
-      } else {
-        // If the browser was closed when a scheduled slot occurred, catch up
-        // once when the dashboard is opened again.
-        setTimeout(() => maybeRunScheduledAutoRefresh(), 500);
-      }
+      // AUTO-SYNC UPDATE v3.25: Always revalidate against Google Drive on every page load, even when
+      // IndexedDB has cached data. Cached data is rendered first (when present)
+      // so users see the dashboard immediately while the latest backend files
+      // are checked and downloaded in the background.
+      window.__mbBudgetLastDriveSyncAttempt = Date.now();
+      setTimeout(() => {
+        if (currentDataSource === 'gdrive' && !isDataLoading) {
+          handleGDriveLoad();
+        }
+      }, 150);
+
+      // When a user returns to an already-open dashboard, re-check the backend
+      // if the last check is older than two minutes. Avoid duplicate requests
+      // while loading and retain the existing scheduled refresh mechanism.
+      const refreshOnReturnIfStale = () => {
+        updateDailyRefreshIndicator();
+        scheduleNextAutoRefresh();
+        const lastAttempt = Number(window.__mbBudgetLastDriveSyncAttempt || 0);
+        if (document.hidden || isDataLoading || currentDataSource !== 'gdrive') return;
+        if (accessToken && Date.now() - lastAttempt >= 2 * 60 * 1000) {
+          window.__mbBudgetLastDriveSyncAttempt = Date.now();
+          handleGDriveLoad();
+        }
+      };
 
       document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          updateDailyRefreshIndicator();
-          maybeRunScheduledAutoRefresh();
-          scheduleNextAutoRefresh();
-        }
+        if (!document.hidden) refreshOnReturnIfStale();
       });
-      window.addEventListener('focus', () => {
-        updateDailyRefreshIndicator();
-        maybeRunScheduledAutoRefresh();
-      });
+      window.addEventListener('focus', refreshOnReturnIfStale);
 
       $('#budgetBreakdownModal').on('shown.bs.modal', function () {
         if (dataTableInstance) {
